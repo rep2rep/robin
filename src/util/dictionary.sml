@@ -90,7 +90,7 @@ fun remove x [] = []
 
 fun get _ [] = raise KeyError
   | get x ((k, v)::xs) = if K.compare(x,k) = EQUAL then v
-                         else if K.compare(x,k) = GREATER then raise KeyError
+                         else if K.compare(x,k) = LESS then raise KeyError
                          else get x xs;
 
 fun keys [] = []

@@ -89,21 +89,14 @@ fun contains xs x =
     let
         val v = D.get x xs
     in
-        v = ()
+        true
     end
-        handle KeyError => false
-fun subset a b = (* This is broken completely??? *)
+    handle KeyError => false;
+fun subset xs ys =
     let
-        fun subset' [] _ = true
-          | subset' _ [] = false
-          | subset' (x::xs) (y::ys) = if O.compare(x,y) = EQUAL then subset' xs ys
-                                      else if O.compare(x,y) = GREATER then subset' (x::xs) ys
-                                      else false;
+        val contained = map (fn x => contains ys x) xs;
     in
-        subset' (D.keys a) (D.keys b)
-                (* The use of keys means this is always a sorted list operation. *)
-                (* We are assuming that the keys come back sorted, which should probably be specified somewhere. *)
+        RobinLib.all contained
     end;
-
 
 end;

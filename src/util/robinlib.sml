@@ -14,6 +14,8 @@ sig
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
+    val all : bool list -> bool;
+    val any : bool list -> bool;
 end;
 
 
@@ -52,5 +54,11 @@ fun enumerateFrom _ [] = []
   | enumerateFrom i (x::xs) = (i, x)::(enumerateFrom (i+1) xs);
 
 fun enumerate xs = enumerateFrom 0 xs;
+
+fun all [] = true
+  | all (b::bs) = b andalso (all bs);
+
+fun any [] = false
+  | any (b::bs) = b orelse (any bs);
 
 end;
