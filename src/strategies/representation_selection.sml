@@ -88,16 +88,18 @@ fun userInfluence (q, r, s) = (q, r, s);
 fun taskInfluence (q, r, s) = (q, r, s);
 
 (*
-topKRepresentations : question -> representation list -> int -> (representation * real) list
-Determine the best k representations from the given list to attempt to
+topKRepresentations : question -> int -> (representation * real) list
+Determine the best k representations from some known set to attempt to
 solve the given question. The limit k can take on the special value -1,
 in which case every valid representation is returned.
 *)
-fun topKRepresentations (question, primary_rep) representations k =
+fun topKRepresentations question k =
     let
+        val (questionString, questionRep) = question;
         val relevanceScore = (taskInfluence o userInfluence o propInfluence);
+        val representations = map (fn (r, _) => r) propertyTableRep;
         val influencedRepresentations = List.map
-                                            (fn rep => relevanceScore (question, rep, 0.0))
+                                            (fn rep => relevanceScore (questionString, rep, 0.0))
                                             representations;
 
         val sort = RobinLib.mergesort (fn ((a, b, c), (x, y, z)) =>
