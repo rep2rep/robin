@@ -16,6 +16,7 @@ sig
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
     val all : bool list -> bool;
     val any : bool list -> bool;
+    val lookaheadN : (TextIO.instream *  int) -> string;
 end;
 
 
@@ -60,5 +61,13 @@ fun all [] = true
 
 fun any [] = false
   | any (b::bs) = b orelse (any bs);
+
+fun lookaheadN (istr, count) =
+    let
+        val oldstream = TextIO.getInstream istr;
+        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
+    in
+        lookahead
+    end;
 
 end;
