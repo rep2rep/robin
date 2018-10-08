@@ -38,5 +38,5 @@ Relevance:
     * `left` denotes conditions on the question properties, which we have extended to allow logical statements. For example, we can require `Q` have properties `A` or `B`, but not `C` as ![(A \/ B) /\ -C](https://latex.codecogs.com/gif.latex?%28A%20%5Clor%20B%29%20%5Cland%20%5Clnot%20C).
     * `right` denotes conditions on the representation properties, using the same notation as `left`.
     * `val` is a real number where the sign denotes whether the relationship is good or bad, while the magnitude its strength.
-   3. For each correspondence in the correspondence table, check if it is matched by both `Q` and `RS`.
+   3. For each correspondence in the correspondence table, check if `left` is matched by `Q` and `right` by `RS`. We leave the meaning of "match" abstract for now. It is obvious for some properties (e.g., `associative` matches `associative`) but others may need more complex definitions of match (e.g., `3-dimensions` matches `atleast-2-dimensions`).
    4. Combine the `val`s of every matched correspondence. For now, *combine* means *sum*.
