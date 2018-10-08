@@ -22,7 +22,7 @@ Procedure:
 1. for each RS calculate the relevance score against `Q` with `relevanceScore`
 2. discard any RSs with relevance score <= 0
 3. sort the RSs using this score, high to low
-4. if there are fewer than `k` RSs, or k=-1, return all the RSs
+4. if there are fewer than `k` RSs, or `k=-1`, return all the RSs
 5. otherwise return the first `k` RSs
 
 Relevance:
