@@ -65,12 +65,13 @@ fun any [] = false
   | any (b::bs) = b orelse (any bs);
 
 fun dropWhile pred [] = []
-  | dropWhile pred (x::xs) = if (pred x) then dropWhile xs
-                             else x::(dropWhile xs);
+  | dropWhile pred (x::xs) = if (pred x) then dropWhile pred xs
+                             else x::(dropWhile pred xs);
 
 fun takeWhile pred [] = []
-  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile xs)
-                             else (takeWhile xs)
+  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile pred xs)
+                             else (takeWhile pred xs);
+
 fun lookaheadN (istr, count) =
     let
         val oldstream = TextIO.getInstream istr;
