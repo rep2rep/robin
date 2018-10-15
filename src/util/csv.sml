@@ -32,6 +32,7 @@ sig
     val closeIn : instream -> unit;
     val inputCell : instream -> string;
     val inputRow : instream -> string list;
+    val input : instream -> string list list;
     val skipDelimiter : instream -> bool;
     val endOfCell : instream -> bool;
     val endOfRow : instream -> bool;
@@ -39,8 +40,9 @@ sig
 
     val openOut : string -> outstream;
     val closeOut : outstream -> unit;
-    val outputCell : 'a -> 'b -> 'c -> unit;
-    val outputRow : 'a -> 'b -> unit;
+    val outputCell : outstream -> string -> bool -> unit;
+    val outputRow : outstream -> string list -> unit;
+    val output : outstream -> string list list -> unit;
     val flushOut : outstream -> unit;
 end;
 
@@ -119,6 +121,18 @@ in
     else (TextIO.inputN (istr, lookaheadDistance); result) (* Consume the newline *)
 end;
 
+fun input istr = let
+    fun dowhile' cond eval result =
+        if (cond ()) then (dowhile' cond eval ((eval ())::result))
+        else result;
+    fun dowhile cond eval = List.rev (dowhile' cond eval []);
+    val startsEmpty = endOfStream istr;
+in
+    if startsEmpty then []
+    else dowhile (fn () => not (endOfStream istr))
+                 (fn () => inputRow istr)
+end;
+
 
 fun openOut filename = TextIO.openOut filename;
 fun closeOut ostr = TextIO.closeOut ostr;
@@ -127,6 +141,7 @@ fun flushOut ostr = TextIO.flushOut ostr;
 (* TODO: Implement output *)
 fun outputCell ostr value isEndOfLine = ();
 fun outputRow ostr values = ();
+fun output ostr values = ();
 
 end;
 
