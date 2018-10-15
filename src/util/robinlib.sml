@@ -16,6 +16,8 @@ sig
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
     val all : bool list -> bool;
     val any : bool list -> bool;
+    val dropWhile : ('a -> bool) -> 'a list -> 'a list;
+    val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val lookaheadN : (TextIO.instream *  int) -> string;
 end;
 
@@ -62,6 +64,13 @@ fun all [] = true
 fun any [] = false
   | any (b::bs) = b orelse (any bs);
 
+fun dropWhile pred [] = []
+  | dropWhile pred (x::xs) = if (pred x) then dropWhile xs
+                             else x::(dropWhile xs);
+
+fun takeWhile pred [] = []
+  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile xs)
+                             else (takeWhile xs)
 fun lookaheadN (istr, count) =
     let
         val oldstream = TextIO.getInstream istr;
