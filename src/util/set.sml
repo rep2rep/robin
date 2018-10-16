@@ -24,6 +24,7 @@ sig
     val empty : t set;
     val fromList : t list -> t set;
     val toList : t set -> t list;
+    val toString : t set -> string;
 
     val insert : t -> t set -> t set;
     val remove : t -> t set -> t set;
@@ -55,6 +56,7 @@ functor Set(O :
             sig
                 type t;
                 val compare : t * t -> order;
+                val fmt : t -> string;
             end
            ) :> SET where type t = O.t =
 struct
@@ -69,6 +71,15 @@ type 'a set = ('a, unit) D.dict;
 val empty = D.empty;
 fun fromList xs = D.fromPairList (map (fn x => (x, ())) xs);
 fun toList xs = map (fn (x,_) => x) (D.toPairList xs);
+fun toString items =
+    let
+        val stringItems = D.map (fn (k, _) => O.fmt k) items;
+        val withCommas = RobinLib.intersperse ", " stringItems;
+        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+    in
+        "{" ^ joined ^ "}"
+    end;
+
 
 fun insert x xs = D.insert (x, ()) xs;
 fun remove x xs = D.remove x xs;
