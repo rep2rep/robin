@@ -18,6 +18,7 @@ sig
     val any : bool list -> bool;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
+    val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
 end;
 
@@ -71,6 +72,15 @@ fun dropWhile pred [] = []
 fun takeWhile pred [] = []
   | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile pred xs)
                              else (takeWhile pred xs);
+
+fun listToString fmt items =
+    let
+        val stringItems = map fmt items;
+        val withCommas = intersperse ", " stringItems;
+        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+    in
+        "[" ^ joined ^ "]"
+    end;
 
 fun lookaheadN (istr, count) =
     let
