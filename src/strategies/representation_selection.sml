@@ -1,9 +1,8 @@
-use "base.sml";
-use (BASE^"util/robinlib.sml");
-use (BASE^"util/logging.sml");
-use (BASE^"util/set.sml");
-use (BASE^"util/dictionary.sml");
-use (BASE^"util/csv.sml");
+import "util/robinlib.sml";
+import "util/logging.sml";
+import "util/set.sml";
+import "util/dictionary.sml";
+import "util/csv.sml";
 
 structure RepresentationSelection =
 struct

@@ -9,8 +9,7 @@ more customisation to be added in future.
 
 *)
 
-use "base.sml";
-use (BASE^"util/robinlib.sml");
+import "util/robinlib.sml";
 
 signature CSVConfig =
 sig

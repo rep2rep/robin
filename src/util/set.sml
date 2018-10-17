@@ -9,9 +9,8 @@ automatically inherited by the set structure.
 
 *)
 
-use "base.sml";
-use (BASE^"util/robinlib.sml");
-use (BASE^"util/dictionary.sml");
+import "util/robinlib.sml";
+import "util/dictionary.sml";
 
 
 

@@ -1,7 +1,7 @@
-use "base.sml";
-use (BASE^"util/logging.sml");
-use (BASE^"strategies/representation_selection.sml");
+use "base.sml";  (* base.sml is only included here. *)
 
+import "util/logging.sml";
+import "strategies/representation_selection.sml";
 Logging.enable ();
 
 structure RepSelect = RepresentationSelection;

@@ -8,8 +8,7 @@ This is clearly a slow and unsustainable approach.
 
 *)
 
-use "base.sml";
-use (BASE^"util/robinlib.sml");
+import "util/robinlib.sml";
 
 
 (* An abstract signature for dictionaries *)

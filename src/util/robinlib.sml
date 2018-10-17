@@ -6,8 +6,6 @@ Define some useful things for the whole robin system.
 
 *)
 
-use "base.sml";
-
 signature ROBINLIB =
 sig
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;

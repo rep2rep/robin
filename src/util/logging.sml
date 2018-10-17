@@ -1,5 +1,3 @@
-use "base.sml";
-
 signature LOGGING =
 sig
 

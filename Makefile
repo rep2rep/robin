@@ -9,3 +9,4 @@ dist/robin: src/main.sml base.sml
 .PHONY:base.sml
 base.sml:
 	echo 'val BASE="'`pwd`'/src/";' > base.sml
+	cat 'src/util/import.sml' >> base.sml
