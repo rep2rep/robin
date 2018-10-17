@@ -1,5 +1,6 @@
 use "base.sml";
 use (BASE^"util/robinlib.sml");
+use (BASE^"util/logging.sml");
 use (BASE^"util/set.sml");
 use (BASE^"util/dictionary.sml");
 use (BASE^"util/csv.sml");
@@ -47,7 +48,7 @@ fun readProps str = map stringTrim (String.tokens (fn c => c = #",") str);
 
 fun loadTable makeRow filename =
     let
-        val _ = print ("LOAD " ^ filename ^ "\n");
+        val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val csvFile = CSVDefault.openIn filename;
         val csvData = CSVDefault.input csvFile;
     in
@@ -56,7 +57,7 @@ fun loadTable makeRow filename =
     handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
          | TableError => (
-             print ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
+             Logging.write ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
              raise TableError
          );
 
@@ -92,11 +93,11 @@ val propertyTableQ' = ref [];
 
 fun init (repTables, corrTables, qTables) = let
     (* For now, we read in just the first table... *)
-    val _ = print "\n-- Load the representation tables\n";
+    val _ = Logging.write "\n-- Load the representation tables\n";
     val propertyTableRep = loadRepresentationTable (List.hd repTables);
-    val _ = print "\n-- Load the correspondence tables\n";
+    val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable = loadCorrespondenceTable (List.hd corrTables);
-    val _ = print "\n-- Load the question tables\n";
+    val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ = loadQuestionTable (List.hd qTables);
 in
     propertyTableRep' := propertyTableRep;
@@ -107,13 +108,13 @@ end;
 fun propertiesRep rep =
     getValue (!propertyTableRep') rep
     handle KeyError =>
-           (print ("ERROR: representation '" ^ rep ^ "' not found!\n");
+           (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise KeyError);
 
 fun propertiesQ q =
     getValue (!propertyTableQ') q
     handle KeyError =>
-           (print ("ERROR: question named '" ^ q ^ "' not found!\n");
+           (Logging.write ("ERROR: question named '" ^ q ^ "' not found!\n");
            raise KeyError);
 
 (*
@@ -123,10 +124,12 @@ their properties.
 *)
 fun propInfluence (q, r, s) =
     let
-        val _ = print ("\nBEGIN propInfluence\n");
-        val _ = print ("ARG q = " ^ q ^ " \n");
-        val _ = print ("ARG r = " ^ r ^ " \n");
-        val _ = print ("ARG s = " ^ (Real.toString s) ^ " \n");
+        val _ = Logging.write ("\n");
+        val _ = Logging.write ("BEGIN propInfluence\n");
+        val _ = Logging.indent ();
+        val _ = Logging.write ("ARG q = " ^ q ^ " \n");
+        val _ = Logging.write ("ARG r = " ^ r ^ " \n");
+        val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps = propertiesQ q;
         val rProps = propertiesRep r;
         val propertyPairs = List.filter
@@ -135,18 +138,20 @@ fun propInfluence (q, r, s) =
                                 (!correspondingTable');
 
         val mix = fn (((qp, rp), c), s) =>
-                     (print ("CORRESPONDENCE (" ^
-                             (StringSet.toString qp) ^
-                             ", " ^
-                             (StringSet.toString rp) ^
-                             ") -> " ^
-                             (Real.toString c) ^ "\n");
-                      print ("VAL s = " ^ (Real.toString (c + s)) ^ "\n");
+                     (Logging.write ("CORRESPONDENCE (" ^
+                           (StringSet.toString qp) ^
+                           ", " ^
+                           (StringSet.toString rp) ^
+                           ") -> " ^
+                           (Real.toString c) ^ "\n");
+                      Logging.write ("VAL s = " ^ (Real.toString (c + s)) ^ "\n");
                       (c + s));
         val s' = List.foldl mix s propertyPairs;
     in
-        print ("RETURN (" ^ q ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
-        print ("END propInfluence\n\n");
+        Logging.write ("\n");
+        Logging.write ("RETURN (" ^ q ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
+        Logging.dedent ();
+        Logging.write ("END propInfluence\n\n");
         (q, r, s')
     end;
 
@@ -162,27 +167,29 @@ in which case every valid representation is returned.
 *)
 fun topKRepresentations question k =
     let
-        val _ = print ("\nBEGIN topKRepresentations\n");
+        val _ = Logging.write ("\n");
+        val _ = Logging.write ("BEGIN topKRepresentations\n");
+        val _ = Logging.indent ();
         val (questionName, questionRep) = question;
-        val _ = print ("ARG question = (" ^
-                       questionName ^
-                       ", " ^
-                       questionRep ^
-                       ")\n");
-        val _ = print ("ARG k = " ^ (Int.toString k) ^ "\n\n");
-        val _ = print ("VAL questionName = " ^ questionName ^ "\n");
-        val _ = print ("VAL questionRep = " ^ questionRep ^ "\n");
+        val _ = Logging.write ("ARG question = (" ^
+                     questionName ^
+                     ", " ^
+                     questionRep ^
+                     ")\n");
+        val _ = Logging.write ("ARG k = " ^ (Int.toString k) ^ "\n\n");
+        val _ = Logging.write ("VAL questionName = " ^ questionName ^ "\n");
+        val _ = Logging.write ("VAL questionRep = " ^ questionRep ^ "\n");
         val relevanceScore = (taskInfluence o userInfluence o propInfluence);
-        val _ = print ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
+        val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
         val representations = map (fn (r, _) => r) (!propertyTableRep');
-        val _ = print ("VAL representations = " ^
-                       (RobinLib.listToString (fn s => s) representations) ^
-                       "\n");
+        val _ = Logging.write ("VAL representations = " ^
+                     (RobinLib.listToString (fn s => s) representations) ^
+                     "\n");
         val influencedRepresentations =
             List.map
                 (fn rep => relevanceScore (questionName, rep, 0.0))
                 representations;
-        val _ = print ("VAL influencedRepresentations = " ^
+        val _ = Logging.write ("VAL influencedRepresentations = " ^
                        (RobinLib.listToString
                             (fn (q, r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                             influencedRepresentations) ^
@@ -204,13 +211,15 @@ fun topKRepresentations question k =
                                    (List.rev
                                         (sort influencedRepresentations))));
     in
-        print ("RETURN " ^
-               (RobinLib.listToString
-                    (fn (r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
-                    result
-               ) ^
-               "\n");
-        print ("END topKRepresentations\n\n");
+        Logging.write ("\n");
+        Logging.write ("RETURN " ^
+             (RobinLib.listToString
+                  (fn (r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
+                  result
+             ) ^
+             "\n");
+        Logging.dedent ();
+        Logging.write ("END topKRepresentations\n\n");
         result
     end;
 
