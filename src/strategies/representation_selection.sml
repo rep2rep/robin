@@ -18,15 +18,16 @@ val set' = StringSet.fromList;
 val insert' = StringSet.insert;
 val subset' = StringSet.subset;
 
+structure StringDict = Dictionary(struct
+                                   type k = string;
+                                   val compare = String.compare;
+                                   end);
+val dict' = StringDict.fromPairList;
+fun getValue d k = StringDict.get k d;
+
 exception KeyError;
 exception TableError;
 
-
-fun contains [] _ = false
-  | contains (x::xs) y = (x=y) orelse contains xs y;
-
-fun getValue [] _ = raise KeyError
-  | getValue ((k, v)::xs) k' = if (k=k') then v else getValue xs k';
 
 (* Read in some data *)
 
@@ -87,18 +88,26 @@ val loadQuestionTable =
 
 val loadRepresentationTable = loadQuestionTable;
 
-val propertyTableRep' = ref [];
+val propertyTableRep' = ref StringDict.empty;
 val correspondingTable' = ref [];
-val propertyTableQ' = ref [];
+val propertyTableQ' = ref StringDict.empty;
 
 fun init (repTables, corrTables, qTables) = let
-    (* For now, we read in just the first table... *)
     val _ = Logging.write "\n-- Load the representation tables\n";
-    val propertyTableRep = loadRepresentationTable (List.hd repTables);
+    val propertyTableRep =
+        foldr (fn (a, b) => StringDict.union a b)
+              StringDict.empty
+              (map (dict' o loadRepresentationTable) repTables);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
-    val correspondingTable = loadCorrespondenceTable (List.hd corrTables);
+    val correspondingTable =
+        foldr (fn (a, b) => a @ b)
+              []
+              (map loadCorrespondenceTable corrTables);
     val _ = Logging.write "\n-- Load the question tables\n";
-    val propertyTableQ = loadQuestionTable (List.hd qTables);
+    val propertyTableQ =
+        foldr (fn (a, b) => StringDict.union a b)
+              StringDict.empty
+              (map (dict' o loadQuestionTable) qTables);
 in
     propertyTableRep' := propertyTableRep;
     correspondingTable' := correspondingTable;
@@ -181,7 +190,7 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL questionRep = " ^ questionRep ^ "\n");
         val relevanceScore = (taskInfluence o userInfluence o propInfluence);
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
-        val representations = map (fn (r, _) => r) (!propertyTableRep');
+        val representations = StringDict.keys (!propertyTableRep');
         val _ = Logging.write ("VAL representations = " ^
                      (RobinLib.listToString (fn s => s) representations) ^
                      "\n");
