@@ -30,21 +30,8 @@ exception TableError;
 
 (* Read in some data *)
 
-fun stringTrim str =
-    let
-        val chars = String.explode str;
-        val remainingChars = List.rev
-                                 (RobinLib.dropWhile
-                                      Char.isSpace
-                                      (List.rev
-                                           (RobinLib.dropWhile
-                                                Char.isSpace
-                                                chars)));
-    in
-        String.implode remainingChars
-    end;
 
-fun readProps str = map stringTrim (String.tokens (fn c => c = #",") str);
+fun readProps str = map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
 
 fun loadTable makeRow filename =
     let

@@ -18,6 +18,7 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
+    val stringTrim : string -> string;
 end;
 
 
@@ -86,6 +87,20 @@ fun lookaheadN (istr, count) =
         val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
     in
         lookahead
+    end;
+
+fun stringTrim str =
+    let
+        val chars = String.explode str;
+        val remainingChars = List.rev
+                                 (dropWhile
+                                      Char.isSpace
+                                      (List.rev
+                                           (dropWhile
+                                                Char.isSpace
+                                                chars)));
+    in
+        String.implode remainingChars
     end;
 
 end;
