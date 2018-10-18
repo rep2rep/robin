@@ -1,5 +1,3 @@
-use "base.sml";  (* base.sml is only included here. *)
-
 import "util/logging.sml";
 import "strategies/representation_selection.sml";
 
