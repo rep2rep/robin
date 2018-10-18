@@ -4,18 +4,17 @@ import "util/set.sml";
 import "util/dictionary.sml";
 import "util/csv.sml";
 
+import "strategies/property_tables.sml";
+
 structure RepresentationSelection =
 struct
 
-structure StringSet = Set(struct
-                           type t = string;
-                           val compare = String.compare;
-                           val fmt = fn s => s;
-                           end);
+structure StringSet = PropertyTables.S;
 val cmp = fn a => fn b => String.compare(a, b);
 val set' = StringSet.fromList;
 val insert' = StringSet.insert;
 val subset' = StringSet.subset;
+fun emptyIntn a b = StringSet.isEmpty (StringSet.intersection a b);
 
 structure StringDict = Dictionary(struct
                                    type k = string;
@@ -24,12 +23,10 @@ structure StringDict = Dictionary(struct
 val dict' = StringDict.fromPairList;
 fun getValue d k = StringDict.get k d;
 
-exception KeyError;
 exception TableError;
 
 
 (* Read in some data *)
-
 
 fun readProps str = map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
 
@@ -48,20 +45,7 @@ fun loadTable makeRow filename =
              raise TableError
          );
 
-val loadCorrespondenceTable =
-    loadTable (fn row => let
-                   val (fst, snd, weight) =
-                       case row of
-                           [x, y] => (readProps x, readProps y, 1.0)
-                         | [x, y, z] =>
-                           (case (Real.fromString z) of
-                                SOME z' => (readProps x, readProps y, z')
-                              | NONE => raise TableError)
-                         | _ => raise TableError
-               in
-                   ((set' fst, set' snd), weight)
-               end);
-
+val loadCorrespondenceTable = PropertyTables.loadCorrespondenceTable;
 val loadQuestionTable =
     loadTable (fn row => let
                    val (fst, snd) =
@@ -102,15 +86,15 @@ end;
 
 fun propertiesRep rep =
     getValue (!propertyTableRep') rep
-    handle KeyError =>
+    handle StringDict.KeyError =>
            (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
-           raise KeyError);
+           raise StringDict.KeyError);
 
 fun propertiesQ q =
     getValue (!propertyTableQ') q
-    handle KeyError =>
+    handle StringDict.KeyError =>
            (Logging.write ("ERROR: question named '" ^ q ^ "' not found!\n");
-           raise KeyError);
+           raise StringDict.KeyError);
 
 (*
 propInfluence : (question * representation * float) -> (question * representation * float)
@@ -127,17 +111,27 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps = propertiesQ q;
         val rProps = propertiesRep r;
+        val _ = Logging.write ("VAL qProps = " ^ StringSet.toString qProps ^ "\n");
+        val _ = Logging.write ("VAL rProps = " ^ StringSet.toString rProps ^ "\n\n");
         val propertyPairs = List.filter
-                                (fn ((a, B), _) => (subset' a qProps)
-                                                   andalso (subset' B rProps))
+                                (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>
+                                    (subset' aPlus qProps) andalso
+                                    (subset' bPlus rProps) andalso
+                                    (emptyIntn aMinus qProps) andalso
+                                    (emptyIntn bMinus rProps)
+                                )
                                 (!correspondingTable');
 
-        val mix = fn (((qp, rp), c), s) =>
-                     (Logging.write ("CORRESPONDENCE (" ^
-                           (StringSet.toString qp) ^
+        val mix = fn (((qpp, qpm), (rpp, rpm), c), s) =>
+                     (Logging.write ("CORRESPONDENCE ((" ^
+                           (StringSet.toString qpp) ^
                            ", " ^
-                           (StringSet.toString rp) ^
-                           ") -> " ^
+                           (StringSet.toString qpm) ^
+                           "), (" ^
+                           (StringSet.toString rpp) ^
+                           ", " ^
+                           (StringSet.toString rpm) ^
+                           ")) -> " ^
                            (Real.toString c) ^ "\n");
                       Logging.write ("VAL s = " ^ (Real.toString (c + s)) ^ "\n");
                       (c + s));
