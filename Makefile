@@ -16,6 +16,7 @@ $(ROBIN_TMP): base.sml src/main.sml
 base.sml: src/util/import.sml
 	echo 'val BASE="'`pwd`'/src/";' > base.sml
 	cat $< >> base.sml
+	echo 'import "util.robinlib"; open RobinLib;' >> base.sml
 
 .PHONY:clean
 clean:

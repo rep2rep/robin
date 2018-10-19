@@ -9,9 +9,7 @@ automatically inherited by the set structure.
 
 *)
 
-import "util.robinlib";
 import "util.dictionary";
-
 
 
 (* An abstract interface for what a set can do. *)
@@ -73,7 +71,7 @@ fun toList xs = map (fn (x,_) => x) (D.toPairList xs);
 fun toString items =
     let
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
-        val withCommas = RobinLib.intersperse ", " stringItems;
+        val withCommas = intersperse ", " stringItems;
         val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
     in
         "{" ^ joined ^ "}"
@@ -106,7 +104,7 @@ fun subset xs ys =
     let
         val contained = map (fn x => contains ys x) xs;
     in
-        RobinLib.all contained
+        all contained
     end;
 
 end;

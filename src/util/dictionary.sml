@@ -8,9 +8,6 @@ This is clearly a slow and unsustainable approach.
 
 *)
 
-import "util.robinlib";
-
-
 (* An abstract signature for dictionaries *)
 signature DICTIONARY =
 sig
@@ -74,7 +71,7 @@ fun fromPairList xs =
           | dedup ((a,b)::(x,y)::zs) = if K.compare(a,x) = EQUAL then dedup ((a,y)::zs)
                                else ((a,b)::(dedup ((x,y)::zs)));
     in
-        dedup (RobinLib.mergesort (fn ((a, b), (x, y)) => K.compare(a,x)) xs)
+        dedup (mergesort (fn ((a, b), (x, y)) => K.compare(a,x)) xs)
     end;
 fun toPairList xs = xs;
 

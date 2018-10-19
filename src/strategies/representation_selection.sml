@@ -1,4 +1,3 @@
-import "util.robinlib";
 import "util.logging";
 import "util.set";
 import "util.dictionary";
@@ -139,19 +138,19 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
         val representations = StringDict.keys (!propertyTableRep');
         val _ = Logging.write ("VAL representations = " ^
-                     (RobinLib.listToString (fn s => s) representations) ^
+                     (listToString (fn s => s) representations) ^
                      "\n");
         val influencedRepresentations =
             List.map
                 (fn rep => relevanceScore (questionName, rep, 0.0))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
-                       (RobinLib.listToString
+                       (listToString
                             (fn (q, r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                             influencedRepresentations) ^
                        "\n");
 
-        val sort = RobinLib.mergesort (fn ((a, b, c), (x, y, z)) =>
+        val sort = mergesort (fn ((a, b, c), (x, y, z)) =>
                                           if c < z then LESS
                                           else if c > z then GREATER
                                           else EQUAL);
@@ -169,7 +168,7 @@ fun topKRepresentations question k =
     in
         Logging.write ("\n");
         Logging.write ("RETURN " ^
-             (RobinLib.listToString
+             (listToString
                   (fn (r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                   result
              ) ^

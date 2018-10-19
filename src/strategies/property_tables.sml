@@ -247,7 +247,7 @@ fun loadCorrespondenceTable filename =
           | makeRow [x, y, z] = (readCorrespondence x y z)
           | makeRow r = raise TableError
                               ("Correspondence table entry malformed: " ^
-                               (RobinLib.listToString (fn s => s) r));
+                               (listToString (fn s => s) r));
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val csvFile = CSVDefault.openIn filename;
         val csvData = CSVDefault.input csvFile;
@@ -281,7 +281,7 @@ fun readBool str = if ((String.implode (map Char.toLower (String.explode str))) 
                    then [""] else [];
 fun readLabel str = [str];
 fun readCollection str = if str = "NONE" then []
-                         else map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
+                         else map stringTrim (String.tokens (fn c => c = #",") str);
 fun readDimension str =
     let
         fun parseDimProps s = if s = "{}" then []
@@ -292,11 +292,11 @@ fun readDimension str =
                                     | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
                                   val s' = String.implode (dropEnds (String.explode s));
                               in
-                                  map RobinLib.stringTrim (String.tokens (fn c => c = #";") s')
+                                  map stringTrim (String.tokens (fn c => c = #";") s')
                               end;
         fun createPairs dimval =
             let
-                val parts = map RobinLib.stringTrim (String.tokens (fn c => c = #":") dimval);
+                val parts = map stringTrim (String.tokens (fn c => c = #":") dimval);
             in
                 case parts of
                     [x, y] => (x, parseDimProps y)
