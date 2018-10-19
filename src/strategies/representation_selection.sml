@@ -10,53 +10,14 @@ structure RepresentationSelection =
 struct
 
 structure StringSet = PropertyTables.S;
-val cmp = fn a => fn b => String.compare(a, b);
 val set' = StringSet.fromList;
-val insert' = StringSet.insert;
-val subset' = StringSet.subset;
+val subset = StringSet.subset;
 fun emptyIntn a b = StringSet.isEmpty (StringSet.intersection a b);
 
-structure StringDict = Dictionary(struct
-                                   type k = string;
-                                   val compare = String.compare;
-                                   end);
-val dict' = StringDict.fromPairList;
+structure StringDict = PropertyTables.D;
 fun getValue d k = StringDict.get k d;
 
-exception TableError;
-
-
 (* Read in some data *)
-
-fun readProps str = map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
-
-fun loadTable makeRow filename =
-    let
-        val _ = Logging.write ("LOAD " ^ filename ^ "\n");
-        val csvFile = CSVDefault.openIn filename;
-        val csvData = CSVDefault.input csvFile;
-    in
-        map makeRow csvData
-    end
-    handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
-                       raise (IO.Io e))
-         | TableError => (
-             Logging.write ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
-             raise TableError
-         );
-
-val loadCorrespondenceTable = PropertyTables.loadCorrespondenceTable;
-val loadQuestionTable =
-    loadTable (fn row => let
-                   val (fst, snd) =
-                       case row of
-                           [x, y] => (x, readProps y)
-                         | _ => raise TableError
-               in
-                   (fst, set' snd)
-               end);
-
-val loadRepresentationTable = loadQuestionTable;
 
 val propertyTableRep' = ref StringDict.empty;
 val correspondingTable' = ref [];
@@ -67,24 +28,24 @@ fun init (repTables, corrTables, qTables) = let
     val propertyTableRep =
         foldr (fn (a, b) => StringDict.union a b)
               StringDict.empty
-              (map (dict' o loadRepresentationTable) repTables);
+              (map PropertyTables.loadRepresentationTable repTables);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
         foldr (fn (a, b) => a @ b)
               []
-              (map loadCorrespondenceTable corrTables);
+              (map PropertyTables.loadCorrespondenceTable corrTables);
     val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ =
         foldr (fn (a, b) => StringDict.union a b)
               StringDict.empty
-              (map (dict' o loadQuestionTable) qTables);
+              (map PropertyTables.loadQuestionTable qTables);
 in
     propertyTableRep' := propertyTableRep;
     correspondingTable' := correspondingTable;
     propertyTableQ' := propertyTableQ
 end;
 
-fun propertiesRep rep =
+fun propertiesRS rep =
     getValue (!propertyTableRep') rep
     handle StringDict.KeyError =>
            (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
@@ -110,17 +71,23 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps = propertiesQ q;
-        val rProps = propertiesRep r;
+        val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ StringSet.toString qProps ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ StringSet.toString rProps ^ "\n\n");
-        val propertyPairs = List.filter
-                                (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>
-                                    (subset' aPlus qProps) andalso
-                                    (subset' bPlus rProps) andalso
-                                    (emptyIntn aMinus qProps) andalso
-                                    (emptyIntn bMinus rProps)
-                                )
-                                (!correspondingTable');
+        val propertyPairs' = List.filter
+                                 (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>
+                                     (subset aPlus qProps) andalso
+                                     (subset bPlus rProps) andalso
+                                     (emptyIntn aMinus qProps) andalso
+                                     (emptyIntn bMinus rProps)
+                                 )
+                                 (!correspondingTable');
+        val identityPairs = StringSet.map
+                                (fn p => ((set' [p], StringSet.empty),
+                                          (set' [p], StringSet.empty),
+                                          1.0))
+                                (StringSet.intersection qProps rProps);
+        val propertyPairs = identityPairs @ propertyPairs';
 
         val mix = fn (((qpp, qpm), (rpp, rpm), c), s) =>
                      (Logging.write ("CORRESPONDENCE ((" ^

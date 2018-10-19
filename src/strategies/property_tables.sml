@@ -5,7 +5,7 @@ import "util/logging.sml";
 
 signature PROPERTYTABLES =
 sig
-    exception TableError;
+    exception TableError of string;
 
     structure S : SET;
     structure D : DICTIONARY;
@@ -22,24 +22,22 @@ end;
 structure PropertyTables : PROPERTYTABLES =
 struct
 
-exception TableError;
+exception TableError of string;
 
 structure S = Set(struct
                    type t = string;
                    val compare = String.compare;
                    val fmt = fn s => s;
                    end);
-val cmp = fn a => fn b => String.compare(a, b);
 val set' = S.fromList;
-val insert' = S.insert;
-val subset' = S.subset;
 
 structure D = Dictionary(struct
                           type k = string;
                           val compare = String.compare;
                           end);
 val dict' = D.fromPairList;
-fun getValue d k = D.get k d;
+fun getValue d k = SOME (D.get k d)
+                   handle D.KeyError => NONE;
 
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
 
@@ -85,11 +83,11 @@ fun readCorrespondence qpString rspString strengthString =
                     in
                         case closePar of
                             SOME ")" => (disjtree, (List.tl remainingTokens))
-                          | SOME other => raise TableError
+                          | SOME other => raise TableError "Missing closing paren"
                           | NONE => (disjtree, [])
                     end
                   | SOME other => (Prop other, (List.tl tokens))
-                  | NONE => raise TableError
+                  | NONE => raise TableError "Unexpected EOF"
             end
         and parseNeg tokens =
             let
@@ -105,7 +103,7 @@ fun readCorrespondence qpString rspString strengthString =
                         (Neg atomTree, remainingTokens)
                     end
                   | SOME other => parseAtom tokens
-                  | NONE => raise TableError
+                  | NONE => raise TableError "Unexpected EOF"
             end
         and parseConj tokens =
             let
@@ -146,7 +144,7 @@ fun readCorrespondence qpString rspString strengthString =
             let
                 val (tree, tokens) = parseDisj tokens;
             in
-                if (List.null tokens) then tree else raise TableError
+                if (List.null tokens) then tree else raise TableError "Unprocessed content"
             end;
 
         fun normalise (Prop s) = Prop s
@@ -183,33 +181,37 @@ fun readCorrespondence qpString rspString strengthString =
         fun setify (Prop s) = (set' [s], S.empty)
           | setify (Neg (Prop s)) = (S.empty, set' [s])
           | setify (Neg _) = raise TableError
+                                   "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
             let
                 fun ConjFlatten (Prop s) = [Prop s]
                   | ConjFlatten (Neg a) = [Neg a]
                   | ConjFlatten (Conj (a, b)) = (ConjFlatten a) @ (ConjFlatten b)
-                  | ConjFlatten (Disj _) = raise TableError;
+                  | ConjFlatten (Disj _) = raise TableError
+                                                 "Correspondences incorrectly normalised";
                 fun isPos (Prop s) = true
                   | isPos _ = false;
                 fun isNeg (Neg a) = true
                   | isNeg _ = false;
                 fun stripTreeness (Prop s) = s
                   | stripTreeness (Neg (Prop s)) = s
-                  | stripTreeness _ = raise TableError;
+                  | stripTreeness _ = raise TableError
+                                            "Correspondences incorrectly normalised";
                 val flattened = ConjFlatten (Conj (a, b));
                 val positives = set' (map stripTreeness (List.filter isPos flattened));
                 val negatives = set' (map stripTreeness (List.filter isNeg flattened));
             in
                 (positives, negatives)
             end
-          | setify (Disj _) = raise TableError; (* Should be eliminated by now *)
+          | setify (Disj _) = raise TableError
+                                    "Correspondences incorrectly normalised";
 
         val read = (normalise o parse o tokenize);
 
         fun strength str =
             case (Real.fromString str) of
                 SOME v => v
-              | NONE => raise TableError;
+              | NONE => raise TableError "Correspondence strength is not a float";
 
         fun genCorr (Disj (a, b)) t2 v =
             let
@@ -241,10 +243,10 @@ fun readCorrespondence qpString rspString strengthString =
 
 fun loadCorrespondenceTable filename =
     let
-        fun makeRow row = case row of
-                              [x, y] => (readCorrespondence x y "1.0")
-                            | [x, y, z] => (readCorrespondence x y z)
-                            | _ => raise TableError;
+        fun makeRow [x, y] = (readCorrespondence x y "1.0")
+          | makeRow [x, y, z] = (readCorrespondence x y z)
+          | makeRow _ = raise TableError
+                              "Correspondence table entry malformed";
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val csvFile = CSVDefault.openIn filename;
         val csvData = CSVDefault.input csvFile;
@@ -253,13 +255,110 @@ fun loadCorrespondenceTable filename =
     end
     handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
-         | TableError => (
-             Logging.write ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
-             raise TableError
+         | TableError reason => (
+             print ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
+             print ("       " ^ reason ^ "\n");
+             raise TableError reason
          );
 
+(*
+The following functions and map handle how properties are generated from the
+table. For example, they key "operators" then lists a collection of operators.
+To read this, we use the "readCollection" function and will prepend each of the
+operators with the string "op-". Compare this with basic labels, which simply
+return the one thing that is there, in a list, ready to prepend to. Bools are
+simplest, either returning an empty list (false), or a list containing the empty
+string (true) to generate either the key, or nothing, as a property.
+A concrete example: From the table
+    operators        +, -, *, \sqrt
+    sentential       true
+    logic-power      2
+we would generate the properties
+    op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
+*)
+fun readBool str = if str = "true" then [""] else [];
+fun readLabel str = [str];
+fun readCollection str = if str = "NONE" then []
+                         else map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
+val propertyKeyMap = dict' [
+        ("sentential", (readBool, "sentential")),
+        ("logical-order", (readLabel, "logical-order-")),
+        ("quantifiers", (readCollection, "quantifier-")),
+        ("types", (readCollection, "type-")),
+        ("tokens", (readCollection, "token-")),
+        ("relations", (readCollection, "rel-")),
+        ("operators", (readCollection, "op-")),
+        ("grammar-imports", (readCollection, "import-")),
+        ("parse-generate-structures", (readLabel, "parse-generate-structures-")),
+        ("parse-generate-mapping", (readLabel, "parse-generate-mapping-")),
+        ("limit-construction-size", (readBool, "limit-construction-size")),
+        ("grammatical-complexity", (readLabel,  "grammatical-complexity-")),
+        ("ranges", (readCollection, "range-")),
+        ("type-sorts", (readCollection, "type-sort-")),
+        ("knowledge-manipulation-system", (readBool, "knowledge-manipulation-system")),
+        ("facts", (readCollection, "fact-")),
+        ("fact-imports", (readCollection, "import-")),
+        ("tactics", (readCollection, "tactic-")),
+        ("logic-power", (readLabel, "logic-power-")),
+        ("num-statements", (readLabel, "num-statements-")),
+        ("num-tokens", (readLabel, "num-tokens-")),
+        ("num-distinct-tokens", (readLabel, "num-distinct-tokens-")),
+        ("syntactic-patterns", (readCollection, "pattern-")),
+        ("homogeneous", (readBool, "homogeneous")),
+        ("rigorous", (readBool, "rigorous")),
+        ("related-facts", (readCollection, "fact-")),
+        ("related-facts-import", (readCollection, "import-")),
+        ("related-types", (readCollection, "type-")),
+        ("related-operators", (readCollection, "op-")),
+        ("related-tokens", (readCollection, "token-")),
+        ("related-patterns", (readCollection, "pattern-")),
+        ("variables", (readCollection, "var-"))
+    ];
 
-fun loadQuestionTable filename = D.empty;
-fun loadRepresentationTable filename = D.empty;
+fun loadQorRSPropertiesFromFile filename =
+    let
+        val _ = Logging.write ("LOAD " ^ filename ^ "\n");
+        val csvFile = CSVDefault.openIn filename;
+        val csvDataWithHeader = CSVDefault.input csvFile;
+        val csvHeader =
+            (case (List.hd csvDataWithHeader) of
+                 [] => raise TableError "Table header blank"
+               | [h] => h
+               | [h, ""] => h
+               | _ => raise TableError "Missing table header")
+            handle List.Empty => raise TableError "Table is empty";
+        val csvData = (List.tl csvDataWithHeader)
+                      handle List.Empty => raise TableError "Table is empty";
+
+        fun parseRow [x, y] = (x, y)
+          | parseRow _ = raise TableError "Malformed property entry";
+
+        fun genProps key args =
+            let
+                val (valparser, keypre) =
+                    case (getValue propertyKeyMap key) of
+                        SOME kt => kt
+                      | NONE => (readLabel, key ^ "-");
+            in
+                map (fn v => keypre ^ v) (valparser args)
+            end;
+
+        val properties = List.foldr
+                             (fn ((k, v), xs) => S.union (set' (genProps k v)) xs)
+                             S.empty
+                             (map parseRow csvData);
+    in
+        [(csvHeader, properties)]
+    end
+    handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
+                       raise (IO.Io e))
+         | TableError reason => (
+             print ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
+             print ("       " ^ reason ^ "\n");
+             raise TableError reason
+         );
+
+fun loadQuestionTable filename = dict' (loadQorRSPropertiesFromFile filename);
+fun loadRepresentationTable filename = dict' (loadQorRSPropertiesFromFile filename);
 
 end;
