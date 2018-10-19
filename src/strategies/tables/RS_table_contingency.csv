@@ -1,1 +1,30 @@
-contingency,"AR, BR, ER, FR, GR"
+contingency,
+sentential,TRUE
+logical-order,1
+quantifiers,NONE
+types,"string,real,cell,column,row"
+tokens,NONE
+relations,NONE
+operators,"+,-,*,/,=,SUM,PRODUCT"
+grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"
+parse-generate-structures,string-to-tree
+parse-generate-mapping,one-to-one
+limit-construction-size,FALSE
+grammatical-complexity,type-3
+knowledge-manipulation-system,FALSE
+facts,NONE
+fact-imports,NONE
+tactics,"add-value(cell;correct-value), add-formula(cell;correct-formula), get-value(cell)"
+logic-power,2
+standard-accessibility-manipulations,"modify-cell(cell;string), merge-cells(contiguous-cells),add_row, add_column, copy, paste"
+accessible-facts,FALSE
+accessible-tactics,FALSE
+accessible-grammatical-constructors,TRUE
+editable-external-memory,TRUE
+physical-dimension-use,"X:{grammatical;categorical}, Y:{grammatical;categorical}, Z:{}, colour:{}, time:{}, sound:{}"
+grammatical-dimensionality,2
+grammatical-granularity,discrete
+mean-branching-factor,\infty
+pr-distinct-state-change,1
+pr-valid-state-change,0.0001
+mean-solution-depth,16

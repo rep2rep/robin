@@ -245,8 +245,9 @@ fun loadCorrespondenceTable filename =
     let
         fun makeRow [x, y] = (readCorrespondence x y "1.0")
           | makeRow [x, y, z] = (readCorrespondence x y z)
-          | makeRow _ = raise TableError
-                              "Correspondence table entry malformed";
+          | makeRow r = raise TableError
+                              ("Correspondence table entry malformed: " ^
+                               (RobinLib.listToString (fn s => s) r));
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val csvFile = CSVDefault.openIn filename;
         val csvData = CSVDefault.input csvFile;
@@ -276,10 +277,43 @@ A concrete example: From the table
 we would generate the properties
     op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
 *)
-fun readBool str = if str = "true" then [""] else [];
+fun readBool str = if ((String.implode (map Char.toLower (String.explode str))) = "true")
+                   then [""] else [];
 fun readLabel str = [str];
 fun readCollection str = if str = "NONE" then []
                          else map RobinLib.stringTrim (String.tokens (fn c => c = #",") str);
+fun readDimension str =
+    let
+        fun parseDimProps s = if s = "{}" then []
+                              else let
+                                  fun dropEnds [] = []
+                                    | dropEnds [x] = []
+                                    | dropEnds [x, y] = []
+                                    | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
+                                  val s' = String.implode (dropEnds (String.explode s));
+                              in
+                                  map RobinLib.stringTrim (String.tokens (fn c => c = #";") s')
+                              end;
+        fun createPairs dimval =
+            let
+                val parts = map RobinLib.stringTrim (String.tokens (fn c => c = #":") dimval);
+            in
+                case parts of
+                    [x, y] => (x, parseDimProps y)
+                  | _ => raise TableError
+                               ("Unable to read dimensions from " ^ dimval)
+            end;
+        val dimensions = readCollection str;
+        val dimensionsWithValues = map createPairs dimensions;
+        val dimensionsSplitOut = map (fn (x, y) =>
+                                         map (fn z => x ^ "-" ^ z) y)
+                                     dimensionsWithValues;
+        val dimensionsNoLabels = map (fn (x, y) =>
+                                         map (fn z:string => z) y)
+                                     dimensionsWithValues;
+    in
+        List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels)
+    end;
 val propertyKeyMap = dict' [
         ("sentential", (readBool, "sentential")),
         ("logical-order", (readLabel, "logical-order-")),
@@ -312,7 +346,19 @@ val propertyKeyMap = dict' [
         ("related-operators", (readCollection, "op-")),
         ("related-tokens", (readCollection, "token-")),
         ("related-patterns", (readCollection, "pattern-")),
-        ("variables", (readCollection, "var-"))
+        ("variables", (readCollection, "var-")),
+        ("standard-accessibility-manipulations", (readCollection, "accessible-manipulation-")),
+        ("accessible-facts", (readBool, "accessible-facts")),
+        ("accessible-tactics", (readBool, "accessible-tactics")),
+        ("accessible-grammatical-constructors", (readBool, "accessible-grammatical-constructors")),
+        ("editable-external-memory", (readBool, "editable-external-memory")),
+        ("physical-dimension-use", (readDimension, "dimension-use-")),
+        ("grammatical-dimensionality", (readLabel, "grammatical-dimensionality-")),
+        ("grammatical-granularity", (readLabel, "grammatical-granularity-")),
+        ("mean-branching-factor", (readLabel, "mean-branching-factor-")),
+        ("pr-distinct-state-change", (readLabel, "pr-distinct-state-change-")),
+        ("pr-valid-state-change", (readLabel, "pr-valid-state-change-")),
+        ("mean-solution-depth", (readLabel, "mean-solution-depth-"))
     ];
 
 fun loadQorRSPropertiesFromFile filename =
