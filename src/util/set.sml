@@ -9,8 +9,8 @@ automatically inherited by the set structure.
 
 *)
 
-import "util/robinlib.sml";
-import "util/dictionary.sml";
+import "util.robinlib";
+import "util.dictionary";
 
 
 

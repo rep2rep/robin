@@ -1,10 +1,10 @@
-import "util/robinlib.sml";
-import "util/logging.sml";
-import "util/set.sml";
-import "util/dictionary.sml";
-import "util/csv.sml";
+import "util.robinlib";
+import "util.logging";
+import "util.set";
+import "util.dictionary";
+import "util.csv";
 
-import "strategies/property_tables.sml";
+import "strategies.property_tables";
 
 structure RepresentationSelection =
 struct

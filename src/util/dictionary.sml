@@ -8,7 +8,7 @@ This is clearly a slow and unsustainable approach.
 
 *)
 
-import "util/robinlib.sml";
+import "util.robinlib";
 
 
 (* An abstract signature for dictionaries *)

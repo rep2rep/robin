@@ -7,16 +7,17 @@ all: dist/robin
 dist/robin: $(ROBIN_TMP)
 	$(MLC) $(FLAGS) -o $@ $<
 
+.PHONY:$(ROBIN_TMP)
 $(ROBIN_TMP): base.sml src/main.sml
 	for f in $^; do \
 		echo "use \"$$f\";" >> $@ ; \
 	done
 
-.PHONY:base.sml
-base.sml:
+base.sml: src/util/import.sml
 	echo 'val BASE="'`pwd`'/src/";' > base.sml
-	cat 'src/util/import.sml' >> base.sml
+	cat $< >> base.sml
 
 .PHONY:clean
 clean:
 	rm -rf dist/*
+	rm -rf base.sml

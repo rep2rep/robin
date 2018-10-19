@@ -9,7 +9,7 @@ more customisation to be added in future.
 
 *)
 
-import "util/robinlib.sml";
+import "util.robinlib";
 
 signature CSVConfig =
 sig

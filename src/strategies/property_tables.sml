@@ -1,7 +1,7 @@
-import "util/set.sml";
-import "util/dictionary.sml";
-import "util/csv.sml";
-import "util/logging.sml";
+import "util.set";
+import "util.dictionary";
+import "util.csv";
+import "util.logging";
 
 signature PROPERTYTABLES =
 sig
