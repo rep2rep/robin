@@ -13,12 +13,15 @@ $(ROBIN_TMP): base.sml src/main.sml
 		echo "use \"$$f\";" >> $@ ; \
 	done
 
-base.sml: src/util/import.sml
+base.sml:
 	echo 'val BASE="'`pwd`'/src/";' > base.sml
-	cat $< >> base.sml
-	echo 'import "util.robinlib"; open RobinLib;' >> base.sml
+	echo 'use "src/util/robinlib.sml"; open RobinLib;' >> base.sml
 
 .PHONY:clean
 clean:
 	rm -rf dist/*
 	rm -rf base.sml
+
+.PHONY:repl
+repl: base.sml
+	poly --use base.sml

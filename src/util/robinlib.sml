@@ -8,6 +8,7 @@ Define some useful things for the whole robin system.
 
 signature ROBINLIB =
 sig
+    val import : string -> unit;
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
@@ -24,6 +25,23 @@ end;
 
 structure RobinLib : ROBINLIB =
 struct
+
+val IMPORTED_ : string list ref = ref [];
+
+fun import filename =
+    let
+        fun subDots str = String.implode
+                                 (map (fn c => if c = #"." then #"/" else c)
+                                      (String.explode str))
+    in
+        if (List.exists (fn s => s = filename) (!IMPORTED_))
+        then () (* filename has already been imported *)
+        else (
+            IMPORTED_ := filename :: (!IMPORTED_);
+            use (BASE^(subDots filename)^".sml")
+        )
+    end;
+
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
