@@ -14,7 +14,7 @@ val subset = StringSet.subset;
 fun emptyIntn a b = StringSet.isEmpty (StringSet.intersection a b);
 
 structure StringDict = PropertyTables.D;
-fun getValue d k = StringDict.get k d;
+fun getValue d k = StringDict.get d k;
 
 (* Read in some data *)
 

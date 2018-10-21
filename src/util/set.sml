@@ -23,8 +23,8 @@ sig
     val toList : t set -> t list;
     val toString : t set -> string;
 
-    val insert : t -> t set -> t set;
-    val remove : t -> t set -> t set;
+    val insert : t set -> t -> t set;
+    val remove : t set -> t -> t set;
 
     val union : t set -> t set -> t set;
     val intersection : t set -> t set -> t set;
@@ -78,12 +78,12 @@ fun toString items =
     end;
 
 
-fun insert x xs = D.insert (x, ()) xs;
-fun remove x xs = D.remove x xs;
+fun insert xs x = D.insert xs (x, ());
+fun remove xs x = D.remove xs x;
 
 fun union xs ys = D.unionWith (fn (_, _, _) => ()) xs ys;
 fun intersection xs ys = D.intersectionWith (fn (_, _, _) => ()) xs ys;
-fun difference xs ys = D.foldl (fn (s, (v,_)) => (remove v s)) xs ys;
+fun difference xs ys = D.foldl (fn (s, (v,_)) => (remove s v)) xs ys;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
@@ -95,7 +95,7 @@ fun size xs = D.size xs;
 fun isEmpty xs = D.isEmpty xs;
 fun contains xs x =
     let
-        val v = D.get x xs
+        val v = D.get xs x
     in
         true
     end

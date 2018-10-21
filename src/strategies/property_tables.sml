@@ -36,7 +36,7 @@ structure D = Dictionary(struct
                           val compare = String.compare;
                           end);
 val dict' = D.fromPairList;
-fun getValue d k = SOME (D.get k d)
+fun getValue d k = SOME (D.get d k)
                    handle D.KeyError => NONE;
 
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
