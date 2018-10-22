@@ -11,8 +11,8 @@ more customisation to be added in future.
 
 signature CSVConfig =
 sig
-    val delimiter : char;
-    val newline : string;
+    val delimiters : char list;
+    val newlines : string list;
 end;
 
 
@@ -21,8 +21,8 @@ sig
     type instream;
     type outstream;
 
-    val newline : char list;
-    val delimiter : char;
+    val newlines : char list list;
+    val delimiters : char list;
     val lookaheadDistance : int;
 
     val openIn : string -> instream;
@@ -50,9 +50,26 @@ struct
 type instream = TextIO.instream;
 type outstream = TextIO.outstream;
 
-val delimiter = Config.delimiter;
-val newline = String.explode Config.newline;
-val lookaheadDistance = List.length newline;
+val delimiters = Config.delimiters;
+val newlines = mergesort
+                   (fn (a, b) => let
+                        val la = List.length a;
+                        val lb = List.length b;
+                    in
+                        if la < lb then GREATER  (* We want it reversed *)
+                        else if la > lb then LESS
+                        else EQUAL
+                   end)
+                   (map String.explode Config.newlines);
+val lookaheadDistance = List.foldr Int.max 0 (map List.length newlines);
+
+fun isDelimiter c = List.exists (fn x => x = c) delimiters;
+fun matchNewline cs = List.find
+                          (fn ns => (List.take (cs, (List.length ns))) = ns
+                                    handle Subscript => false)
+                          newlines;
+fun isNewline cs = case (matchNewline cs) of NONE => false
+                                           | SOME _ => true;
 
 fun openIn filename = TextIO.openIn filename;
 fun closeIn istr = TextIO.closeIn istr;
@@ -61,16 +78,16 @@ fun endOfStream istr = TextIO.endOfStream istr;
 fun endOfRow istr =
     case (lookaheadN (istr, lookaheadDistance)) of
         "" => true
-      | c => String.explode c = newline;
+      | c => isNewline (String.explode c);
 fun endOfCell istr =
     (endOfRow istr) orelse (case (TextIO.lookahead istr) of
                                 NONE => true
-                              | SOME c => c = delimiter);
+                              | SOME c => isDelimiter c);
 
 fun skipDelimiter istr =
     case (TextIO.lookahead istr) of
         NONE => false
-      | SOME c => if c = delimiter then (TextIO.input1 istr; true) else false;
+      | SOME c => if (isDelimiter c) then (TextIO.input1 istr; true) else false;
 
 
 fun inputCell istr = let
@@ -89,7 +106,7 @@ fun inputCell istr = let
         if (endOfCell istr andalso not quoted) then result
         else case (TextIO.lookahead istr) of
                  NONE => result
-               | SOME c => if c = delimiter then
+               | SOME c => if (isDelimiter c) then
                                if quoted then (TextIO.input1 istr; readCell quoted (result ^ (Char.toString c)))
                                else result
                            else if (c = #"\"" andalso not quoted) then (* Open quoted cell *)
@@ -115,7 +132,15 @@ fun inputRow istr = let
                           (fn () => (skipDelimiter istr; inputCell istr)));
 in
     if startsEmpty then []
-    else (TextIO.inputN (istr, lookaheadDistance); result) (* Consume the newline *)
+    else let
+        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val matchedNewline = matchNewline newlineChars;
+        val consumeDistance = case matchedNewline of
+                                  NONE => 0
+                               | SOME nl => List.length nl;
+    in
+        (TextIO.inputN (istr, consumeDistance); result) (* Consume the newline *)
+    end
 end;
 
 fun input istr = let
@@ -142,6 +167,6 @@ fun output ostr values = ();
 
 end;
 
-structure CSVDefault = CSVIO(struct val delimiter = #",";
-                                    val newline = "\r\n";
+structure CSVDefault = CSVIO(struct val delimiters = [#","];
+                                    val newlines = ["\r\n"];
                              end);
