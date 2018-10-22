@@ -39,6 +39,10 @@ val dict' = D.fromPairList;
 fun getValue d k = SOME (D.get d k)
                    handle D.KeyError => NONE;
 
+structure CSVLiberal = CSVIO(struct val delimiters = [#","];
+                                    val newlines = ["\r", "\n", "\r\n"];
+                             end);
+
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
 
 datatype CorrTree = Prop of string
@@ -249,8 +253,8 @@ fun loadCorrespondenceTable filename =
                               ("Correspondence table entry malformed: " ^
                                (listToString (fn s => s) r));
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
-        val csvFile = CSVDefault.openIn filename;
-        val csvData = CSVDefault.input csvFile;
+        val csvFile = CSVLiberal.openIn filename;
+        val csvData = CSVLiberal.input csvFile;
     in
         List.foldr (fn (r, xs) => (makeRow r) @ xs) [] csvData
     end
@@ -364,8 +368,8 @@ val propertyKeyMap = dict' [
 fun loadQorRSPropertiesFromFile filename =
     let
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
-        val csvFile = CSVDefault.openIn filename;
-        val csvDataWithHeader = CSVDefault.input csvFile;
+        val csvFile = CSVLiberal.openIn filename;
+        val csvDataWithHeader = CSVLiberal.input csvFile;
         val csvHeader =
             (case (List.hd csvDataWithHeader) of
                  [] => raise TableError "Table header blank"
