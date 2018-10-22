@@ -15,17 +15,18 @@ op-\cup,op-+,0.25
 op-\cup,tactic-join,0.25
 op-\cup,tactic-observe,0.5
 op-\cup,op-union,0.75
+op-\cup,op-SUM,0.25
 op-\cap,op-intersection,0.75
 op-\cap,tactic-distinguish,0.5
 op-\cap,tactic-observe,0.5
-op-\cap,type-cell,0.75
+op-\cap,type-cell,0.25
 op-\Pr,tactic-area,0.75
 op-\Pr,op-probability_of,0.75
 op-\Pr,tactic-get_value,0.5
 op-\Pr,tactic-compare_sizes,0.25
 token-0,token-$dot,0.25
 token-0,rel-$shading,0.25
-token-0,pattern-zero,0.75
+token-0,token-zero,0.75
 token-\emptyset,rel-$shading,1
 token-\emptyset,token-0,0.25
 token-\emptyset,token-$dot,0.25
@@ -33,6 +34,7 @@ token-\emptyset,token-empty,0.75
 token-\Omega,token-universe,0.75
 token-\Omega,rel-last_row AND rel-last_column,1
 token-\Omega,type-diagram,1
+token-\Omega,op-SUM,0.25
 op-\setminus,op--,0.25
 op-\setminus,tactic-delete_object,0.75
 op-\setminus,tactic-observe,0.5

@@ -1,0 +1,24 @@
+medical,
+sentential,true
+logic-order,1
+types,"number, percentage, thing, person, class, action"
+tokens,"98,3,1,population,disease,test"
+operators,"%,chance,probability_of,the,a,of,if"
+relations,"has, is, such, positive"
+num-statements,6
+num-tokens,63
+num-distinct-tokens,30
+syntactic-patterns,NONE
+homogeneous,false
+question-kind,calculation
+question-function,probability_of
+question-value-type,number
+dependency-type,class*class
+rigorous,false
+related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds, worldly knowledge"
+fact-imports,NONE
+related-types,NONE
+related-operators,"not,times,divided_by,plus,minus,equals,union,intersection,probability"
+related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, universe, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say, zero, empty"
+related-patterns,NONE
+ranges,1-100
