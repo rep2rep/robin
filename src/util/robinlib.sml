@@ -6,10 +6,9 @@ Define some useful things for the whole robin system.
 
 *)
 
-use "base.sml";
-
 signature ROBINLIB =
 sig
+    val import : string -> unit;
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
@@ -18,12 +17,31 @@ sig
     val any : bool list -> bool;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
+    val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
+    val stringTrim : string -> string;
 end;
 
 
 structure RobinLib : ROBINLIB =
 struct
+
+val IMPORTED_ : string list ref = ref [];
+
+fun import filename =
+    let
+        fun subDots str = String.implode
+                                 (map (fn c => if c = #"." then #"/" else c)
+                                      (String.explode str))
+    in
+        if (List.exists (fn s => s = filename) (!IMPORTED_))
+        then () (* filename has already been imported *)
+        else (
+            IMPORTED_ := filename :: (!IMPORTED_);
+            use (BASE^(subDots filename)^".sml")
+        )
+    end;
+
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
@@ -65,18 +83,42 @@ fun any [] = false
   | any (b::bs) = b orelse (any bs);
 
 fun dropWhile pred [] = []
-  | dropWhile pred (x::xs) = if (pred x) then dropWhile xs
-                             else x::(dropWhile xs);
+  | dropWhile pred (x::xs) = if (pred x) then dropWhile pred xs
+                             else x::(dropWhile pred xs);
 
 fun takeWhile pred [] = []
-  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile xs)
-                             else (takeWhile xs)
+  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile pred xs)
+                             else (takeWhile pred xs);
+
+fun listToString fmt items =
+    let
+        val stringItems = map fmt items;
+        val withCommas = intersperse ", " stringItems;
+        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+    in
+        "[" ^ joined ^ "]"
+    end;
+
 fun lookaheadN (istr, count) =
     let
         val oldstream = TextIO.getInstream istr;
         val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
     in
         lookahead
+    end;
+
+fun stringTrim str =
+    let
+        val chars = String.explode str;
+        val remainingChars = List.rev
+                                 (dropWhile
+                                      Char.isSpace
+                                      (List.rev
+                                           (dropWhile
+                                                Char.isSpace
+                                                chars)));
+    in
+        String.implode remainingChars
     end;
 
 end;

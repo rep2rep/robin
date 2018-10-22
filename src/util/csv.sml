@@ -9,9 +9,6 @@ more customisation to be added in future.
 
 *)
 
-use "base.sml";
-use (BASE^"util/robinlib.sml");
-
 signature CSVConfig =
 sig
     val delimiter : char;
@@ -62,7 +59,7 @@ fun closeIn istr = TextIO.closeIn istr;
 
 fun endOfStream istr = TextIO.endOfStream istr;
 fun endOfRow istr =
-    case (RobinLib.lookaheadN (istr, lookaheadDistance)) of
+    case (lookaheadN (istr, lookaheadDistance)) of
         "" => true
       | c => String.explode c = newline;
 fun endOfCell istr =
@@ -78,7 +75,7 @@ fun skipDelimiter istr =
 
 fun inputCell istr = let
     fun escapedQuote istr = let
-        val next2 = String.explode (RobinLib.lookaheadN (istr, 2));
+        val next2 = String.explode (lookaheadN (istr, 2));
         val (current, next) = case next2 of
                                   [] => (#"0", #"0")
                                 | [x] => (x, #"0")

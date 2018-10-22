@@ -8,10 +8,6 @@ This is clearly a slow and unsustainable approach.
 
 *)
 
-use "base.sml";
-use (BASE^"util/robinlib.sml");
-
-
 (* An abstract signature for dictionaries *)
 signature DICTIONARY =
 sig
@@ -24,10 +20,10 @@ sig
     val fromPairList : (k * 'v) list -> (k, 'v) dict;
     val toPairList : (k, 'v) dict -> (k * 'v) list;
 
-    val insert : (k * 'v) -> (k, 'v) dict ->  (k, 'v) dict;
-    val remove : k -> (k, 'v) dict -> (k, 'v) dict;
+    val insert : (k, 'v) dict -> (k * 'v) ->  (k, 'v) dict;
+    val remove : (k, 'v) dict -> k -> (k, 'v) dict;
 
-    val get : k -> (k, 'v) dict -> 'v;
+    val get : (k, 'v) dict -> k -> 'v;
 
     val keys : (k, 'v) dict -> k list;
     val values : (k, 'v) dict -> 'v list;
@@ -75,23 +71,23 @@ fun fromPairList xs =
           | dedup ((a,b)::(x,y)::zs) = if K.compare(a,x) = EQUAL then dedup ((a,y)::zs)
                                else ((a,b)::(dedup ((x,y)::zs)));
     in
-        dedup (RobinLib.mergesort (fn ((a, b), (x, y)) => K.compare(a,x)) xs)
+        dedup (mergesort (fn ((a, b), (x, y)) => K.compare(a,x)) xs)
     end;
 fun toPairList xs = xs;
 
-fun insert (x,y) [] = [(x,y)]
-  | insert (x,y) ((k,v)::ys) = if K.compare(x, k) = EQUAL then (x,y)::ys
-                               else if K.compare(x, k) = GREATER then (k,v)::(insert (x,y) ys)
+fun insert [] (x,y) = [(x,y)]
+  | insert ((k,v)::ys) (x, y) = if K.compare(x, k) = EQUAL then (x,y)::ys
+                               else if K.compare(x, k) = GREATER then (k,v)::(insert ys (x,y))
                                else (x,y)::(k,v)::ys;
-fun remove x [] = []
-  | remove x ((k,v)::ys) = if K.compare(x, k) = EQUAL then ys
-                           else if K.compare(x, k) = GREATER then (k,v)::(remove x ys)
+fun remove [] _ = []
+  | remove ((k,v)::ys) x = if K.compare(x, k) = EQUAL then ys
+                           else if K.compare(x, k) = GREATER then (k,v)::(remove ys x)
                            else (k,v)::ys;
 
-fun get _ [] = raise KeyError
-  | get x ((k, v)::xs) = if K.compare(x,k) = EQUAL then v
+fun get [] _ = raise KeyError
+  | get ((k, v)::xs) x = if K.compare(x,k) = EQUAL then v
                          else if K.compare(x,k) = LESS then raise KeyError
-                         else get x xs;
+                         else get xs x;
 
 fun keys [] = []
   | keys ((k,v)::xs) = k::(keys xs);
