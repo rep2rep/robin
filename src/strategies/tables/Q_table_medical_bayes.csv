@@ -10,10 +10,14 @@ num-tokens,20
 num-distinct-tokens,20
 syntactic-patterns,"\Pr(_|_), \Pr(_|_)=_"
 homogeneous,true
+question-kind,calculation
+question-function,\Pr
+question-value-type,real
+dependency-type,event*event
 rigorous,true
-related-facts,"bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds"
+related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds"
 related-facts-import,real-arithmetic
 related-types,NONE
-related-operators,"+,*,-,\cup,\cap,\setminus"
+related-operators,"+,*,-,\div,\cup,\cap,\setminus"
 related-tokens,"0,1,\emptyset,\Omega"
 related-patterns,NONE

@@ -1,4 +1,51 @@
-op-\div,op-/,1
-op-/,op-\div,1
-op-\cap,type-cell,1
+type-real,dimension-use-dense,0.75
+type-real,dimension-use-metric,0.75
+type-real,dimension-use-topological,0.75
+type-event,dimension-use-dense,0.25
+type-event,dimension-use-topological,0.75
+type-event*event,(dimension-use-X-topological AND dimension-use-Y-topological) OR (dimension-use-X-topological AND dimension-use-Z-topological) OR (dimension-use-Y-topological AND dimension-use-Z-topological) OR (dimension-use-X-topological AND dimension-use-COLOUR-topological) OR (dimension-use-X-topological AND dimension-use-TIME-topological) OR (dimension-use-Y-topological AND dimension-use-COLOUR-topological) OR (dimension-use-Y-topological AND dimension-use-TIME-topological) OR (dimension-use-Z-topological AND dimension-use-COLOUR-topological) OR (dimension-use-Z-topological AND dimension-use-TIME-topological) OR (dimension-use-COLOUR-topological AND dimension-use-TIME-topological),0.75
+type-real,type-number,0.75
+type-real,type-segment,0.5
+type-real,type-line,0.75
+type-event,type-zone,1
+type-event,type-region,1
+type-event,type-column OR type-row,0.75
+type-event,type-class,0.75
 op-\cup,op-+,0.25
+op-\cup,tactic-join,0.25
+op-\cup,tactic-observe,0.5
+op-\cup,op-union,0.75
+op-\cap,op-intersection,0.75
+op-\cap,tactic-distinguish,0.5
+op-\cap,tactic-observe,0.5
+op-\cap,type-cell,0.75
+op-\Pr,tactic-area,0.75
+op-\Pr,op-probability_of,0.75
+op-\Pr,tactic-get_value,0.5
+op-\Pr,tactic-compare_sizes,0.25
+token-0,token-$dot,0.25
+token-0,rel-$shading,0.25
+token-0,pattern-zero,0.75
+token-\emptyset,rel-$shading,1
+token-\emptyset,token-0,0.25
+token-\emptyset,token-$dot,0.25
+token-\emptyset,token-empty,0.75
+token-\Omega,token-universe,0.75
+token-\Omega,rel-last_row AND rel-last_column,1
+token-\Omega,type-diagram,1
+op-\setminus,op--,0.25
+op-\setminus,tactic-delete_object,0.75
+op-\setminus,tactic-observe,0.5
+op-\setminus,op-minus,0.75
+op-+,tactic-join,0.25
+op-+,op-plus,0.75
+op--,tactic-delete_object,0.25
+op--,op-minus,0.75
+op-*,(dimension-use-X-metric AND dimension-use-Y-metric) OR (dimension-use-X-metric AND dimension-use-Z-metric) OR (dimension-use-Y-metric AND dimension-use-Z-metric),0.75
+op-*,op-times,0.75
+op-\div,tactic-compare_sizes,0.75
+op-\div,op-divided_by,0.75
+op-\div,op-/,1
+rel-=,tactic-rewrite,0.5
+rel-=,op-equals,0.75
+rel-=,op-=,0.5
