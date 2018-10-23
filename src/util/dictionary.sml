@@ -17,12 +17,12 @@ sig
 
     exception KeyError;
 
-    val empty : (k, 'v) dict;
+    val empty : unit -> (k, 'v) dict;
     val fromPairList : (k * 'v) list -> (k, 'v) dict;
     val toPairList : (k, 'v) dict -> (k * 'v) list;
 
-    val insert : (k, 'v) dict -> (k * 'v) ->  (k, 'v) dict;
-    val remove : (k, 'v) dict -> k -> (k, 'v) dict;
+    val insert : (k, 'v) dict -> (k * 'v) ->  unit;
+    val remove : (k, 'v) dict -> k -> unit;
 
     val get : (k, 'v) dict -> k -> 'v;
 
@@ -62,23 +62,31 @@ struct
 datatype 'a tree = LEAF
                  | BRANCH of ('a * 'a tree * 'a tree);
 type k = K.k;
-type ('k, 'v) dict = ('k * 'v) tree;
+type ('k, 'v) dict = ('k * 'v) tree ref;
 
 exception KeyError;
 
-val empty = LEAF;
+fun splayFor k t = t;
 
-fun insert LEAF (x,y) = BRANCH ((x,y), LEAF, LEAF)
-  | insert (BRANCH ((k,v), l, r)) (x, y) =
+val empty = fn () => (ref LEAF);
+
+fun insert' LEAF (x,y) = BRANCH ((x,y), LEAF, LEAF)
+  | insert' (BRANCH ((k,v), l, r)) (x, y) =
     if K.compare(x, k) = EQUAL then BRANCH((x,y), l, r)
     else
         let
             val cmp = K.compare (x, k)
-            val l' =  if cmp = GREATER then l else (insert l (x, y));
-            val r' = if cmp = GREATER then insert r (x, y) else r;
+            val l' =  if cmp = GREATER then l else (insert' l (x, y));
+            val r' = if cmp = GREATER then insert' r (x, y) else r;
         in
             BRANCH ((k, v), l', r')
         end;
+fun insert d (x,y) =
+    let
+        val d' = !d;
+        val updated_d' = insert' d' (x, y);
+        val _ = (d := updated_d')
+    in () end;
 
 (* This is a faster way to build a tree from a known sorted list *)
 fun fromSortedPairList xs =
@@ -98,21 +106,22 @@ fun fromSortedPairList xs =
             end;
         val (result, _) = helper xs len;
     in
-        result
+        ref result
     end;
 
 fun fromPairList xs =
     fromSortedPairList (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs)
 
-fun toPairList LEAF = []
-  | toPairList (BRANCH (a, l, r)) = (toPairList l) @ (a::(toPairList r));
+fun toPairList' LEAF = []
+  | toPairList' (BRANCH (a, l, r)) = (toPairList' l) @ (a::(toPairList' r));
+fun toPairList d = toPairList' (!d);
 
-fun unionWith _ LEAF t = t
-  | unionWith _ t LEAF = t
-  | unionWith f t t' =
+fun unionWith' _ LEAF t = t
+  | unionWith' _ t LEAF = t
+  | unionWith' f t t' =
     let
-        val tl = toPairList t;
-        val tl' = toPairList t';
+        val tl = toPairList' t;
+        val tl' = toPairList' t';
         fun merge [] xs = xs
           | merge xs [] = xs
           | merge ((x, v)::xs) ((y, v')::ys) =
@@ -120,21 +129,43 @@ fun unionWith _ LEAF t = t
             else if K.compare(x, y) = LESS then (x, v)::(merge xs ((y, v')::ys))
             else (y, v')::(merge ((x, v)::xs) ys);
     in
-        fromSortedPairList (merge tl tl')
+        ! (fromSortedPairList (merge tl tl'))
     end;
+fun unionWith f t u = ref (unionWith' f (!t) (!u));
 
-fun union a b = unionWith (fn (k, v1, v2) => raise KeyError) a b;
+fun union' a b = unionWith' (fn (k, v1, v2) => raise KeyError) a b;
+fun union a b = ref (union' (!a) (!b));
 
-fun remove LEAF _ = LEAF
-  | remove (BRANCH ((k,v), l, r)) x =
-    if K.compare(x, k) = EQUAL then union l r
-    else if K.compare(x, k) = GREATER then BRANCH((k,v), l, (remove r x))
-    else BRANCH((k,v), (remove l x), r);
+(* TODO: Proper inorder successor stuff *)
+fun remove' LEAF _ = LEAF
+  | remove' (BRANCH ((k,v), l, r)) x =
+    if K.compare(x, k) = EQUAL then union' l r
+    else if K.compare(x, k) = GREATER then BRANCH((k,v), l, (remove' r x))
+    else BRANCH((k,v), (remove' l x), r);
+fun remove t k =
+    let
+        val _ = t := (remove' (!t) k);
+    in () end;
 
-fun get LEAF _ = raise KeyError
-  | get (BRANCH ((k, v), l, r)) x = if K.compare(x,k) = EQUAL then v
-                         else if K.compare(x,k) = LESS then get l x
-                         else get r x;
+(* TODO: proper splaying *)
+fun get' LEAF _ = raise KeyError
+  | get' (BRANCH ((k, v), l, r)) x = if K.compare(x,k) = EQUAL then v
+                                     else if K.compare(x,k) = LESS then get' l x
+                                     else get' r x;
+fun get t k = get' (!t) k;
+(*
+fun get t k =
+    let
+        val t' = splayFor k (!t);
+        val v = case (t') of
+                    BRANCH ((a, b), _, _) => if K.compare(a, k) = EQUAL then b
+                                             else raise KeyError
+                  | _ => raise KeyError;
+        val _ = (t := t');
+    in
+        v
+    end;
+*)
 
 fun keys t = map (fn (k, v) => k) (toPairList t);
 
@@ -142,15 +173,16 @@ fun values t = map (fn (k, v) => v) (toPairList t);
 
 fun items d = toPairList d;
 
-fun size LEAF = 0
-  | size (BRANCH (_, l, r)) = 1 + size l + size r;
+fun size' LEAF = 0
+  | size' (BRANCH (_, l, r)) = 1 + size' l + size' r;
+fun size t = size' (!t);
 
-fun intersectionWith _ LEAF _ = LEAF
-  | intersectionWith _ _ LEAF = LEAF
-  | intersectionWith f t t' =
+fun intersectionWith' _ LEAF _ = LEAF
+  | intersectionWith' _ _ LEAF = LEAF
+  | intersectionWith' f t t' =
     let
-        val tl = toPairList t;
-        val tl' = toPairList t';
+        val tl = toPairList' t;
+        val tl' = toPairList' t';
         fun intsct [] _ = []
           | intsct _ [] = []
           | intsct ((x,v)::xs) ((y,v')::ys) =
@@ -158,27 +190,29 @@ fun intersectionWith _ LEAF _ = LEAF
             else if K.compare(x,y) = LESS then (intsct xs ((y,v')::ys))
             else (intsct ((x,v)::xs) ys);
     in
-        fromSortedPairList (intsct tl tl')
+        ! (fromSortedPairList (intsct tl tl'))
     end;
+fun intersectionWith f t u = ref (intersectionWith' f (!t) (!u));
 
 fun map f t = List.map f (toPairList t);
 
-fun filter f LEAF = LEAF
-  | filter f (BRANCH (a, l, r)) =
+fun filter' f LEAF = LEAF
+  | filter' f (BRANCH (a, l, r)) =
     let
-        val l' = filter f l;
-        val r' = filter f r;
+        val l' = filter' f l;
+        val r' = filter' f r;
     in
         if (f a)
         then BRANCH (a, l', r')
-        else union l' r'
+        else union' l' r'
     end;
+fun filter f t = ref (filter' f (!t));
 
 fun foldl f z t = List.foldl f z (toPairList t);
 
 fun foldr f z t = List.foldr f z (toPairList t);
 
-fun isEmpty LEAF = true
+fun isEmpty (ref LEAF) = true
   | isEmpty _ = false;
 
 end;

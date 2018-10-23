@@ -182,8 +182,8 @@ fun readCorrespondence qpString rspString strengthString =
                 Disj (a', b')
             end;
 
-        fun setify (Prop s) = (set' [s], S.empty)
-          | setify (Neg (Prop s)) = (S.empty, set' [s])
+        fun setify (Prop s) = (set' [s], S.empty ())
+          | setify (Neg (Prop s)) = (S.empty (), set' [s])
           | setify (Neg _) = raise TableError
                                    "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
@@ -400,7 +400,7 @@ fun loadQorRSPropertiesFromFile filename =
 
         val properties = List.foldr
                              (fn ((k, v), xs) => S.union (set' (genProps k v)) xs)
-                             S.empty
+                             (S.empty ())
                              (map parseRow csvData);
     in
         [(csvHeader, properties)]

@@ -18,13 +18,13 @@ sig
     type t;
     type 'a set;
 
-    val empty : t set;
+    val empty : unit -> t set;
     val fromList : t list -> t set;
     val toList : t set -> t list;
     val toString : t set -> string;
 
-    val insert : t set -> t -> t set;
-    val remove : t set -> t -> t set;
+    val insert : t set -> t -> unit;
+    val remove : t set -> t -> unit;
 
     val union : t set -> t set -> t set;
     val intersection : t set -> t set -> t set;
@@ -83,7 +83,18 @@ fun remove xs x = D.remove xs x;
 
 fun union xs ys = D.unionWith (fn (_, _, _) => ()) xs ys;
 fun intersection xs ys = D.intersectionWith (fn (_, _, _) => ()) xs ys;
-fun difference xs ys = D.foldl (fn ((v,_), s) => (remove s v)) xs ys;
+fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
+    let
+        val xs' = toList xs;
+        val ys' = toList ys;
+        fun remove [] _ = []
+          | remove (z::zs) k = if O.compare(z,k) = EQUAL then zs
+                               else if O.compare(z,k) = LESS then z::(remove zs k)
+                               else zs; (* Already past where it would be *)
+        val result = foldr (fn (v, st) => remove st v) xs' ys';
+    in
+        fromList result
+    end;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
