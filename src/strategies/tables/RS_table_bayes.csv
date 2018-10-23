@@ -16,7 +16,7 @@ type-sorts,"categorical,discrete,continuous,metric,ordinal"
 knowledge-manipulation-system,TRUE
 facts,"\Pr(\emptyset)=0, \Pr(\Omega)=1, \Pr(A\cupB)=\Pr(A)+\Pr(B)-\Pr(A\capB)"
 fact-imports,"real-number-arithmetic,finite-set-algebra"
-tactics,"rewrite(fact|assm;term), lemma(wff), calc(term)"
+tactics,"rewrite, lemma, calc"
 logic-power,2
 standard-accessibility-manipulations,"rewrite(fact|assm;term), lemma(wff), calc(term),undo-action"
 accessible-facts,TRUE

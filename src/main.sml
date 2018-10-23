@@ -47,7 +47,10 @@ fun main () =
         val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
         val _ = RepSelect.init(
                 [BASE^"strategies/tables/RS_table_bayes.csv",
-                 BASE^"strategies/tables/RS_table_contingency.csv"],
+                 BASE^"strategies/tables/RS_table_natlang.csv",
+                  BASE^"strategies/tables/RS_table_euler.csv",
+                   BASE^"strategies/tables/RS_table_geometric.csv",
+                    BASE^"strategies/tables/RS_table_contingency.csv"],
                 [BASE^"strategies/tables/correspondence_table.csv"],
                 [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
