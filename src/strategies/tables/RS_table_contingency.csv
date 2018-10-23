@@ -21,7 +21,7 @@ accessible-facts,FALSE
 accessible-tactics,FALSE
 accessible-grammatical-constructors,TRUE
 editable-external-memory,TRUE
-physical-dimension-use,"X:{grammatical;categorical}, Y:{grammatical;categorical}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological}, Z:{}, colour:{}, time:{}, sound:{}"
 grammatical-dimensionality,2
 grammatical-granularity,discrete
 mean-branching-factor,\infty

@@ -362,7 +362,12 @@ val propertyKeyMap = dict' [
         ("mean-branching-factor", (readLabel, "mean-branching-factor-")),
         ("pr-distinct-state-change", (readLabel, "pr-distinct-state-change-")),
         ("pr-valid-state-change", (readLabel, "pr-valid-state-change-")),
-        ("mean-solution-depth", (readLabel, "mean-solution-depth-"))
+        ("mean-solution-depth", (readLabel, "mean-solution-depth-")),
+        ("question-kind", (readLabel, "question-kind-")),
+        ("answer-kind", (readLabel, "question-kind-")),
+        ("question-function", (readLabel, "question-function-")),
+        ("question-value-type", (readCollection, "type-")),
+        ("dependency-type", (readCollection, "type-"))
     ];
 
 fun loadQorRSPropertiesFromFile filename =
