@@ -71,11 +71,38 @@ val empty = LEAF;
 fun insert LEAF (x,y) = BRANCH ((x,y), LEAF, LEAF)
   | insert (BRANCH ((k,v), l, r)) (x, y) =
     if K.compare(x, k) = EQUAL then BRANCH((x,y), l, r)
-    else if K.compare(x, k) = GREATER then BRANCH((k,v), l, insert r (x,y))
-    else BRANCH((k,v), insert l (x,y), r);
+    else
+        let
+            val cmp = K.compare (x, k)
+            val l' =  if cmp = GREATER then l else (insert l (x, y));
+            val r' = if cmp = GREATER then insert r (x, y) else r;
+        in
+            BRANCH ((k, v), l', r')
+        end;
+
+(* This is a faster way to build a tree from a known sorted list *)
+fun fromSortedPairList xs =
+    let
+        val len = List.length xs;
+        fun helper xs 0 = (LEAF, xs)
+          | helper xs n =
+            let
+                val (left, new_xs) = helper xs (n div 2);
+                val (root, rightl) = case new_xs of
+                                         [] => raise List.Empty
+                                       | (h::t) => (h, t);
+                val (right, nextl) = helper rightl (n - (n div 2) - 1);
+                val result = BRANCH (root, left, right);
+            in
+               (result, nextl)
+            end;
+        val (result, _) = helper xs len;
+    in
+        result
+    end;
 
 fun fromPairList xs =
-    foldr (fn (a, t) => insert t a) empty xs;
+    fromSortedPairList (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs)
 
 fun toPairList LEAF = []
   | toPairList (BRANCH (a, l, r)) = (toPairList l) @ (a::(toPairList r));
@@ -93,7 +120,7 @@ fun unionWith _ LEAF t = t
             else if K.compare(x, y) = LESS then (x, v)::(merge xs ((y, v')::ys))
             else (y, v')::(merge ((x, v)::xs) ys);
     in
-        fromPairList (merge tl tl')
+        fromSortedPairList (merge tl tl')
     end;
 
 fun union a b = unionWith (fn (k, v1, v2) => raise KeyError) a b;
@@ -109,11 +136,9 @@ fun get LEAF _ = raise KeyError
                          else if K.compare(x,k) = LESS then get l x
                          else get r x;
 
-fun keys LEAF = []
-  | keys (BRANCH ((k, _), l, r)) = (keys l) @ (k::(keys r));
+fun keys t = map (fn (k, v) => k) (toPairList t);
 
-fun values LEAF = []
-  | values (BRANCH ((_, v), l, r)) = (values l) @ (v::(values r));
+fun values t = map (fn (k, v) => v) (toPairList t);
 
 fun items d = toPairList d;
 
@@ -133,7 +158,7 @@ fun intersectionWith _ LEAF _ = LEAF
             else if K.compare(x,y) = LESS then (intsct xs ((y,v')::ys))
             else (intsct ((x,v)::xs) ys);
     in
-        fromPairList (intsct tl tl')
+        fromSortedPairList (intsct tl tl')
     end;
 
 fun map f t = List.map f (toPairList t);
