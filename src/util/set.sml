@@ -32,8 +32,8 @@ sig
 
     val map : (t -> 'a) -> t set -> 'a list; (* Yes, it really should return 'a set... but that's really hard! *)
     val filter : (t -> bool) -> t set -> t set;
-    val foldl : ('a * t -> 'a) -> 'a -> t set -> 'a;
-    val foldr: ('a * t -> 'a) -> 'a -> t set -> 'a;
+    val foldl : (t * 'a -> 'a) -> 'a -> t set -> 'a;
+    val foldr: (t * 'a -> 'a) -> 'a -> t set -> 'a;
 
     val size : t set -> int;
 
@@ -83,12 +83,12 @@ fun remove xs x = D.remove xs x;
 
 fun union xs ys = D.unionWith (fn (_, _, _) => ()) xs ys;
 fun intersection xs ys = D.intersectionWith (fn (_, _, _) => ()) xs ys;
-fun difference xs ys = D.foldl (fn (s, (v,_)) => (remove s v)) xs ys;
+fun difference xs ys = D.foldl (fn ((v,_), s) => (remove s v)) xs ys;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
-fun foldl f s xs = D.foldl (fn (x, (k, v)) => f(x, k)) s xs;
-fun foldr f s xs = D.foldr (fn (x, (k, v)) => f (x, k)) s xs;
+fun foldl f s xs = D.foldl (fn ((k, v), x) => f(k, x)) s xs;
+fun foldr f s xs = D.foldr (fn ((k, v), x) => f (k, x)) s xs;
 
 fun size xs = D.size xs;
 
