@@ -110,7 +110,15 @@ fun fromSortedPairList xs =
     end;
 
 fun fromPairList xs =
-    fromSortedPairList (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs)
+    let
+        fun dedup [] = []
+          | dedup [x] = [x]
+          | dedup ((x,a)::(y,b)::zs) = if K.compare(x,y) = EQUAL
+                                       then dedup((y,b)::zs) (* Favour second *)
+                                       else (x,a)::(dedup ((y,b)::zs))
+    in
+        fromSortedPairList (dedup (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs))
+    end;
 
 fun toPairList' LEAF = []
   | toPairList' (BRANCH (a, l, r)) = (toPairList' l) @ (a::(toPairList' r));
