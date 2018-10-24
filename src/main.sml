@@ -48,9 +48,9 @@ fun main () =
         val _ = RepSelect.init(
                 [BASE^"strategies/tables/RS_table_bayes.csv",
                  BASE^"strategies/tables/RS_table_natlang.csv",
-                  BASE^"strategies/tables/RS_table_euler.csv",
-                   BASE^"strategies/tables/RS_table_geometric.csv",
-                    BASE^"strategies/tables/RS_table_contingency.csv"],
+                 BASE^"strategies/tables/RS_table_euler.csv",
+                 BASE^"strategies/tables/RS_table_geometric.csv",
+                 BASE^"strategies/tables/RS_table_contingency.csv"],
                 [BASE^"strategies/tables/correspondence_table.csv"],
                 [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
@@ -58,18 +58,19 @@ fun main () =
         Logging.write ("RECOMMEND: " ^
              (if (List.null bestRepresentations)
               then "NONE"
-              else (#1 (List.hd bestRepresentations))) ^
+              else (listToString (fn (s, _) => s) bestRepresentations)) ^
              "\n");
 
         if (List.null bestRepresentations)
         then print ("We have no recommended representations for the " ^
                     qName ^
                     " problem.\n")
-        else print ("For the " ^
-                    qName ^
-                    " problem we recommend using the '" ^
-                    (#1 (List.hd bestRepresentations)) ^
-                    "' representation.\n");
+        else (print ("For the " ^
+                     qName ^
+                     " problem we recommend using one of these " ^
+                     "(in order of suitability)" ^
+                     ":\n");
+              map (fn (s, _) => print ("  " ^ s ^ "\n")) bestRepresentations);
 
         Logging.write ("\nEND algorithm-trace-" ^ today ^ "\n");
         0
