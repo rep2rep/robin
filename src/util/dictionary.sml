@@ -88,7 +88,16 @@ fun insert d (x,y) =
         val _ = (d := updated_d')
     in () end;
 
-(* This is a faster way to build a tree from a known sorted list *)
+(*
+We can exploit the structure of a sorted list to build a balanced tree faster.
+We build half the tree the tree from the first half of the list,
+the we build the other half of the tree from the second half of the list.
+This will run in O(n) time, rather than the naïve O(n log n) time.
+Proof:
+    T(1) = 1
+    T(n) = 2 * T(n/2) + 1
+Solution with T(n) = 2n - 1.
+*)
 fun fromSortedPairList xs =
     let
         val len = List.length xs;
@@ -109,6 +118,13 @@ fun fromSortedPairList xs =
         ref result
     end;
 
+(*
+From an arbitrary list we cannot built the tree in O(n) time,
+as if we could we would have an O(n) comparison-based sorting algorithm.
+This method sorts the values (O(n log n)), removes duplicates (O(n)),
+and uses the fast tree-ify from above (O(n)) to build the tree in
+O(n log n) time with maximal code reuse.
+*)
 fun fromPairList xs =
     let
         fun dedup [] = []
@@ -120,10 +136,23 @@ fun fromPairList xs =
         fromSortedPairList (dedup (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs))
     end;
 
+(*
+We avoid the naïve version of toPairList in the case of severely unbalanced
+trees. This should be rare, but the version below is O(n) just in case.
+*)
 fun toPairList' (LEAF, pairs) = pairs
   | toPairList' (BRANCH (a, l, r), pairs) = toPairList' (l, a::(toPairList' (r, pairs)));
 fun toPairList d = toPairList' ((!d), []);
 
+(*
+Unioning arbitrary BSTs is hard because they may overlap; we cannot just
+pick an element to be the root and glue them together, we would break the
+tree invariant. Instead, we resort to a simple but surprisingly fast algorithm
+based on functions from above. We convert the trees into lists (O(m) + O(n)),
+merge the lists (which we know will be sorted, O(m + n)), then build the
+final tree (from the list which must also be sorted, O(m+n)). Overall complexity
+is O(m+n), which is about as good as you can hope for!
+*)
 fun unionWith' _ LEAF t = t
   | unionWith' _ t LEAF = t
   | unionWith' f t t' =
@@ -145,11 +174,36 @@ fun union' a b = unionWith' (fn (k, v1, v2) => raise KeyError) a b;
 fun union a b = ref (union' (!a) (!b));
 
 (*
-While we could use union, a custom joinDisjoint function is faster
+Much like unioning BSTs, intersecting them kind of sucks. And as with unioning,
+we can use a surprisingly simple algorithm to get around this grossness:
+listify (O(m) + O(n)), intersect (O(m + n)), treeify (O(min(m, n)))
+for a total complexity of O(m+n).
+*)
+fun intersectionWith' _ LEAF _ = LEAF
+  | intersectionWith' _ _ LEAF = LEAF
+  | intersectionWith' f t t' =
+    let
+        val tl = toPairList' (t, []);
+        val tl' = toPairList' (t', []);
+        fun intsct [] _ = []
+          | intsct _ [] = []
+          | intsct ((x,v)::xs) ((y,v')::ys) =
+            if K.compare(x,y) = EQUAL then (x, f(x,v,v'))::(intsct xs ys)
+            else if K.compare(x,y) = LESS then (intsct xs ((y,v')::ys))
+            else (intsct ((x,v)::xs) ys);
+    in
+        ! (fromSortedPairList (intsct tl tl'))
+    end;
+fun intersectionWith f t u = ref (intersectionWith' f (!t) (!u));
+
+(*
+While we could use union, a custom joinDisjoint function is faster (O(log n))
 because we are operating on values known to be strictly less
 (from the left) and strictly greater (from the right) than a particular
 value. They are mutually recursive because once we find the least element,
-we need to remove it from the tree.
+we need to remove it from the tree. Note that this second remove MUST trigger
+a base case of joinDisjoint, because we selected the element based on it
+being a half-branch.
 *)
 fun joinDisjoint LEAF t = t
   | joinDisjoint t LEAF = t
@@ -203,23 +257,6 @@ fun size' LEAF = 0
   | size' (BRANCH (_, l, r)) = 1 + size' l + size' r;
 fun size t = size' (!t);
 
-fun intersectionWith' _ LEAF _ = LEAF
-  | intersectionWith' _ _ LEAF = LEAF
-  | intersectionWith' f t t' =
-    let
-        val tl = toPairList' (t, []);
-        val tl' = toPairList' (t', []);
-        fun intsct [] _ = []
-          | intsct _ [] = []
-          | intsct ((x,v)::xs) ((y,v')::ys) =
-            if K.compare(x,y) = EQUAL then (x, f(x,v,v'))::(intsct xs ys)
-            else if K.compare(x,y) = LESS then (intsct xs ((y,v')::ys))
-            else (intsct ((x,v)::xs) ys);
-    in
-        ! (fromSortedPairList (intsct tl tl'))
-    end;
-fun intersectionWith f t u = ref (intersectionWith' f (!t) (!u));
-
 fun map f t = List.map f (toPairList t);
 
 fun filter' f LEAF = LEAF
@@ -230,7 +267,7 @@ fun filter' f LEAF = LEAF
     in
         if (f a)
         then BRANCH (a, l', r')
-        else union' l' r'
+        else joinDisjoint l' r'
     end;
 fun filter f t = ref (filter' f (!t));
 
