@@ -4,6 +4,7 @@ import "util.dictionary";
 import "util.csv";
 
 import "strategies.property_tables";
+import "strategies.property_readers"; (* Must come after strategies.property_tables *)
 
 structure RepresentationSelection =
 struct

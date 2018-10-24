@@ -70,7 +70,8 @@ fun main () =
                      " problem we recommend using one of these " ^
                      "(in order of suitability)" ^
                      ":\n");
-              map (fn (s, _) => print ("  " ^ s ^ "\n")) bestRepresentations);
+              map (fn (s, _) => print ("  " ^ s ^ "\n")) bestRepresentations;
+             ());
 
         Logging.write ("\nEND algorithm-trace-" ^ today ^ "\n");
         0
