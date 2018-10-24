@@ -120,16 +120,16 @@ fun fromPairList xs =
         fromSortedPairList (dedup (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs))
     end;
 
-fun toPairList' LEAF = []
-  | toPairList' (BRANCH (a, l, r)) = (toPairList' l) @ (a::(toPairList' r));
-fun toPairList d = toPairList' (!d);
+fun toPairList' (LEAF, pairs) = pairs
+  | toPairList' (BRANCH (a, l, r), pairs) = toPairList' (l, a::(toPairList' (r, pairs)));
+fun toPairList d = toPairList' ((!d), []);
 
 fun unionWith' _ LEAF t = t
   | unionWith' _ t LEAF = t
   | unionWith' f t t' =
     let
-        val tl = toPairList' t;
-        val tl' = toPairList' t';
+        val tl = toPairList' (t, []);
+        val tl' = toPairList' (t', []);
         fun merge [] xs = xs
           | merge xs [] = xs
           | merge ((x, v)::xs) ((y, v')::ys) =
@@ -189,8 +189,8 @@ fun intersectionWith' _ LEAF _ = LEAF
   | intersectionWith' _ _ LEAF = LEAF
   | intersectionWith' f t t' =
     let
-        val tl = toPairList' t;
-        val tl' = toPairList' t';
+        val tl = toPairList' (t, []);
+        val tl' = toPairList' (t', []);
         fun intsct [] _ = []
           | intsct _ [] = []
           | intsct ((x,v)::xs) ((y,v')::ys) =
