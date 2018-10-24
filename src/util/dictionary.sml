@@ -144,10 +144,28 @@ fun unionWith f t u = ref (unionWith' f (!t) (!u));
 fun union' a b = unionWith' (fn (k, v1, v2) => raise KeyError) a b;
 fun union a b = ref (union' (!a) (!b));
 
-(* TODO: Proper inorder successor stuff *)
-fun remove' LEAF _ = LEAF
+(*
+While we could use union, a custom joinDisjoint function is faster
+because we are operating on values known to be strictly less
+(from the left) and strictly greater (from the right) than a particular
+value. They are mutually recursive because once we find the least element,
+we need to remove it from the tree.
+*)
+fun joinDisjoint LEAF t = t
+  | joinDisjoint t LEAF = t
+  | joinDisjoint t t' =
+    let
+        fun least (BRANCH(x, LEAF, _)) = x
+          | least (BRANCH(x, l, r)) = least l
+          | least LEAF = raise KeyError;
+        fun fst (k, _) = k;
+        val lt = least t'
+    in
+        BRANCH(lt, t, remove' t' (fst lt))
+    end
+and remove' LEAF _ = LEAF
   | remove' (BRANCH ((k,v), l, r)) x =
-    if K.compare(x, k) = EQUAL then union' l r
+    if K.compare(x, k) = EQUAL then joinDisjoint l r
     else if K.compare(x, k) = GREATER then BRANCH((k,v), l, (remove' r x))
     else BRANCH((k,v), (remove' l x), r);
 fun remove t k =
