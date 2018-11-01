@@ -49,3 +49,6 @@ op-\div,op-/,1
 rel-=,tactic-rewrite,0.5
 rel-=,op-equals,0.75
 rel-=,op-=,0.5
+question-kind-proof,knowledge-manipulation-system,1
+NOT error-allowed,rigorous,1
+error-allowed,NOT rigorous,0.5
