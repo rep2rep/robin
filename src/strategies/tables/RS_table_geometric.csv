@@ -3,7 +3,7 @@ sentential,FALSE
 logical-order,0
 quantifiers,NONE
 types,"point,segment,line,polygon,region,real,label"
-tokens,"\cdot,\diagup"
+tokens,"$dot,$line"
 relations,NONE
 operators,NONE
 grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"

@@ -5,6 +5,7 @@ ROBIN_TMP:=$(shell mktemp)
 all: dist/robin
 
 dist/robin: $(ROBIN_TMP)
+	mkdir -p dist
 	$(MLC) $(FLAGS) -o $@ $<
 
 .PHONY:$(ROBIN_TMP)
@@ -19,7 +20,7 @@ base.sml:
 
 .PHONY:clean
 clean:
-	rm -rf dist/*
+	rm -rf dist
 	rm -rf base.sml
 
 .PHONY:repl

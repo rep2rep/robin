@@ -16,6 +16,9 @@ sig
     val loadQuestionTable : string -> (D.k, S.t S.set) D.dict;
     val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
 
+    val setGenerator : (string * ((string -> string list) * string)) -> unit;
+    val setGenerators : (string * ((string -> string list) * string)) list -> unit;
+
 end;
 
 
@@ -267,108 +270,21 @@ fun loadCorrespondenceTable filename =
          );
 
 (*
-The following functions and map handle how properties are generated from the
-table. For example, they key "operators" then lists a collection of operators.
-To read this, we use the "readCollection" function and will prepend each of the
-operators with the string "op-". Compare this with basic labels, which simply
-return the one thing that is there, in a list, ready to prepend to. Bools are
-simplest, either returning an empty list (false), or a list containing the empty
-string (true) to generate either the key, or nothing, as a property.
-A concrete example: From the table
-    operators        +, -, *, \sqrt
-    sentential       true
-    logic-power      2
-we would generate the properties
-    op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
+We provide a way to extend the known set of property generators with custom
+generation functions. These take the form of (property-key, (generator, prefix))
+where property-key and prefix are strings, and generator is a function.
+To add them, use either setGenerators with a list, or setGenerator with a tuple.
+Avoid running map over setGenerator, as it is faster to use the predefined 'plural'.
 *)
-fun readBool str = if ((String.implode (map Char.toLower (String.explode str))) = "true")
-                   then [""] else [];
-fun readLabel str = [str];
-fun readCollection str = if str = "NONE" then []
-                         else map stringTrim (String.tokens (fn c => c = #",") str);
-fun readDimension str =
+val propertyKeyMap = ref (D.empty);
+fun setGenerators new =
     let
-        fun parseDimProps s = if s = "{}" then []
-                              else let
-                                  fun dropEnds [] = []
-                                    | dropEnds [x] = []
-                                    | dropEnds [x, y] = []
-                                    | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
-                                  val s' = String.implode (dropEnds (String.explode s));
-                              in
-                                  map stringTrim (String.tokens (fn c => c = #";") s')
-                              end;
-        fun createPairs dimval =
-            let
-                val parts = map stringTrim (String.tokens (fn c => c = #":") dimval);
-            in
-                case parts of
-                    [x, y] => (x, parseDimProps y)
-                  | _ => raise TableError
-                               ("Unable to read dimensions from " ^ dimval)
-            end;
-        val dimensions = readCollection str;
-        val dimensionsWithValues = map createPairs dimensions;
-        val dimensionsSplitOut = map (fn (x, y) =>
-                                         map (fn z => x ^ "-" ^ z) y)
-                                     dimensionsWithValues;
-        val dimensionsNoLabels = map (fn (x, y) =>
-                                         map (fn z:string => z) y)
-                                     dimensionsWithValues;
-    in
-        List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels)
-    end;
-val propertyKeyMap = dict' [
-        ("sentential", (readBool, "sentential")),
-        ("logical-order", (readLabel, "logical-order-")),
-        ("quantifiers", (readCollection, "quantifier-")),
-        ("types", (readCollection, "type-")),
-        ("tokens", (readCollection, "token-")),
-        ("relations", (readCollection, "rel-")),
-        ("operators", (readCollection, "op-")),
-        ("grammar-imports", (readCollection, "import-")),
-        ("parse-generate-structures", (readLabel, "parse-generate-structures-")),
-        ("parse-generate-mapping", (readLabel, "parse-generate-mapping-")),
-        ("limit-construction-size", (readBool, "limit-construction-size")),
-        ("grammatical-complexity", (readLabel,  "grammatical-complexity-")),
-        ("ranges", (readCollection, "range-")),
-        ("type-sorts", (readCollection, "type-sort-")),
-        ("knowledge-manipulation-system", (readBool, "knowledge-manipulation-system")),
-        ("facts", (readCollection, "fact-")),
-        ("fact-imports", (readCollection, "import-")),
-        ("tactics", (readCollection, "tactic-")),
-        ("logic-power", (readLabel, "logic-power-")),
-        ("num-statements", (readLabel, "num-statements-")),
-        ("num-tokens", (readLabel, "num-tokens-")),
-        ("num-distinct-tokens", (readLabel, "num-distinct-tokens-")),
-        ("syntactic-patterns", (readCollection, "pattern-")),
-        ("homogeneous", (readBool, "homogeneous")),
-        ("rigorous", (readBool, "rigorous")),
-        ("related-facts", (readCollection, "fact-")),
-        ("related-facts-import", (readCollection, "import-")),
-        ("related-types", (readCollection, "type-")),
-        ("related-operators", (readCollection, "op-")),
-        ("related-tokens", (readCollection, "token-")),
-        ("related-patterns", (readCollection, "pattern-")),
-        ("variables", (readCollection, "var-")),
-        ("standard-accessibility-manipulations", (readCollection, "accessible-manipulation-")),
-        ("accessible-facts", (readBool, "accessible-facts")),
-        ("accessible-tactics", (readBool, "accessible-tactics")),
-        ("accessible-grammatical-constructors", (readBool, "accessible-grammatical-constructors")),
-        ("editable-external-memory", (readBool, "editable-external-memory")),
-        ("physical-dimension-use", (readDimension, "dimension-use-")),
-        ("grammatical-dimensionality", (readLabel, "grammatical-dimensionality-")),
-        ("grammatical-granularity", (readLabel, "grammatical-granularity-")),
-        ("mean-branching-factor", (readLabel, "mean-branching-factor-")),
-        ("pr-distinct-state-change", (readLabel, "pr-distinct-state-change-")),
-        ("pr-valid-state-change", (readLabel, "pr-valid-state-change-")),
-        ("mean-solution-depth", (readLabel, "mean-solution-depth-")),
-        ("question-kind", (readLabel, "question-kind-")),
-        ("answer-kind", (readLabel, "question-kind-")),
-        ("question-function", (readLabel, "question-function-")),
-        ("question-value-type", (readCollection, "type-")),
-        ("dependency-type", (readCollection, "type-"))
-    ];
+        val _ = propertyKeyMap := D.union (dict' new) (!propertyKeyMap);
+    in () end;
+fun setGenerator new =
+    let
+        val _ = propertyKeyMap := D.insert (!propertyKeyMap) new;
+    in () end;
 
 fun loadQorRSPropertiesFromFile filename =
     let
@@ -391,9 +307,9 @@ fun loadQorRSPropertiesFromFile filename =
         fun genProps key args =
             let
                 val (valparser, keypre) =
-                    case (getValue propertyKeyMap key) of
+                    case (getValue (!propertyKeyMap) key) of
                         SOME kt => kt
-                      | NONE => (readLabel, key ^ "-");
+                      | NONE => ((fn s => [s]), key ^ "-");
             in
                 map (fn v => keypre ^ v) (valparser args)
             end;
