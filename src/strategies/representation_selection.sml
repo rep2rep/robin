@@ -89,6 +89,13 @@ fun propInfluence (q, r, s) =
                                 (StringSet.intersection qProps rProps);
         val propertyPairs = identityPairs @ propertyPairs';
 
+        val maxPropertyPairs = 10; (* This limits how many property pairs we will consider *)
+        fun orderPropertyPairs xs = mergesort
+                                        (fn ((_, _, s), (_, _, t)) =>
+                                            Real.compare (t, s))
+                                        xs; (* This defines the order we will consider the property pairs *)
+        val limitedPropertyPairs = List.take (orderPropertyPairs propertyPairs, maxPropertyPairs);
+
         val mix = fn (((qpp, qpm), (rpp, rpm), c), s) =>
                      (Logging.write ("CORRESPONDENCE ((" ^
                            (StringSet.toString qpp) ^
@@ -102,7 +109,7 @@ fun propInfluence (q, r, s) =
                            (Real.toString c) ^ "\n");
                       Logging.write ("VAL s = " ^ (Real.toString (c + s)) ^ "\n");
                       (c + s));
-        val s' = List.foldl mix s propertyPairs;
+        val s' = List.foldl mix s limitedPropertyPairs;
     in
         Logging.write ("\n");
         Logging.write ("RETURN (" ^ q ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
