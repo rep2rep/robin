@@ -30,7 +30,8 @@ sig
     val intersection : t set -> t set -> t set;
     val difference : t set -> t set -> t set;
 
-    val map : (t -> 'a) -> t set -> 'a list; (* Yes, it really should return 'a set... but that's really hard! *)
+    val map : (t -> 'a) -> t set -> 'a list;
+    val endomap : (t -> t) -> t set -> t set;
     val filter : (t -> bool) -> t set -> t set;
     val foldl : ('a * t -> 'a) -> 'a -> t set -> 'a;
     val foldr: ('a * t -> 'a) -> 'a -> t set -> 'a;
@@ -86,6 +87,7 @@ fun intersection xs ys = D.intersectionWith (fn (_, _, _) => ()) xs ys;
 fun difference xs ys = D.foldl (fn (s, (v,_)) => (remove s v)) xs ys;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
+fun endomap f xs = fromList (map f xs);
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
 fun foldl f s xs = D.foldl (fn (x, (k, v)) => f(x, k)) s xs;
 fun foldr f s xs = D.foldr (fn (x, (k, v)) => f (x, k)) s xs;
@@ -94,17 +96,11 @@ fun size xs = D.size xs;
 
 fun isEmpty xs = D.isEmpty xs;
 fun contains xs x =
-    let
-        val v = D.get xs x
-    in
-        true
-    end
+    let val v = D.get xs x
+    in true end
     handle KeyError => false;
 fun subset xs ys =
-    let
-        val contained = map (fn x => contains ys x) xs;
-    in
-        all contained
-    end;
+    let val contained = map (fn x => contains ys x) xs;
+    in all contained end;
 
 end;
