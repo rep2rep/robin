@@ -51,6 +51,8 @@ fun propertiesRS rep =
            (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise StringDict.KeyError);
 
+fun withoutImportance props = set' (PropertyTables.SQ.map (fn (x, _) => x) props);
+
 fun propertiesQ q =
     getValue (!propertyTableQ') q
     handle StringDict.KeyError =>
@@ -70,9 +72,10 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG q = " ^ q ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
-        val qProps = propertiesQ q;
+        val qProps' = propertiesQ q;
+        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
-        val _ = Logging.write ("VAL qProps = " ^ StringSet.toString qProps ^ "\n");
+        val _ = Logging.write ("VAL qProps = " ^ PropertyTables.SQ.toString qProps' ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ StringSet.toString rProps ^ "\n\n");
         val propertyPairs' = List.filter
                                  (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>

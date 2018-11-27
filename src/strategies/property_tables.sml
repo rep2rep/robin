@@ -7,17 +7,23 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
+    structure SQ : SET;
     structure S : SET;
     structure D : DICTIONARY;
 
     type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
+    datatype importance = Unimportant | LowImportance | MedImportance | HighImportance;
+
+    val importanceCompare : (importance * importance) -> order;
 
     val loadCorrespondenceTable : string -> correspondence list;
-    val loadQuestionTable : string -> (D.k, S.t S.set) D.dict;
+    val loadQuestionTable : string -> (D.k, SQ.t SQ.set) D.dict;
     val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
 
-    val setGenerator : (string * ((string -> string list) * string)) -> unit;
-    val setGenerators : (string * ((string -> string list) * string)) list -> unit;
+    val setQGenerator : (string * ((string -> string list) * string * importance)) -> unit;
+    val setQGenerators : (string * ((string -> string list) * string * importance)) list -> unit;
+    val setRSGenerator : (string * ((string -> string list) * string)) -> unit;
+    val setRSGenerators : (string * ((string -> string list) * string)) list -> unit;
 
 end;
 
@@ -27,11 +33,41 @@ struct
 
 exception TableError of string;
 
+datatype importance = Unimportant | LowImportance | MedImportance | HighImportance;
+
+fun importanceCompare (a, b) = if a = b then EQUAL
+                               else case (a, b) of
+                                        (Unimportant, _) => LESS
+                                      | (LowImportance, Unimportant) => GREATER
+                                      | (LowImportance, _) => LESS
+                                      | (MedImportance, Unimportant) => GREATER
+                                      | (MedImportance, LowImportance) => GREATER
+                                      | (MedImportance, _) => LESS
+                                      | (HighImportance, _) => GREATER;
+
+structure SQ = Set(struct
+                    type t = (string * importance);
+                    val compare = fn ((a,x),(b,y)) =>
+                                     let
+                                         val scmp = String.compare (a, b);
+                                         val icmp = importanceCompare (x, y);
+                                     in
+                                         if scmp = EQUAL then icmp else scmp
+                                     end;
+                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^ (
+                                     case i of
+                                         Unimportant => "Zero"
+                                      | LowImportance => "Low"
+                                      | MedImportance => "Medium"
+                                      | HighImportance => "High"
+                                 ) ^ ")";
+                    end);
 structure S = Set(struct
                    type t = string;
                    val compare = String.compare;
                    val fmt = fn s => s;
                    end);
+val qset' = SQ.fromList;
 val set' = S.fromList;
 
 structure D = Dictionary(struct
@@ -211,7 +247,7 @@ fun readCorrespondence qpString rspString strengthString =
                 (positives, negatives)
             end
           | setify (Disj _) = raise TableError
-                                    "Correspondences incorrectly normalised";
+                                              "Correspondences incorrectly normalised";
 
         val read = (normalise o parse o tokenize);
 
@@ -271,24 +307,41 @@ fun loadCorrespondenceTable filename =
 
 (*
 We provide a way to extend the known set of property generators with custom
-generation functions. These take the form of (property-key, (generator, prefix))
-where property-key and prefix are strings, and generator is a function.
-To add them, use either setGenerators with a list, or setGenerator with a tuple.
-Avoid running map over setGenerator, as it is faster to use the predefined 'plural'.
+generation functions. These take the form of
+    (property-key, (generator, prefix, importance))
+where property-key and prefix are strings, importance is an importance, and
+generator is a function. To add them, use either setGenerators with a list,
+or setGenerator with a tuple. Avoid running map over setGenerator, as it is
+faster to use the predefined 'plural'.
+Note that there are two types: QGenerators and RSGenerators. The first include
+the importance part, while the second do not. This is because there is no
+concept of importance when dealing with the RS in abstract terms. The question
+generators give the default importance of a property, but the property tables
+can over-ride this importance by specifying it in a third column.
 *)
-val propertyKeyMap = ref (D.empty);
-fun setGenerators new =
+val qPropertyKeyMap = ref (D.empty);
+fun setQGenerators new =
     let
-        val _ = propertyKeyMap := D.union (dict' new) (!propertyKeyMap);
+        val _ = qPropertyKeyMap := D.union (dict' new) (!qPropertyKeyMap);
     in () end;
-fun setGenerator new =
+fun setQGenerator new =
     let
-        val _ = propertyKeyMap := D.insert (!propertyKeyMap) new;
+        val _ = qPropertyKeyMap := D.insert (!qPropertyKeyMap) new;
+    in () end;
+val rPropertyKeyMap = ref (D.empty);
+fun setRSGenerators new =
+    let
+        val _ = rPropertyKeyMap := D.union (dict' new) (!rPropertyKeyMap);
+    in () end;
+fun setRSGenerator new =
+    let
+        val _ = rPropertyKeyMap := D.insert (!rPropertyKeyMap) new;
     in () end;
 
-fun loadQorRSPropertiesFromFile filename =
+fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
     let
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
+        val (setEmpty, setUnion) = sets;
         val csvFile = CSVLiberal.openIn filename;
         val csvDataWithHeader = CSVLiberal.input csvFile;
         val csvHeader =
@@ -301,22 +354,9 @@ fun loadQorRSPropertiesFromFile filename =
         val csvData = (List.tl csvDataWithHeader)
                       handle List.Empty => raise TableError "Table is empty";
 
-        fun parseRow [x, y] = (x, y)
-          | parseRow _ = raise TableError "Malformed property entry";
-
-        fun genProps key args =
-            let
-                val (valparser, keypre) =
-                    case (getValue (!propertyKeyMap) key) of
-                        SOME kt => kt
-                      | NONE => ((fn s => [s]), key ^ "-");
-            in
-                map (fn v => keypre ^ v) (valparser args)
-            end;
-
         val properties = List.foldr
-                             (fn ((k, v), xs) => S.union (set' (genProps k v)) xs)
-                             S.empty
+                             (fn (r, xs) => setUnion (genProps r) xs)
+                             setEmpty
                              (map parseRow csvData);
     in
         [(csvHeader, properties)]
@@ -329,7 +369,46 @@ fun loadQorRSPropertiesFromFile filename =
              raise TableError reason
          );
 
-fun loadQuestionTable filename = dict' (loadQorRSPropertiesFromFile filename);
-fun loadRepresentationTable filename = dict' (loadQorRSPropertiesFromFile filename);
+fun loadQuestionTable filename = let
+    val sets = (SQ.empty, SQ.union);
+    fun parseImportance "Zero" = Unimportant
+      | parseImportance "Low" = LowImportance
+      | parseImportance "Medium" = MedImportance
+      | parseImportance "High" = HighImportance
+      | parseImportance i = raise TableError ("Unknown importance '" ^ i ^ "'");
+    fun parseRow [x, y] = (x, y, NONE)
+      | parseRow [x, y, z] = (x, y, SOME (parseImportance z))
+      | parseRow _ = raise TableError "Malformed question property entry";
+    fun genProps (key, args, overrideImportance) =
+        let
+            val (valparser, keypre, defaultImportance) =
+                case (getValue (!qPropertyKeyMap) key) of
+                    SOME kt => kt
+                  | NONE => ((fn s => [s]), key ^ "-", LowImportance);
+            val importance = case overrideImportance of
+                                    NONE => defaultImportance
+                                  | SOME i => i;
+        in
+            qset' (map (fn v => (keypre ^ v, importance)) (valparser args))
+        end;
+in
+    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+end;
+
+fun loadRepresentationTable filename = let
+    val sets = (S.empty, S.union);
+    fun parseRow [x, y] = (x, y)
+      | parseRow _ = raise TableError "Malformed representation property entry";
+    fun genProps (key, args) =
+        let
+            val (valparser, keypre) = case (getValue (!rPropertyKeyMap) key) of
+                                          SOME kt => kt
+                                        | NONE => ((fn s => [s]), key ^ "-");
+        in
+            set' (map (fn v => keypre ^ v) (valparser args))
+        end;
+in
+    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+end;
 
 end;
