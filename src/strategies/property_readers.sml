@@ -14,6 +14,9 @@ we would generate the properties
     op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
 *)
 
+import "strategies.property_importance";
+import "strategies.property_tables";
+
 structure PropertyReader =
 struct
 
@@ -60,11 +63,7 @@ fun dimension str =
 end;
 
 let
-    val Zero = PropertyTables.Unimportant;
-    val Low = PropertyTables.LowImportance;
-    val Medium = PropertyTables.MedImportance;
-    val High = PropertyTables.HighImportance;
-
+    open Importance;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
     val RSProperties = [

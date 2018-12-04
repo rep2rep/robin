@@ -3,6 +3,8 @@ import "util.dictionary";
 import "util.csv";
 import "util.logging";
 
+import "strategies.property_importance";
+
 signature PROPERTYTABLES =
 sig
     exception TableError of string;
@@ -12,18 +14,17 @@ sig
     structure D : DICTIONARY;
 
     type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
-    datatype importance = Unimportant | LowImportance | MedImportance | HighImportance;
-
-    val importanceCompare : (importance * importance) -> order;
+    type qgenerator = (string -> string list) * string * Importance.importance;
+    type rsgenerator = (string -> string list) * string;
 
     val loadCorrespondenceTable : string -> correspondence list;
     val loadQuestionTable : string -> (D.k, SQ.t SQ.set) D.dict;
     val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
 
-    val setQGenerator : (string * ((string -> string list) * string * importance)) -> unit;
-    val setQGenerators : (string * ((string -> string list) * string * importance)) list -> unit;
-    val setRSGenerator : (string * ((string -> string list) * string)) -> unit;
-    val setRSGenerators : (string * ((string -> string list) * string)) list -> unit;
+    val setQGenerator : (string * qgenerator) -> unit;
+    val setQGenerators : (string * qgenerator) list -> unit;
+    val setRSGenerator : (string * rsgenerator) -> unit;
+    val setRSGenerators : (string * rsgenerator) list -> unit;
 
 end;
 
@@ -33,34 +34,18 @@ struct
 
 exception TableError of string;
 
-datatype importance = Unimportant | LowImportance | MedImportance | HighImportance;
-
-fun importanceCompare (a, b) = if a = b then EQUAL
-                               else case (a, b) of
-                                        (Unimportant, _) => LESS
-                                      | (LowImportance, Unimportant) => GREATER
-                                      | (LowImportance, _) => LESS
-                                      | (MedImportance, Unimportant) => GREATER
-                                      | (MedImportance, LowImportance) => GREATER
-                                      | (MedImportance, _) => LESS
-                                      | (HighImportance, _) => GREATER;
-
 structure SQ = Set(struct
-                    type t = (string * importance);
+                    type t = (string * Importance.importance);
                     val compare = fn ((a,x),(b,y)) =>
                                      let
                                          val scmp = String.compare (a, b);
-                                         val icmp = importanceCompare (x, y);
+                                         val icmp = Importance.compare (x, y);
                                      in
                                          if scmp = EQUAL then icmp else scmp
                                      end;
-                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^ (
-                                     case i of
-                                         Unimportant => "Zero"
-                                      | LowImportance => "Low"
-                                      | MedImportance => "Medium"
-                                      | HighImportance => "High"
-                                 ) ^ ")";
+                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^
+                                           (Importance.toString i)
+                                           ^ ")";
                     end);
 structure S = Set(struct
                    type t = string;
@@ -83,6 +68,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                              end);
 
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
+type qgenerator = (string -> string list) * string * Importance.importance;
+type rsgenerator = (string -> string list) * string;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -371,11 +358,9 @@ fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
 
 fun loadQuestionTable filename = let
     val sets = (SQ.empty, SQ.union);
-    fun parseImportance "Zero" = Unimportant
-      | parseImportance "Low" = LowImportance
-      | parseImportance "Medium" = MedImportance
-      | parseImportance "High" = HighImportance
-      | parseImportance i = raise TableError ("Unknown importance '" ^ i ^ "'");
+    fun parseImportance s = case Importance.fromString s of
+                                SOME i => i
+                              | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");
     fun parseRow [x, y] = (x, y, NONE)
       | parseRow [x, y, z] = (x, y, SOME (parseImportance z))
       | parseRow _ = raise TableError "Malformed question property entry";
@@ -384,7 +369,7 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (getValue (!qPropertyKeyMap) key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [s]), key ^ "-", LowImportance);
+                  | NONE => ((fn s => [s]), key ^ "-", Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
