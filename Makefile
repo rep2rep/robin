@@ -1,4 +1,9 @@
 MLC=polyc
+ifeq (, $(shell which rlwrap))
+	REPL=poly
+else
+	REPL=rlwrap poly
+endif
 FLAGS=
 ROBIN_TMP:=$(shell mktemp)
 
@@ -25,4 +30,4 @@ clean:
 
 .PHONY:repl
 repl: base.sml
-	poly --use base.sml
+	$(REPL) --use base.sml
