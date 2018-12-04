@@ -15,6 +15,8 @@ sig
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
     val all : bool list -> bool;
     val any : bool list -> bool;
+    val max : (('a * 'a) -> order) -> 'a list -> 'a;
+    val min : (('a * 'a) -> order) -> 'a list -> 'a;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val listToString : ('a -> string) -> 'a list -> string;
@@ -81,6 +83,12 @@ fun all [] = true
 
 fun any [] = false
   | any (b::bs) = b orelse (any bs);
+
+fun max _ [] = raise List.Empty
+  | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER then a else b) x xs
+
+fun min _ [] = raise List.Empty
+  | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS then a else b) x xs
 
 fun dropWhile pred [] = []
   | dropWhile pred (x::xs) = if (pred x) then dropWhile pred xs
