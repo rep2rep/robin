@@ -66,7 +66,116 @@ type ('k, 'v) dict = ('k * 'v) tree ref;
 
 exception KeyError;
 
-fun splayFor k t = t;
+fun keyFor (k, _) = k;
+
+fun splayFor k LEAF = raise KeyError
+  | splayFor k (BRANCH(v, l, r)) =
+    case K.compare(k, keyFor(v)) of
+        EQUAL => BRANCH(v, l, r)
+      (* Potential zig-* *)
+      | LESS => (
+          case l of
+              LEAF => BRANCH(v, l, r)
+            | BRANCH(lv, ll, lr) =>
+              case K.compare(k, keyFor(lv)) of
+                  (* single-zig *)
+                  EQUAL => BRANCH(lv,
+                                  ll,
+                                  BRANCH(v,
+                                         lr,
+                                         r))
+                (* potential zig-zig *)
+                | LESS => (
+                    case ll of
+                        LEAF => BRANCH(lv,
+                                       LEAF,
+                                       BRANCH(v,
+                                              lr,
+                                              r))
+                      | llt =>
+                        let
+                            val BRANCH(llv, lll, llr) = splayFor k llt;
+                        in
+                            BRANCH(llv,
+                                   lll,
+                                   BRANCH(lv,
+                                          llr,
+                                          BRANCH(v,
+                                                 lr,
+                                                 r)))
+                        end)
+                (* potential zig-zag *)
+                | GREATER => (
+                    case lr of
+                        LEAF => BRANCH(lv,
+                                       ll,
+                                       BRANCH(v,
+                                              LEAF,
+                                              r))
+                      | lrt =>
+                        let
+                            val BRANCH(lrv, lrl, lrr) = splayFor k lrt;
+                        in
+                            BRANCH(lrv,
+                                   BRANCH(lv,
+                                          ll,
+                                          lrl),
+                                   BRANCH(v,
+                                          lrr,
+                                          r))
+                        end))
+      (* potential zag-* *)
+      | GREATER => (
+          case r of
+              LEAF => BRANCH(v, l, r)
+            | BRANCH(rv, rl, rr) =>
+              case K.compare(k, keyFor(rv)) of
+                  (* single zag *)
+                  EQUAL => BRANCH(rv,
+                                  BRANCH(v,
+                                         l,
+                                         rl),
+                                  rr)
+                (* potential zag-zag *)
+                | GREATER => (
+                    case rr of
+                        LEAF => BRANCH(rv,
+                                       BRANCH(v,
+                                              l,
+                                              rl),
+                                       rr)
+                      | rrt =>
+                        let
+                            val BRANCH(rrv, rrl, rrr) = splayFor k rrt;
+                        in
+                            BRANCH(rrv,
+                                   BRANCH(rv,
+                                          BRANCH(v,
+                                                 l,
+                                                 rl),
+                                          rrl),
+                                   rrr)
+                        end)
+                (* potential zag-zig *)
+                | LESS => (
+                    case rl of
+                        LEAF => BRANCH(rv,
+                                       BRANCH(v,
+                                              l,
+                                              rl),
+                                      rr)
+                      | rlt =>
+                        let
+                            val BRANCH(rlv, rll, rlr) = splayFor k rlt;
+                        in
+                            BRANCH(rlv,
+                                   BRANCH(v,
+                                          l,
+                                          rll),
+                                   BRANCH(rv,
+                                          rlr,
+                                          rr))
+                        end))
 
 val empty = fn () => (ref LEAF);
 
@@ -227,13 +336,6 @@ fun remove t k =
         val _ = t := (remove' (!t) k);
     in () end;
 
-(* TODO: proper splaying *)
-fun get' LEAF _ = raise KeyError
-  | get' (BRANCH ((k, v), l, r)) x = if K.compare(x,k) = EQUAL then v
-                                     else if K.compare(x,k) = LESS then get' l x
-                                     else get' r x;
-fun get t k = get' (!t) k;
-(*
 fun get t k =
     let
         val t' = splayFor k (!t);
@@ -245,7 +347,6 @@ fun get t k =
     in
         v
     end;
-*)
 
 fun keys t = map (fn (k, v) => k) (toPairList t);
 
