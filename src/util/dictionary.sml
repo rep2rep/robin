@@ -93,17 +93,20 @@ fun splayFor k LEAF = raise KeyError
                                               lr,
                                               r))
                       | llt =>
-                        let
-                            val BRANCH(llv, lll, llr) = splayFor k llt;
-                        in
-                            BRANCH(llv,
-                                   lll,
-                                   BRANCH(lv,
-                                          llr,
-                                          BRANCH(v,
-                                                 lr,
-                                                 r)))
-                        end)
+                        case (splayFor k llt) of
+                            LEAF => BRANCH(lv,
+                                           LEAF,
+                                           BRANCH(v,
+                                                  lr,
+                                                  r))
+                          | BRANCH(llv, lll, llr) => BRANCH(llv,
+                                                            lll,
+                                                            BRANCH(lv,
+                                                                   llr,
+                                                                   BRANCH(v,
+                                                                          lr,
+                                                                          r)))
+                )
                 (* potential zig-zag *)
                 | GREATER => (
                     case lr of
@@ -113,17 +116,21 @@ fun splayFor k LEAF = raise KeyError
                                               LEAF,
                                               r))
                       | lrt =>
-                        let
-                            val BRANCH(lrv, lrl, lrr) = splayFor k lrt;
-                        in
-                            BRANCH(lrv,
-                                   BRANCH(lv,
-                                          ll,
-                                          lrl),
-                                   BRANCH(v,
-                                          lrr,
-                                          r))
-                        end))
+                        case (splayFor k lrt) of
+                            LEAF => BRANCH(lv,
+                                           ll,
+                                           BRANCH(v,
+                                                  LEAF,
+                                                  r))
+                         | BRANCH(lrv, lrl, lrr) => BRANCH(lrv,
+                                                           BRANCH(lv,
+                                                                  ll,
+                                                                  lrl),
+                                                           BRANCH(v,
+                                                                  lrr,
+                                                                  r))
+                )
+      )
       (* potential zag-* *)
       | GREATER => (
           case r of
@@ -145,17 +152,19 @@ fun splayFor k LEAF = raise KeyError
                                               rl),
                                        rr)
                       | rrt =>
-                        let
-                            val BRANCH(rrv, rrl, rrr) = splayFor k rrt;
-                        in
-                            BRANCH(rrv,
-                                   BRANCH(rv,
-                                          BRANCH(v,
-                                                 l,
-                                                 rl),
-                                          rrl),
-                                   rrr)
-                        end)
+                        case (splayFor k rrt) of
+                            LEAF => BRANCH(rv,
+                                           BRANCH(v,
+                                                  l,rl),
+                                           rr)
+                          | BRANCH(rrv, rrl, rrr) => BRANCH(rrv,
+                                                            BRANCH(rv,
+                                                                   BRANCH(v,
+                                                                          l,
+                                                                          rl),
+                                                                   rrl),
+                                                            rrr)
+                )
                 (* potential zag-zig *)
                 | LESS => (
                     case rl of
@@ -165,17 +174,21 @@ fun splayFor k LEAF = raise KeyError
                                               rl),
                                       rr)
                       | rlt =>
-                        let
-                            val BRANCH(rlv, rll, rlr) = splayFor k rlt;
-                        in
-                            BRANCH(rlv,
-                                   BRANCH(v,
-                                          l,
-                                          rll),
-                                   BRANCH(rv,
-                                          rlr,
-                                          rr))
-                        end))
+                        case (splayFor k rlt) of
+                            LEAF => BRANCH(rv,
+                                           BRANCH(v,
+                                                  l,
+                                                  rl),
+                                           rr)
+                         | BRANCH(rlv, rll, rlr) => BRANCH(rlv,
+                                                           BRANCH(v,
+                                                                  l,
+                                                                  rll),
+                                                           BRANCH(rv,
+                                                                  rlr,
+                                                                  rr))
+                )
+      )
 
 val empty = fn () => (ref LEAF);
 
