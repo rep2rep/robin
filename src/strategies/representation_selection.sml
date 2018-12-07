@@ -51,6 +51,8 @@ fun propertiesRS rep =
            (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise StringDict.KeyError);
 
+fun withoutImportance props = set' (PropertyTables.SQ.map (fn (x, _) => x) props);
+
 fun propertiesQ q =
     getValue (!propertyTableQ') q
     handle StringDict.KeyError =>
@@ -70,9 +72,26 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG q = " ^ q ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
-        val qProps = propertiesQ q;
+        val qProps' = propertiesQ q;
+        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
-        val _ = Logging.write ("VAL qProps = " ^ StringSet.toString qProps ^ "\n");
+        val importanceLookup = (StringDict.fromPairList o PropertyTables.SQ.toList) qProps';
+        val importanceMax = max Importance.compare;
+        fun liftImportance ((qp, qm), (rp, rm), c) =
+            let
+                val qs = (qp, qm);
+                val rs = (rp, rm);
+                val i = importanceMax (StringSet.map (getValue importanceLookup) qp);
+            in
+                (qs, rs, c, i)
+            end;
+        fun modulate strength importance =
+            case importance of
+                Importance.Zero => 0.0
+              | Importance.Low => 0.2 * strength
+              | Importance.Medium => 0.6 * strength
+              | Importance.High => strength;
+        val _ = Logging.write ("VAL qProps = " ^ PropertyTables.SQ.toString qProps' ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ StringSet.toString rProps ^ "\n\n");
         val propertyPairs' = List.filter
                                  (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>
@@ -87,9 +106,9 @@ fun propInfluence (q, r, s) =
                                           (set' [p], StringSet.empty ()),
                                           1.0))
                                 (StringSet.intersection qProps rProps);
-        val propertyPairs = identityPairs @ propertyPairs';
+        val propertyPairs = map liftImportance (identityPairs @ propertyPairs');
 
-        val mix = fn (((qpp, qpm), (rpp, rpm), c), s) =>
+        val mix = fn (((qpp, qpm), (rpp, rpm), c, i), s) =>
                      (Logging.write ("CORRESPONDENCE ((" ^
                            (StringSet.toString qpp) ^
                            ", " ^
@@ -99,9 +118,12 @@ fun propInfluence (q, r, s) =
                            ", " ^
                            (StringSet.toString rpm) ^
                            ")) -> " ^
-                           (Real.toString c) ^ "\n");
-                      Logging.write ("VAL s = " ^ (Real.toString (c + s)) ^ "\n");
-                      (c + s));
+                           (Real.toString c) ^
+                           ", importance " ^
+                           (Importance.toString i) ^
+                           "\n");
+                      Logging.write ("VAL s = " ^ (Real.toString ((modulate c i) + s)) ^ "\n");
+                      ((modulate c i) + s));
         val s' = List.foldl mix s propertyPairs;
     in
         Logging.write ("\n");
