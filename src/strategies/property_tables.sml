@@ -208,8 +208,8 @@ fun readCorrespondence qpString rspString strengthString =
                 Disj (a', b')
             end;
 
-        fun setify (Prop s) = (set' [s], S.empty)
-          | setify (Neg (Prop s)) = (S.empty, set' [s])
+        fun setify (Prop s) = (set' [s], S.empty ())
+          | setify (Neg (Prop s)) = (S.empty (), set' [s])
           | setify (Neg _) = raise TableError
                                    "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
@@ -306,23 +306,23 @@ concept of importance when dealing with the RS in abstract terms. The question
 generators give the default importance of a property, but the property tables
 can over-ride this importance by specifying it in a third column.
 *)
-val qPropertyKeyMap = ref (D.empty);
+val qPropertyKeyMap = ref (D.empty ());
 fun setQGenerators new =
     let
         val _ = qPropertyKeyMap := D.union (dict' new) (!qPropertyKeyMap);
     in () end;
 fun setQGenerator new =
     let
-        val _ = qPropertyKeyMap := D.insert (!qPropertyKeyMap) new;
+        val _ =  D.insert (!qPropertyKeyMap) new;
     in () end;
-val rPropertyKeyMap = ref (D.empty);
+val rPropertyKeyMap = ref (D.empty ());
 fun setRSGenerators new =
     let
         val _ = rPropertyKeyMap := D.union (dict' new) (!rPropertyKeyMap);
     in () end;
 fun setRSGenerator new =
     let
-        val _ = rPropertyKeyMap := D.insert (!rPropertyKeyMap) new;
+        val _ = D.insert (!rPropertyKeyMap) new;
     in () end;
 
 fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
@@ -343,7 +343,7 @@ fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
 
         val properties = List.foldr
                              (fn (r, xs) => setUnion (genProps r) xs)
-                             setEmpty
+                             (setEmpty ())
                              (map parseRow csvData);
     in
         [(csvHeader, properties)]

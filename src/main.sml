@@ -12,10 +12,11 @@ exception ArgumentError of int;
 
 structure RepSelect = RepresentationSelection;
 
-(* For now, we always solve the "medical" problem that starts in bayes.
+(* For now, we always solve the "medical" problem that starts in
+   a specified representation (read from command line).
    This will obviously need to be input by a user in the future.
 *)
-fun readQuestion fileName = ("medical", "bayes");
+fun readQuestion fileName = ("medical", fileName);
 
 (* The first argument is the problem filename, second is number of reps to try *)
 fun parseArgs () =
@@ -27,15 +28,13 @@ fun parseArgs () =
                             "using " ^
                             (Int.toString defaultAlts) ^ "\n";
     in
-        if (List.null args)
-        then (print "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
-        else
-            if (List.null (List.tl args))
-            then (print noNumAltError; ("fake", defaultAlts))
-            else
-                case (Int.fromString (List.hd (List.tl args))) of
-                    SOME k => ("fake", k)
-                  | NONE => (print noNumAltError; ("fake", defaultAlts))
+        case args of
+            [] => (print "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
+          | [fname] => (print noNumAltError; (fname, defaultAlts))
+          | (fname::altNumString::rest) =>
+            case (Int.fromString altNumString) of
+                SOME k => (fname, k)
+              | NONE => (print noNumAltError; (fname, defaultAlts))
     end;
 
 fun main () =

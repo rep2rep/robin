@@ -19,15 +19,15 @@ fun getValue d k = StringDict.get d k;
 
 (* Read in some data *)
 
-val propertyTableRep' = ref StringDict.empty;
+val propertyTableRep' = ref (StringDict.empty ());
 val correspondingTable' = ref [];
-val propertyTableQ' = ref StringDict.empty;
+val propertyTableQ' = ref (StringDict.empty ());
 
 fun init (repTables, corrTables, qTables) = let
     val _ = Logging.write "\n-- Load the representation tables\n";
     val propertyTableRep =
         foldr (fn (a, b) => StringDict.union a b)
-              StringDict.empty
+              (StringDict.empty ())
               (map PropertyTables.loadRepresentationTable repTables);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
@@ -37,7 +37,7 @@ fun init (repTables, corrTables, qTables) = let
     val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ =
         foldr (fn (a, b) => StringDict.union a b)
-              StringDict.empty
+              (StringDict.empty ())
               (map PropertyTables.loadQuestionTable qTables);
 in
     propertyTableRep' := propertyTableRep;
@@ -102,8 +102,8 @@ fun propInfluence (q, r, s) =
                                  )
                                  (!correspondingTable');
         val identityPairs = StringSet.map
-                                (fn p => ((set' [p], StringSet.empty),
-                                          (set' [p], StringSet.empty),
+                                (fn p => ((set' [p], StringSet.empty ()),
+                                          (set' [p], StringSet.empty ()),
                                           1.0))
                                 (StringSet.intersection qProps rProps);
         val propertyPairs = map liftImportance (identityPairs @ propertyPairs');
