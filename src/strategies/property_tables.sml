@@ -185,8 +185,8 @@ fun readCorrespondence qpString rspString strengthString =
                 Disj (a', b')
             end;
 
-        fun setify (Prop s) = (set' [s], S.empty)
-          | setify (Neg (Prop s)) = (S.empty, set' [s])
+        fun setify (Prop s) = (set' [s], S.empty ())
+          | setify (Neg (Prop s)) = (S.empty (), set' [s])
           | setify (Neg _) = raise TableError
                                    "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
@@ -276,14 +276,14 @@ where property-key and prefix are strings, and generator is a function.
 To add them, use either setGenerators with a list, or setGenerator with a tuple.
 Avoid running map over setGenerator, as it is faster to use the predefined 'plural'.
 *)
-val propertyKeyMap = ref (D.empty);
+val propertyKeyMap = ref (D.empty ());
 fun setGenerators new =
     let
         val _ = propertyKeyMap := D.union (dict' new) (!propertyKeyMap);
     in () end;
 fun setGenerator new =
     let
-        val _ = propertyKeyMap := D.insert (!propertyKeyMap) new;
+        val _ = D.insert (!propertyKeyMap) new;
     in () end;
 
 fun loadQorRSPropertiesFromFile filename =
@@ -316,7 +316,7 @@ fun loadQorRSPropertiesFromFile filename =
 
         val properties = List.foldr
                              (fn ((k, v), xs) => S.union (set' (genProps k v)) xs)
-                             S.empty
+                             (S.empty ())
                              (map parseRow csvData);
     in
         [(csvHeader, properties)]
