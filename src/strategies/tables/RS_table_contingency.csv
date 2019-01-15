@@ -4,9 +4,9 @@ logical-order,1
 quantifiers,NONE
 types,"string,real,cell,column,row"
 tokens,NONE
-relations,NONE
+relations,"last_column,last_row"
 operators,"+,-,*,/,=,SUM,PRODUCT"
-grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,string-to-tree
 parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
@@ -14,14 +14,14 @@ grammatical-complexity,type-3
 knowledge-manipulation-system,FALSE
 facts,NONE
 fact-imports,NONE
-tactics,"add-value(cell;correct-value), add-formula(cell;correct-formula), get-value(cell)"
+tactics,"add_value, add_formula, get_value"
 logic-power,2
-standard-accessibility-manipulations,"modify-cell(cell;string), merge-cells(contiguous-cells),add_row, add_column, copy, paste"
+standard-accessibility-manipulations,"add_row, add_column, copy, paste"
 accessible-facts,FALSE
 accessible-tactics,FALSE
 accessible-grammatical-constructors,TRUE
 editable-external-memory,TRUE
-physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological}, colour:{}, time:{}"
 grammatical-dimensionality,2
 grammatical-granularity,discrete
 mean-branching-factor,\infty

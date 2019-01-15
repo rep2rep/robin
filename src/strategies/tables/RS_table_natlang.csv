@@ -2,17 +2,13 @@ natlang,
 sentential,TRUE
 logical-order,\infty
 quantifiers,"for_all,exists"
-types,"thing,action,number,class"
-tokens,"universe,empty,zero,one"
-relations,"is,equals,greater_than,smaller_than"
-operators,"plus,minus,times,divided_by,probability_of,union,intersection"
+types,"thing,action,number,class,occurrence"
+tokens,"universe,all,empty,none,zero,one,is,equals,greater_than,smaller_than,plus,minus,times,divided_by,probability_of,union,or,intersection,and,given,if"
 grammar-imports,latin-alphabet
 parse-generate-structures,string-to-tree
 parse-generate-mapping,many-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-1
-ranges,NONE
-type-sorts,"categorical,discrete,continuous,metric,ordinal"
 knowledge-manipulation-system,TRUE
 facts,NONE
 fact-imports,NONE
@@ -22,7 +18,7 @@ standard-accessibility-manipulations,write
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE
-physical-dimension-use,"X:{grammatical;inferential}, Y:{grammatical;inferential}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;inferential}, Y:{grammatical;inferential}, colour:{}, time:{}"
 grammatical-dimensionality,1
 grammatical-granularity,discrete
 mean-branching-factor,\infty

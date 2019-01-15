@@ -3,26 +3,24 @@ sentential,FALSE
 logical-order,0
 quantifiers,NONE
 types,"point,segment,line,polygon,region,real,label"
-tokens,"$dot,$line"
-relations,NONE
+tokens,"$dot,$line,$segment"
+relations,"$shading"
 operators,NONE
-grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,planar-to-tree
 parse-generate-mapping,one-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-3
-ranges,NONE
-type-sorts,"categorical,continuous"
 knowledge-manipulation-system,FALSE
 facts,NONE
 fact-imports,NONE
-tactics,"draw_point, draw_line, draw_segment, draw_polygon, delete_object, distinguish, join, distance, area, change_label,compare_sizes"
+tactics,"draw_point,draw_line,draw_segment,draw_polygon,delete,distinguish,join,distance,area,change_label,compare_sizes,focus_on_region"
 logic-power,1
 standard-accessibility-manipulations,change_label
 accessible-facts,FALSE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE
-physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;dense;metric;topological}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;dense;metric;topological}, colour:{}, time:{}"
 grammatical-dimensionality,2
 grammatical-granularity,dense
 mean-branching-factor,\infty
