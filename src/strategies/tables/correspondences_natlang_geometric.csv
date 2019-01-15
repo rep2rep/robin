@@ -1,0 +1,15 @@
+type-number,type-segment OR type-line,0.5
+type-occurrence OR type-class,type-region,1
+token-none OR token-empty, OR token-$dot OR token-$segment OR rel-$shading,1
+token-universe OR token-all,type-region,1
+token-plus,tactic-join,0.5
+token-minus,tactic-delete,0.5
+token-times,tactic-area,0.5
+token-divided_by,tactic-compare_sizes,0.75
+token-union OR token-or,tactic-join,0.75
+token-intersection OR token-and,tactic-distinguish,0.75
+token-probability_of,tactic-area OR tactic-compare_sizes,0.75
+token-given OR token-if,tactic-focus_on_region,0.75
+token-if AND (NOT token-given),tactic-focus_on_region,~0.5
+token-equals,tactic-observe,0.5
+

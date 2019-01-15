@@ -1,0 +1,7 @@
+type-class,type-column OR type-row OR type-cell,0.75
+token-union,op-SUM,0.25
+token-intersection,op-PRODUCT,0.25
+token-probability_of,tactic-get_value OR tactic-compare_values,0.5
+token-universe,rel-last_row AND rel-last_column,1
+token-divided_by,op-/,0.75
+token-equals,op-=,1
