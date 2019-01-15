@@ -2,7 +2,7 @@ natlang,
 sentential,TRUE
 logical-order,\infty
 quantifiers,"for_all,exists"
-types,"thing,action,number,class,occurrence"
+types,"thing,action,number,class,occurrence,possibilities"
 tokens,"universe,all,empty,none,zero,one,is,equals,greater_than,smaller_than,plus,minus,times,divided_by,probability_of,union,or,intersection,and,given,if"
 grammar-imports,latin-alphabet
 parse-generate-structures,string-to-tree

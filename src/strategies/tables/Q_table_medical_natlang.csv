@@ -1,7 +1,7 @@
 medical,
 sentential,true
 logic-order,1
-types,"number, percentage, thing, person, class, action"
+types,"number,percentage,thing,person,class,action,occurrence,possibilities"
 tokens,"98,3,1,population,disease,test"
 operators,"%,chance,probability_of,the,a,of,if"
 relations,"has, is, such, positive"
@@ -13,7 +13,7 @@ homogeneous,false
 question-kind,calculation
 question-function,probability_of
 question-value-type,number
-dependency-type,class*class
+dependency-type,occurrence*occurrence
 rigorous,false
 related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds, worldly knowledge"
 fact-imports,NONE
