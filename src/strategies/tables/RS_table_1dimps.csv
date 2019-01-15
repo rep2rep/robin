@@ -22,7 +22,7 @@ standard-accessibility-manipulations,
 accessible-facts,FALSE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE
-physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical,inferential}, colour:{}, time:{}"
+physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;inferential}, colour:{}, time:{}"
 grammatical-dimensionality,2
 grammatical-granularity,dense
 mean-branching-factor,4
