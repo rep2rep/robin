@@ -1,0 +1,20 @@
+type-number,type-real,0.9
+token-zero,token-0,1
+token-one,token-1,1
+token-two,token-2,1
+token-three,token-3,1
+token-four,token-4,1
+token-five,token-5,1
+token-six,token-6,1
+token-seven,token-7,1
+token-eight,token-8,1
+token-nine,token-9,1
+token-ten,token-10,1
+token-plus,op-+,1
+token-minus,op--,1
+token-times,op-*,1
+token-divided_by,op-\div OR op-/,0.75
+token-smaller_than,rel-<,1
+token-greater_than,rel->,1
+token-equals,rel-=,1
+

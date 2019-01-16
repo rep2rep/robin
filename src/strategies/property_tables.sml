@@ -3,18 +3,28 @@ import "util.dictionary";
 import "util.csv";
 import "util.logging";
 
+import "strategies.property_importance";
+
 signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
+    structure SQ : SET;
     structure S : SET;
     structure D : DICTIONARY;
 
     type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
+    type qgenerator = (string -> string list) * string * Importance.importance;
+    type rsgenerator = (string -> string list) * string;
 
     val loadCorrespondenceTable : string -> correspondence list;
-    val loadQuestionTable : string -> (D.k, S.t S.set) D.dict;
+    val loadQuestionTable : string -> (D.k, SQ.t SQ.set) D.dict;
     val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
+
+    val setQGenerator : (string * qgenerator) -> unit;
+    val setQGenerators : (string * qgenerator) list -> unit;
+    val setRSGenerator : (string * rsgenerator) -> unit;
+    val setRSGenerators : (string * rsgenerator) list -> unit;
 
 end;
 
@@ -24,11 +34,25 @@ struct
 
 exception TableError of string;
 
+structure SQ = Set(struct
+                    type t = (string * Importance.importance);
+                    val compare = fn ((a,x),(b,y)) =>
+                                     let
+                                         val scmp = String.compare (a, b);
+                                         val icmp = Importance.compare (x, y);
+                                     in
+                                         if scmp = EQUAL then icmp else scmp
+                                     end;
+                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^
+                                           (Importance.toString i)
+                                           ^ ")";
+                    end);
 structure S = Set(struct
                    type t = string;
                    val compare = String.compare;
                    val fmt = fn s => s;
                    end);
+val qset' = SQ.fromList;
 val set' = S.fromList;
 
 structure D = Dictionary(struct
@@ -44,6 +68,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                              end);
 
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
+type qgenerator = (string -> string list) * string * Importance.importance;
+type rsgenerator = (string -> string list) * string;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -182,8 +208,8 @@ fun readCorrespondence qpString rspString strengthString =
                 Disj (a', b')
             end;
 
-        fun setify (Prop s) = (set' [s], S.empty)
-          | setify (Neg (Prop s)) = (S.empty, set' [s])
+        fun setify (Prop s) = (set' [s], S.empty ())
+          | setify (Neg (Prop s)) = (S.empty (), set' [s])
           | setify (Neg _) = raise TableError
                                    "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
@@ -208,7 +234,7 @@ fun readCorrespondence qpString rspString strengthString =
                 (positives, negatives)
             end
           | setify (Disj _) = raise TableError
-                                    "Correspondences incorrectly normalised";
+                                              "Correspondences incorrectly normalised";
 
         val read = (normalise o parse o tokenize);
 
@@ -267,112 +293,42 @@ fun loadCorrespondenceTable filename =
          );
 
 (*
-The following functions and map handle how properties are generated from the
-table. For example, they key "operators" then lists a collection of operators.
-To read this, we use the "readCollection" function and will prepend each of the
-operators with the string "op-". Compare this with basic labels, which simply
-return the one thing that is there, in a list, ready to prepend to. Bools are
-simplest, either returning an empty list (false), or a list containing the empty
-string (true) to generate either the key, or nothing, as a property.
-A concrete example: From the table
-    operators        +, -, *, \sqrt
-    sentential       true
-    logic-power      2
-we would generate the properties
-    op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
+We provide a way to extend the known set of property generators with custom
+generation functions. These take the form of
+    (property-key, (generator, prefix, importance))
+where property-key and prefix are strings, importance is an importance, and
+generator is a function. To add them, use either setGenerators with a list,
+or setGenerator with a tuple. Avoid running map over setGenerator, as it is
+faster to use the predefined 'plural'.
+Note that there are two types: QGenerators and RSGenerators. The first include
+the importance part, while the second do not. This is because there is no
+concept of importance when dealing with the RS in abstract terms. The question
+generators give the default importance of a property, but the property tables
+can over-ride this importance by specifying it in a third column.
 *)
-fun readBool str = if ((String.implode (map Char.toLower (String.explode str))) = "true")
-                   then [""] else [];
-fun readLabel str = [str];
-fun readCollection str = if str = "NONE" then []
-                         else map stringTrim (String.tokens (fn c => c = #",") str);
-fun readDimension str =
+val qPropertyKeyMap = ref (D.empty ());
+fun setQGenerators new =
     let
-        fun parseDimProps s = if s = "{}" then []
-                              else let
-                                  fun dropEnds [] = []
-                                    | dropEnds [x] = []
-                                    | dropEnds [x, y] = []
-                                    | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
-                                  val s' = String.implode (dropEnds (String.explode s));
-                              in
-                                  map stringTrim (String.tokens (fn c => c = #";") s')
-                              end;
-        fun createPairs dimval =
-            let
-                val parts = map stringTrim (String.tokens (fn c => c = #":") dimval);
-            in
-                case parts of
-                    [x, y] => (x, parseDimProps y)
-                  | _ => raise TableError
-                               ("Unable to read dimensions from " ^ dimval)
-            end;
-        val dimensions = readCollection str;
-        val dimensionsWithValues = map createPairs dimensions;
-        val dimensionsSplitOut = map (fn (x, y) =>
-                                         map (fn z => x ^ "-" ^ z) y)
-                                     dimensionsWithValues;
-        val dimensionsNoLabels = map (fn (x, y) =>
-                                         map (fn z:string => z) y)
-                                     dimensionsWithValues;
-    in
-        List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels)
-    end;
-val propertyKeyMap = dict' [
-        ("sentential", (readBool, "sentential")),
-        ("logical-order", (readLabel, "logical-order-")),
-        ("quantifiers", (readCollection, "quantifier-")),
-        ("types", (readCollection, "type-")),
-        ("tokens", (readCollection, "token-")),
-        ("relations", (readCollection, "rel-")),
-        ("operators", (readCollection, "op-")),
-        ("grammar-imports", (readCollection, "import-")),
-        ("parse-generate-structures", (readLabel, "parse-generate-structures-")),
-        ("parse-generate-mapping", (readLabel, "parse-generate-mapping-")),
-        ("limit-construction-size", (readBool, "limit-construction-size")),
-        ("grammatical-complexity", (readLabel,  "grammatical-complexity-")),
-        ("ranges", (readCollection, "range-")),
-        ("type-sorts", (readCollection, "type-sort-")),
-        ("knowledge-manipulation-system", (readBool, "knowledge-manipulation-system")),
-        ("facts", (readCollection, "fact-")),
-        ("fact-imports", (readCollection, "import-")),
-        ("tactics", (readCollection, "tactic-")),
-        ("logic-power", (readLabel, "logic-power-")),
-        ("num-statements", (readLabel, "num-statements-")),
-        ("num-tokens", (readLabel, "num-tokens-")),
-        ("num-distinct-tokens", (readLabel, "num-distinct-tokens-")),
-        ("syntactic-patterns", (readCollection, "pattern-")),
-        ("homogeneous", (readBool, "homogeneous")),
-        ("rigorous", (readBool, "rigorous")),
-        ("related-facts", (readCollection, "fact-")),
-        ("related-facts-import", (readCollection, "import-")),
-        ("related-types", (readCollection, "type-")),
-        ("related-operators", (readCollection, "op-")),
-        ("related-tokens", (readCollection, "token-")),
-        ("related-patterns", (readCollection, "pattern-")),
-        ("variables", (readCollection, "var-")),
-        ("standard-accessibility-manipulations", (readCollection, "accessible-manipulation-")),
-        ("accessible-facts", (readBool, "accessible-facts")),
-        ("accessible-tactics", (readBool, "accessible-tactics")),
-        ("accessible-grammatical-constructors", (readBool, "accessible-grammatical-constructors")),
-        ("editable-external-memory", (readBool, "editable-external-memory")),
-        ("physical-dimension-use", (readDimension, "dimension-use-")),
-        ("grammatical-dimensionality", (readLabel, "grammatical-dimensionality-")),
-        ("grammatical-granularity", (readLabel, "grammatical-granularity-")),
-        ("mean-branching-factor", (readLabel, "mean-branching-factor-")),
-        ("pr-distinct-state-change", (readLabel, "pr-distinct-state-change-")),
-        ("pr-valid-state-change", (readLabel, "pr-valid-state-change-")),
-        ("mean-solution-depth", (readLabel, "mean-solution-depth-")),
-        ("question-kind", (readLabel, "question-kind-")),
-        ("answer-kind", (readLabel, "question-kind-")),
-        ("question-function", (readLabel, "question-function-")),
-        ("question-value-type", (readCollection, "type-")),
-        ("dependency-type", (readCollection, "type-"))
-    ];
+        val _ = qPropertyKeyMap := D.union (dict' new) (!qPropertyKeyMap);
+    in () end;
+fun setQGenerator new =
+    let
+        val _ =  D.insert (!qPropertyKeyMap) new;
+    in () end;
+val rPropertyKeyMap = ref (D.empty ());
+fun setRSGenerators new =
+    let
+        val _ = rPropertyKeyMap := D.union (dict' new) (!rPropertyKeyMap);
+    in () end;
+fun setRSGenerator new =
+    let
+        val _ = D.insert (!rPropertyKeyMap) new;
+    in () end;
 
-fun loadQorRSPropertiesFromFile filename =
+fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
     let
         val _ = Logging.write ("LOAD " ^ filename ^ "\n");
+        val (setEmpty, setUnion) = sets;
         val csvFile = CSVLiberal.openIn filename;
         val csvDataWithHeader = CSVLiberal.input csvFile;
         val csvHeader =
@@ -385,22 +341,9 @@ fun loadQorRSPropertiesFromFile filename =
         val csvData = (List.tl csvDataWithHeader)
                       handle List.Empty => raise TableError "Table is empty";
 
-        fun parseRow [x, y] = (x, y)
-          | parseRow _ = raise TableError "Malformed property entry";
-
-        fun genProps key args =
-            let
-                val (valparser, keypre) =
-                    case (getValue propertyKeyMap key) of
-                        SOME kt => kt
-                      | NONE => (readLabel, key ^ "-");
-            in
-                map (fn v => keypre ^ v) (valparser args)
-            end;
-
         val properties = List.foldr
-                             (fn ((k, v), xs) => S.union (set' (genProps k v)) xs)
-                             S.empty
+                             (fn (r, xs) => setUnion (genProps r) xs)
+                             (setEmpty ())
                              (map parseRow csvData);
     in
         [(csvHeader, properties)]
@@ -413,7 +356,44 @@ fun loadQorRSPropertiesFromFile filename =
              raise TableError reason
          );
 
-fun loadQuestionTable filename = dict' (loadQorRSPropertiesFromFile filename);
-fun loadRepresentationTable filename = dict' (loadQorRSPropertiesFromFile filename);
+fun loadQuestionTable filename = let
+    val sets = (SQ.empty, SQ.union);
+    fun parseImportance s = case Importance.fromString s of
+                                SOME i => i
+                              | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");
+    fun parseRow [x, y] = (x, y, NONE)
+      | parseRow [x, y, z] = (x, y, SOME (parseImportance z))
+      | parseRow _ = raise TableError "Malformed question property entry";
+    fun genProps (key, args, overrideImportance) =
+        let
+            val (valparser, keypre, defaultImportance) =
+                case (getValue (!qPropertyKeyMap) key) of
+                    SOME kt => kt
+                  | NONE => ((fn s => [s]), key ^ "-", Importance.Low);
+            val importance = case overrideImportance of
+                                    NONE => defaultImportance
+                                  | SOME i => i;
+        in
+            qset' (map (fn v => (keypre ^ v, importance)) (valparser args))
+        end;
+in
+    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+end;
+
+fun loadRepresentationTable filename = let
+    val sets = (S.empty, S.union);
+    fun parseRow [x, y] = (x, y)
+      | parseRow _ = raise TableError "Malformed representation property entry";
+    fun genProps (key, args) =
+        let
+            val (valparser, keypre) = case (getValue (!rPropertyKeyMap) key) of
+                                          SOME kt => kt
+                                        | NONE => ((fn s => [s]), key ^ "-");
+        in
+            set' (map (fn v => keypre ^ v) (valparser args))
+        end;
+in
+    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+end;
 
 end;
