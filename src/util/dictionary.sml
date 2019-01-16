@@ -29,6 +29,7 @@ sig
     val keys : (k, 'v) dict -> k list;
     val values : (k, 'v) dict -> 'v list;
     val items : (k, 'v) dict -> (k * 'v) list;
+
     val size : (k, 'v) dict -> int;
 
     val union : (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
@@ -41,6 +42,7 @@ sig
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
+    val equal: (k, 'v) dict * (k, 'v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 end;
 
@@ -388,6 +390,12 @@ fun filter f t = ref (filter' f (!t));
 fun foldl f z t = List.foldl f z (toPairList t);
 
 fun foldr f z t = List.foldr f z (toPairList t);
+
+fun equal' (LEAF, LEAF) = true
+  | equal' (BRANCH((k, v), l, r), BRANCH((k', v'), l', r')) =
+    (K.compare (k, k') = EQUAL) andalso equal' (l, l') andalso equal' (r, r')
+  | equal' _ = false;
+fun equal (x, y) = equal' (!x, !y);
 
 fun isEmpty (ref LEAF) = true
   | isEmpty _ = false;
