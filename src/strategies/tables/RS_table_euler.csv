@@ -11,6 +11,7 @@ parse-generate-structures,planar-to-tree
 parse-generate-mapping,many-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-3
+rigorous,TRUE
 ranges,NONE
 type-sorts,"categorical,continuous"
 knowledge-manipulation-system,FALSE

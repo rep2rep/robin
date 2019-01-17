@@ -8,4 +8,3 @@ token-intersection OR token-and,tactic-observe_intersection,0.75
 token-given OR token-if,tactic-observe_inclusion,0.75
 token-if AND (NOT token-given),tactic-observe_inclusion,-0.5
 token-equals,relation-same_zone,0.5
-

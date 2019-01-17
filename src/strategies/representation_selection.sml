@@ -87,7 +87,8 @@ fun propInfluence (q, r, s) =
             end;
         fun modulate strength importance =
             case importance of
-                Importance.Zero => 0.0
+                Importance.Noise => ~0.1 * strength
+              | Importance.Zero => 0.0
               | Importance.Low => 0.2 * strength
               | Importance.Medium => 0.6 * strength
               | Importance.High => strength;

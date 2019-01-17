@@ -1,4 +1,4 @@
-geometric,
+1-dimensional-probability-space,
 sentential,FALSE
 logical-order,0
 quantifiers,NONE
@@ -6,19 +6,20 @@ types,"trial_line,outcome_segment,probability_segment,real,label"
 tokens,"$trial_line,$outcome_segment,$probability_segment"
 relations,"overlap,empty_segment"
 operators,NONE
-grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,planar-to-tree
 parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
 grammatical-complexity,type-3
 ranges,NONE
 type-sorts,"categorical,continuous"
+rigorous,TRUE
 knowledge-manipulation-system,FALSE
-facts,NONE
+facts,"fact-scale-independence-of-ratio,length-additivity,non-negative-length"
 fact-imports,NONE
 tactics,"draw_trial_line,draw_outcome_segment,draw_and,draw_or,draw_conditional,measure_length,measure_relative_length"
 logic-power,1
-standard-accessibility-manipulations,
+standard-accessibility-manipulations,""
 accessible-facts,FALSE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE

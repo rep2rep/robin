@@ -10,4 +10,3 @@ token-intersection OR op-and,op-\cap,1
 token-probability_of,op-\Pr,0.75
 token-given OR token-if,op-|,1
 token-if AND (NOT token-given),op-|,-0.75
-
