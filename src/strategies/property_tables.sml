@@ -16,10 +16,14 @@ sig
     type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
     type qgenerator = (string -> string list) * string * Importance.importance;
     type rsgenerator = (string -> string list) * string;
+    type questiontable = (D.k, SQ.t SQ.set) D.dict;
+    type representationtable = (D.k, S.t S.set) D.dict;
 
     val loadCorrespondenceTable : string -> correspondence list;
-    val loadQuestionTable : string -> (D.k, SQ.t SQ.set) D.dict;
-    val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
+    val loadQuestionTable : string -> questiontable;
+    val loadRepresentationTable : string -> representationtable;
+
+    val computePsuedoQuestionTable: questiontable -> correspondence list -> questiontable;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -70,6 +74,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
 type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
 type qgenerator = (string -> string list) * string * Importance.importance;
 type rsgenerator = (string -> string list) * string;
+type questiontable = (D.k, SQ.t SQ.set) D.dict;
+type representationtable = (D.k, S.t S.set) D.dict;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -394,6 +400,11 @@ fun loadRepresentationTable filename = let
         end;
 in
     dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+end;
+
+fun computePsuedoQuestionTable qtable corrs = let
+in
+    SQ.empty ();
 end;
 
 end;
