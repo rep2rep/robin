@@ -13,7 +13,7 @@ token-ten,token-10,1
 token-plus,op-+,1
 token-minus,op--,1
 token-times,op-*,1
-token-divided_by,op-\div OR op-/,0.75
+token-divided_by,op-\div OR op-/,1
 token-smaller_than,rel-<,1
 token-greater_than,rel->,1
 token-equals,rel-=,1
