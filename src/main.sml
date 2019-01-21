@@ -49,8 +49,18 @@ fun main () =
                  BASE^"strategies/tables/RS_table_natlang.csv",
                  BASE^"strategies/tables/RS_table_euler.csv",
                  BASE^"strategies/tables/RS_table_geometric.csv",
-                 BASE^"strategies/tables/RS_table_contingency.csv"],
-                [BASE^"strategies/tables/correspondence_table.csv"],
+                 BASE^"strategies/tables/RS_table_contingency.csv",
+                 BASE^"strategies/tables/RS_table_1dimps.csv",
+                 BASE^"strategies/tables/RS_table_conjtrees.csv"],
+                [BASE^"strategies/tables/correspondences_generic.csv",
+                 BASE^"strategies/tables/correspondences_natlang_interface.csv",
+                 BASE^"strategies/tables/correspondences_natlang_realarith.csv",
+                 BASE^"strategies/tables/correspondences_natlang_bayes.csv",
+                 BASE^"strategies/tables/correspondences_natlang_geometric.csv",
+                 BASE^"strategies/tables/correspondences_natlang_euler.csv",
+                 BASE^"strategies/tables/correspondences_natlang_contingency.csv",
+                 BASE^"strategies/tables/correspondences_natlang_conjtrees.csv",
+                 BASE^"strategies/tables/correspondences_natlang_1dimps.csv"],
                 [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
     in

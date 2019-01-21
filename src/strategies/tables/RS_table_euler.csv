@@ -12,18 +12,17 @@ parse-generate-mapping,many-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-3
 rigorous,TRUE
-ranges,NONE
 type-sorts,"categorical,continuous"
 knowledge-manipulation-system,FALSE
-facts,NONE
+facts,""
 fact-imports,NONE
 tactics,"add_contour,remove_contour,add_shaded_zone,remove_shaded_zone,remove_shading_from_zone,observe_inclusion,observe_intersection,observe_union"
 logic-power,4
-standard-accessibility-manipulations,add_contour
+standard-accessibility-manipulations,""
 accessible-facts,FALSE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE
-physical-dimension-use,"X:{grammatical;dense;topological}, Y:{grammatical;dense;topological;inferential}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;dense;topological}, Y:{grammatical;dense;topological;inferential}, colour:{}, time:{}"
 grammatical-dimensionality,2
 grammatical-granularity,dense
 mean-branching-factor,10

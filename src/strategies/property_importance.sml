@@ -14,17 +14,15 @@ struct
 
 datatype importance = Noise | Zero | Low | Medium | High;
 
-fun compare (a, b) = if a = b then EQUAL
-                     else case (a, b) of
-                              (Noise, _) => LESS
-                            | (_, Noise) => GREATER
-                            | (Zero, _) => LESS
-                            | (_, Zero) => GREATER
-                            | (Low, _) => LESS
-                            | (_, Low) => GREATER
-                            | (Medium, _) => LESS
-                            | (_, Medium) => GREATER
-                            | (High, _) => GREATER;
+fun compare (a, b) = let
+    fun ordify Noise = ~1
+      | ordify Zero = 0
+      | ordify Low = 1
+      | ordify Medium = 2
+      | ordify High = 3;
+in
+    Int.compare (ordify a, ordify b)
+end;
 
 fun fromString "Noise" = SOME Noise
   | fromString "Zero" = SOME Zero
