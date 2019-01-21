@@ -11,10 +11,11 @@ parse-generate-structures,string-to-tree
 parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
 grammatical-complexity,type-3
+rigorous,TRUE
 knowledge-manipulation-system,FALSE
 facts,NONE
 fact-imports,NONE
-tactics,"add_value, add_formula, get_value"
+tactics,"add_value, add_formula, get_value, compare_values"
 logic-power,2
 standard-accessibility-manipulations,"add_row, add_column, copy, paste"
 accessible-facts,FALSE

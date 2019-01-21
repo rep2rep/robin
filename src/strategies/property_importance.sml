@@ -1,7 +1,7 @@
 signature IMPORTANCE =
 sig
 
-    datatype importance = Zero | Low | Medium | High;
+    datatype importance = Noise | Zero | Low | Medium | High;
 
     val compare : (importance * importance) -> order;
     val fromString : string -> importance option;
@@ -12,25 +12,29 @@ end;
 structure Importance : IMPORTANCE =
 struct
 
-datatype importance = Zero | Low | Medium | High;
+datatype importance = Noise | Zero | Low | Medium | High;
 
 fun compare (a, b) = if a = b then EQUAL
                      else case (a, b) of
-                              (Zero, _) => LESS
-                            | (Low, Zero) => GREATER
+                              (Noise, _) => LESS
+                            | (_, Noise) => GREATER
+                            | (Zero, _) => LESS
+                            | (_, Zero) => GREATER
                             | (Low, _) => LESS
-                            | (Medium, Zero) => GREATER
-                            | (Medium, Low) => GREATER
+                            | (_, Low) => GREATER
                             | (Medium, _) => LESS
+                            | (_, Medium) => GREATER
                             | (High, _) => GREATER;
 
-fun fromString "Zero" = SOME Zero
+fun fromString "Noise" = SOME Noise
+  | fromString "Zero" = SOME Zero
   | fromString "Low" = SOME Low
   | fromString "Medium" = SOME Medium
   | fromString "High" = SOME High
   | fromString _ = NONE;
 
-fun toString Zero = "Zero"
+fun toString Noise = "Noise"
+  | toString Zero = "Zero"
   | toString Low = "Low"
   | toString Medium = "Medium"
   | toString High = "High";

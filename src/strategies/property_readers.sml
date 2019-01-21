@@ -67,8 +67,6 @@ let
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
     val RSProperties = [
-        ("quantifiers",
-         (PropertyReader.collection, "quantifier-")),
         ("grammar-imports",
          (PropertyReader.collection, "import-")),
         ("parse-generate-structures",
@@ -81,6 +79,8 @@ let
          (PropertyReader.label,  "grammatical-complexity-")),
         ("type-sorts",
          (PropertyReader.collection, "type-sort-")),
+        ("rigorous",
+         (PropertyReader.bool, "rigorous")),
         ("knowledge-manipulation-system",
          (PropertyReader.bool, "knowledge-manipulation-system")),
         ("facts",
@@ -127,34 +127,42 @@ let
          (PropertyReader.collection, "pattern-", Medium)),
         ("homogeneous",
          (PropertyReader.bool, "homogeneous", Zero)),
-        ("rigorous",
-         (PropertyReader.bool, "rigorous", High)),
+        ("error-allowed",
+         (PropertyReader.label, "error-allowed-", High)),  (*previously rigorous*)
         ("related-facts",
          (PropertyReader.collection, "fact-", Medium)),
-        ("related-facts-import",
-         (PropertyReader.collection, "import-", Low)),
+  (*      ("related-facts-import",
+         (PropertyReader.collection, "import-", Low)),*)
         ("related-types",
          (PropertyReader.collection, "type-", Low)),
         ("related-operators",
          (PropertyReader.collection, "op-", Low)),
+        ("useless-related-tokens",
+         (PropertyReader.collection, "token-", Noise)),
+        ("useless-related-facts",
+         (PropertyReader.collection, "fact-", Noise)),
         ("related-tokens",
          (PropertyReader.collection, "token-", Low)),
         ("related-patterns",
          (PropertyReader.collection, "pattern-", Low)),
         ("variables",
          (PropertyReader.collection, "var-", Medium)),
-        ("question-kind",
+    (*    ("question-kind",
          (PropertyReader.label, "question-kind-", High)),
         ("answer-kind",
-         (PropertyReader.label, "question-kind-", High)),
-        ("question-function",
-         (PropertyReader.label, "question-function-", High)),
-        ("question-value-type",
-         (PropertyReader.collection, "type-", High)),
+         (PropertyReader.label, "question-kind-", High)),*)
+        ("top-question-function",
+         (PropertyReader.label, "op-", High)), (*previously question-function*)
+        ("top-question-function",
+         (PropertyReader.label, "token-", High)), (*previously question-function*)
+        ("answer-type",
+         (PropertyReader.collection, "type-", High)), (*previously question-value-type*)
         ("dependency-type",
          (PropertyReader.collection, "type-", High))
     ];
     val QandRSProperties = [
+        ("quantifiers",
+         (PropertyReader.collection, "quantifier-", Medium)),
         ("sentential",
          (PropertyReader.bool, "sentential", Zero)),
         ("logical-order",
