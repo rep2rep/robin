@@ -12,11 +12,13 @@ exception ArgumentError of int;
 
 structure RepSelect = RepresentationSelection;
 
-(* For now, we always solve the "medical" problem that starts in
-   a specified representation (read from command line).
-   This will obviously need to be input by a user in the future.
+(* The user supplies the specified problem as "name/representation",
+   for example "medical/bayes". This gets deconstructed to load a particular file.
 *)
-fun readQuestion fileName = ("medical", fileName);
+fun readQuestion fileName = case (String.tokens (fn c => c = #"/") fileName) of
+                                [p, r] => (p, r)
+                              | _ => (print "ERROR: cannot parse \"problem/representation\" from the first argument";
+                                      raise ArgumentError 1);
 
 (* The first argument is the problem filename, second is number of reps to try *)
 fun parseArgs () =
