@@ -12,6 +12,19 @@ exception ArgumentError of int;
 
 structure RepSelect = RepresentationSelection;
 
+fun filesMatchingPrefix dir prefix =
+    let
+        fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                      SOME f => getWholeDir direc (f::out)
+                                    | NONE => List.rev out;
+        val dirstream = OS.FileSys.openDir dir;
+        val filenames = getWholeDir dirstream [];
+        val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+        fun attachDir p = dir ^ p;
+    in
+        map (OS.FileSys.fullPath o attachDir) filteredFiles
+    end;
+
 (* The user supplies the specified problem as "name/representation",
    for example "medical/bayes". This gets deconstructed to load a particular file.
 *)
@@ -47,12 +60,8 @@ fun main () =
         val (qName, qRep) = question;
         val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
         val _ = RepSelect.init(
-                [BASE^"strategies/tables/RS_table_bayes.csv",
-                 BASE^"strategies/tables/RS_table_natlang.csv",
-                 BASE^"strategies/tables/RS_table_euler.csv",
-                 BASE^"strategies/tables/RS_table_geometric.csv",
-                 BASE^"strategies/tables/RS_table_contingency.csv"],
-                [BASE^"strategies/tables/correspondence_table.csv"],
+                filesMatchingPrefix (BASE^"strategies/tables/") "RS_table_",
+                filesMatchingPrefix (BASE^"strategies/tables/") "correspondences_",
                 [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
     in
