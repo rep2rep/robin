@@ -131,7 +131,15 @@ fun inputRow istr = let
                  (dowhile (fn () => not (endOfRow istr))
                           (fn () => (skipDelimiter istr; inputCell istr)));
 in
-    if startsEmpty then []
+    if startsEmpty then let
+        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val matchedNewline = matchNewline newlineChars;
+        val consumeDistance = case matchedNewline of
+                                  NONE => 0
+                               | SOME nl => List.length nl;
+    in
+        (TextIO.inputN (istr, consumeDistance); [])
+    end
     else let
         val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
         val matchedNewline = matchNewline newlineChars;

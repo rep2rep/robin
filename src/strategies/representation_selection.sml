@@ -39,9 +39,56 @@ fun init (repTables, corrTables, qTables) = let
         foldr (fn (a, b) => StringDict.union a b)
               (StringDict.empty ())
               (map PropertyTables.loadQuestionTable qTables);
+    fun dedupCorrespondences [] = []
+      | dedupCorrespondences (x::xs) = let
+          fun removeCorr y [] = []
+            | removeCorr y (z::zs) = let
+                val ((qp, qn), (rp, rn), v) = y;
+                val ((qp', qn'), (rp', rn'), v') = z;
+                val matched = StringSet.equal (qp, qp') andalso
+                              StringSet.equal (qn, qn') andalso
+                              StringSet.equal (rp, rp') andalso
+                              StringSet.equal (rn, rn');
+            in
+                if matched
+                then (
+                    if Real.!= (v, v') then
+                        (Logging.write ("Conflicting correspondences:\n");
+                         Logging.write ("\t ((" ^
+                                        (StringSet.toString qp) ^
+                                        ", " ^
+                                        (StringSet.toString qn) ^
+                                        "), (" ^
+                                        (StringSet.toString rp) ^
+                                        ", " ^
+                                        (StringSet.toString rn) ^
+                                        ")) -> " ^
+                                        (Real.toString v) ^
+                                        "\n");
+                         Logging.write ("\t ((" ^
+                                        (StringSet.toString qp') ^
+                                        ", " ^
+                                        (StringSet.toString qn') ^
+                                        "), (" ^
+                                        (StringSet.toString rp') ^
+                                        ", " ^
+                                        (StringSet.toString rn') ^
+                                        ")) -> " ^
+                                         (Real.toString v') ^
+                                         "\n");
+                         raise Fail "Conflicting correspondence values")
+                    else
+                        ();
+                    zs
+                )
+                else z::(removeCorr y zs)
+            end;
+      in
+          x::(removeCorr x xs)
+      end;
 in
     propertyTableRep' := propertyTableRep;
-    correspondingTable' := correspondingTable;
+    correspondingTable' := dedupCorrespondences correspondingTable;
     propertyTableQ' := propertyTableQ
 end;
 
@@ -87,7 +134,7 @@ fun propInfluence (q, r, s) =
             end;
         fun modulate strength importance =
             case importance of
-                Importance.Noise => ~0.1 * strength
+                Importance.Noise => 0.0
               | Importance.Zero => 0.0
               | Importance.Low => 0.2 * strength
               | Importance.Medium => 0.6 * strength
