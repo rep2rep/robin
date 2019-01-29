@@ -11,8 +11,9 @@ parse-generate-structures,planar-to-tree
 parse-generate-mapping,one-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-3
+rigorous,TRUE
 knowledge-manipulation-system,FALSE
-facts,NONE
+facts,"scale-independence-of-ratios,area-additivity,non-negative-area"
 fact-imports,NONE
 tactics,"draw_point,draw_line,draw_segment,draw_polygon,delete,distinguish,join,distance,area,change_label,compare_sizes,focus_on_region"
 logic-power,1
