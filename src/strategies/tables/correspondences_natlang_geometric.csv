@@ -13,7 +13,6 @@ token-given OR token-if,tactic-focus_on_region,0.75
 token-if AND (NOT token-given),tactic-focus_on_region,-0.5
 token-equals,tactic-observe,0.5
 fact-Bayes'-theorem,fact-scale-independence-of-ratio,1
-fact-law-of-total-probability,fact-area-additivity,0.5
+fact-law-of-total-probability OR fact-sigma-additivity,fact-area-additivity,1
 fact-De-Finetti-axiom,fact-scale-independence-of-ratio,1
 fact-non-negative-probability,fact-non-negative-area,1
-fact-sigma-additivity,fact-area-additivity,1
