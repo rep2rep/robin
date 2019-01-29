@@ -25,13 +25,20 @@ fun filesMatchingPrefix dir prefix =
         map (OS.FileSys.fullPath o attachDir) filteredFiles
     end;
 
-(* The user supplies the specified problem as "name/representation",
-   for example "medical/bayes". This gets deconstructed to load a particular file.
+(* The user supplies the specified problem as "name:representation",
+   for example "medical:bayes". This gets deconstructed to load a particular file.
 *)
-fun readQuestion fileName = case (String.tokens (fn c => c = #"/") fileName) of
-                                [p, r] => (p, r)
-                              | _ => (print "ERROR: cannot parse \"problem/representation\" from the first argument";
-                                      raise ArgumentError 1);
+fun readQuestion fileName =
+    let
+        val separator = #":";
+    in
+        case (String.tokens (fn c => c = separator) fileName) of
+            [p, r] => (p, r)
+          | _ => (print ("ERROR: cannot parse \"problem" ^
+                         (str separator) ^
+                         "representation\" from the first argument");
+                  raise ArgumentError 1)
+    end;
 
 (* The first argument is the problem filename, second is number of reps to try *)
 fun parseArgs () =
