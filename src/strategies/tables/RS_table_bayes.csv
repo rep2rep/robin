@@ -3,18 +3,19 @@ sentential,TRUE
 logical-order,1
 quantifiers,NONE
 types,"real, event"
-tokens,"\Omega, \emptyset"
-relations,=
-operators,"+,-,*,\div,\cup,\cap,\setminus,=,\Pr"
-grammar-imports,"hindu-arabic-base-10-real-numerals, latin-alphabet"
+tokens,"\Omega, \emptyset, 0,1,2,3,4,5,6,7,8,9"
+relations,"="
+operators,"+,-,*,\div,\cup,\cap,\setminus,=,\Pr, |"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,string-to-tree
 parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
 grammatical-complexity,type-2
+rigorous,TRUE
 ranges,0-1
 type-sorts,"categorical,discrete,continuous,metric,ordinal"
 knowledge-manipulation-system,TRUE
-facts,"\Pr(\emptyset)=0, \Pr(\Omega)=1, \Pr(A\cupB)=\Pr(A)+\Pr(B)-\Pr(A\capB)"
+facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
 fact-imports,"real-number-arithmetic,finite-set-algebra"
 tactics,"rewrite, lemma, calc"
 logic-power,2
@@ -29,4 +30,3 @@ mean-branching-factor,\infty
 pr-distinct-state-change,0.004
 pr-valid-state-change,1
 mean-solution-depth,10
-knowledge-manipulation-system,TRUE
