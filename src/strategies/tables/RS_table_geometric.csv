@@ -4,7 +4,7 @@ logical-order,0
 quantifiers,NONE
 types,"point,segment,line,polygon,region,real,label"
 tokens,"$dot,$line,$segment"
-relations,"$shading"
+relations,""
 operators,NONE
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,planar-to-tree
