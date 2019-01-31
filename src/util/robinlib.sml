@@ -22,6 +22,8 @@ sig
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
     val stringTrim : string -> string;
+    val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val flip : ('a * 'b) -> ('b * 'a);
     val cmpJoin : ('a * 'a -> order) -> ('b * 'b -> order) -> (('a * 'b) * ('a * 'b)) -> order;
     val revCmp : ('a * 'a -> order) -> ('a * 'a) -> order;
 end;
@@ -130,6 +132,10 @@ fun stringTrim str =
     in
         String.implode remainingChars
     end;
+
+fun spread f (a, b) = (f a, f b);
+
+fun flip (a, b) = (b, a);
 
 fun cmpJoin c1 c2 = fn ((a, x), (b, y)) =>
                        case (c1 (a, b)) of
