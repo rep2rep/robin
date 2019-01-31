@@ -221,21 +221,18 @@ fun topKRepresentations question k =
                             influencedRepresentations) ^
                        "\n");
 
-        val sort = mergesort (fn ((a, b, c), (x, y, z)) =>
-                                          if c < z then LESS
-                                          else if c > z then GREATER
-                                          else EQUAL);
-        val getValid = List.filter (fn (_, _, s) => s > 0.0);
+        val dropQuestion = fn (_, r, s) => (r, s);
+        val sortKey = cmpJoin (revCmp Real.compare) String.compare;
+        val sort = mergesort (sortKey o spread flip);
+        val getValid = List.filter (fn (_, s) => s > 0.0);
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs
                             else List.take (xs, k);
-        val getRepWithScore = fn (_, r, s) => (r, s);
 
-        val result = map getRepWithScore
-                         (topK
+        val result = topK
+                         (sort
                               (getValid
-                                   (List.rev
-                                        (sort influencedRepresentations))));
+                                   (map dropQuestion influencedRepresentations)));
     in
         Logging.write ("\n");
         Logging.write ("RETURN " ^
