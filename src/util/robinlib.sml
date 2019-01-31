@@ -22,6 +22,8 @@ sig
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
     val stringTrim : string -> string;
+    val cmpJoin : ('a * 'a -> order) -> ('b * 'b -> order) -> (('a * 'b) * ('a * 'b)) -> order;
+    val revCmp : ('a * 'a -> order) -> ('a * 'a) -> order;
 end;
 
 
@@ -129,4 +131,13 @@ fun stringTrim str =
         String.implode remainingChars
     end;
 
+fun cmpJoin c1 c2 = fn ((a, x), (b, y)) =>
+                       case (c1 (a, b)) of
+                           EQUAL => c2 (x, y)
+                         | cmp => cmp;
+
+fun revCmp c = fn p => case (c p) of
+                           LESS => GREATER
+                         | EQUAL => EQUAL
+                         | GREATER => LESS;
 end;
