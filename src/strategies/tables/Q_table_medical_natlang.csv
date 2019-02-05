@@ -1,18 +1,15 @@
 medical,
 sentential,true
 logic-order,1
-types,"percentage,thing,person,class,action,occurrence,possibilities"
-tokens,"98,3,1,population,disease,test"
-operators,"%,chance,the,a,of,if"
-relations,"has, is, such, positive"
-num-statements,6
-num-tokens,63
+types,"percentage,ratio,thing,person,class,action,occurrence,possibilities"
+tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive,probability"
+num-statements,3
+num-tokens,64
 num-distinct-tokens,30
 syntactic-patterns,NONE
-homogeneous,false
 question-kind,calculation
-top-question-function,probability_of
-answer-type,number
+top-question-function,probability
+answer-type,ratio
 dependency-type,occurrence*occurrence
 error-allowed,0
 related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
@@ -23,4 +20,3 @@ related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection,probab
 useless-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
 useless-related-facts,"worldly-knowledge"
 related-patterns,NONE
-ranges,1-100
