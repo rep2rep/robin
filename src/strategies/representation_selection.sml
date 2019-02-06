@@ -120,7 +120,6 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
-        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
         val importanceLookup = (StringDict.fromPairList o PropertyTables.SQ.toList) qProps';
         val importanceMax = max Importance.compare;
@@ -141,6 +140,7 @@ fun propInfluence (q, r, s) =
               | Importance.High => strength;
         val _ = Logging.write ("VAL qProps = " ^ PropertyTables.SQ.toString qProps' ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ StringSet.toString rProps ^ "\n\n");
+        val qProps = withoutImportance qProps';
         val propertyPairs' = List.filter
                                  (fn ((aPlus, aMinus), (bPlus, bMinus), _) =>
                                      (subset aPlus qProps) andalso
@@ -154,7 +154,22 @@ fun propInfluence (q, r, s) =
                                           (set' [p], StringSet.empty ()),
                                           1.0))
                                 (StringSet.intersection qProps rProps);
-        val propertyPairs = map liftImportance (identityPairs @ propertyPairs');
+        fun matchCorrespondences y z =
+            let
+                val ((qp, qn), (rp, rn), v) = y;
+                val ((qp', qn'), (rp', rn'), v') = z;
+            in
+                StringSet.equal (qp, qp') andalso
+                StringSet.equal (qn, qn') andalso
+                StringSet.equal (rp, rp') andalso
+                StringSet.equal (rn, rn')
+            end;
+        val identityPairs' = List.filter (fn corr =>
+                                                    not(List.exists
+                                                            (matchCorrespondences corr)
+                                                            propertyPairs'))
+                                                identityPairs;
+        val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');
 
         val mix = fn (((qpp, qpm), (rpp, rpm), c, i), s) =>
                      (Logging.write ("CORRESPONDENCE ((" ^
