@@ -8,7 +8,7 @@ relations,NONE
 num-statements,1
 num-tokens,n+n*(n-1)/2
 num-distinct-tokens,2
-syntactic-patterns,complete-n-graph
+syntactic-patterns,complete-graph
 homogeneous,true
 question-kind,proof
 question-function,prove
