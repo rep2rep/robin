@@ -1,0 +1,22 @@
+birds,
+sentential,true
+logic-order,1
+types,"ratio,class"
+tokens,"one,quarter,all,animals,birds,two,thirds,can,fly,half,flying,X,animal,probability,cannot"
+num-statements,4
+num-tokens,40
+num-distinct-tokens,21
+syntactic-patterns,NONE
+question-kind,calculation
+top-question-function,probability
+answer-type,ratio
+dependency-type,class*class
+error-allowed,0
+related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
+fact-imports,NONE
+related-types,NONE
+related-operators,""
+related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection,probability, zero, empty, universe"
+useless-related-tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,boo,carnal,being,fauna"
+useless-related-facts,"worldly-knowledge"
+related-patterns,NONE

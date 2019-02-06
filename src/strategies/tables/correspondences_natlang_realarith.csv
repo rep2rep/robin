@@ -1,5 +1,7 @@
-type-number,type-real,0.9
-type-percentage,type-real,1
+type-number,type-real,0.75
+type-ratio,type-real,0.9
+type-ratio,type-rational,1
+type-percentage,type-real,0.75
 token-none OR token-empty,token-0,0.25
 token-zero,token-0,1
 token-one,token-1,1
