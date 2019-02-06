@@ -39,15 +39,18 @@ struct
 exception TableError of string;
 
 structure SQ = Set(struct
-                    type t = (string * Importance.importance);
-                    val compare = fn ((a,x),(b,y)) =>
+                    type t = (string * string * Importance.importance);
+                    val compare = fn ((p,a,x),(q,b,y)) =>
                                      let
+                                         val pcmp = String.compare (p, q);
                                          val scmp = String.compare (a, b);
                                          val icmp = Importance.compare (x, y);
                                      in
-                                         if scmp = EQUAL then icmp else scmp
+                                         if pcmp = EQUAL
+                                         then (if scmp = EQUAL then icmp else scmp)
+                                         else pcmp
                                      end;
-                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^
+                    val fmt = fn (p, s, i) => "(" ^ p ^ ", " ^ s ^ ", " ^
                                            (Importance.toString i)
                                            ^ ")";
                     end);
@@ -380,7 +383,7 @@ fun loadQuestionTable filename = let
                                     NONE => defaultImportance
                                   | SOME i => i;
         in
-            qset' (map (fn v => (keypre ^ v, importance)) (valparser args))
+            qset' (map (fn v => (key, keypre ^ v, importance)) (valparser args))
         end;
 in
     dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
@@ -404,7 +407,7 @@ end;
 
 fun computePsuedoQuestionTable qtable corrs = let
 in
-    SQ.empty ();
+    D.empty ()
 end;
 
 end;

@@ -98,7 +98,8 @@ fun propertiesRS rep =
            (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise StringDict.KeyError);
 
-fun withoutImportance props = set' (PropertyTables.SQ.map (fn (x, _) => x) props);
+fun withoutImportance props = set' (PropertyTables.SQ.map (fn (_, x, _) => x) props);
+fun dropKind (p, s, i) = (s, i);
 
 fun propertiesQ q =
     getValue (!propertyTableQ') q
@@ -122,7 +123,9 @@ fun propInfluence (q, r, s) =
         val qProps' = propertiesQ q;
         val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
-        val importanceLookup = (StringDict.fromPairList o PropertyTables.SQ.toList) qProps';
+        val importanceLookup = (StringDict.fromPairList o
+                                (map dropKind) o
+                                PropertyTables.SQ.toList) qProps';
         val importanceMax = max Importance.compare;
         fun liftImportance ((qp, qm), (rp, rm), c) =
             let
