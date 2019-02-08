@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 MLC=polyc
 ifeq (, $(shell which rlwrap))
 	REPL=poly

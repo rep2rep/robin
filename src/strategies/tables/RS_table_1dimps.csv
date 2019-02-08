@@ -4,8 +4,7 @@ logical-order,0
 quantifiers,NONE
 types,"trial_line,outcome_segment,probability_segment,real,label"
 tokens,"$trial_line,$outcome_segment,$probability_segment"
-relations,"overlap,empty_segment"
-operators,NONE
+patterns,"overlap,empty_segment"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,planar-to-tree
 parse-generate-mapping,one-to-one
