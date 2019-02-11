@@ -21,7 +21,7 @@ standard-accessibility-manipulations,change_label
 accessible-facts,FALSE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE
-physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;dense;metric;topological}, colour:{}, time:{}"
+physical-dimension-use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;dense;metric;topological}, colour:{}"
 grammatical-dimensionality,2
 grammatical-granularity,dense
 mean-branching-factor,\infty

@@ -1,10 +1,10 @@
-op-+,tactic-stack_horizontal OR tactic-stack_vertical,0.9
-op-*,tactic-stack_horizontal OR tactic-stack_vertical,0.8
-op--,tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal OR tactic-cut_ell OR tactic-cut_square,0.7
-op-\div,tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal,0.9
-op-\sqrt,tactic-cut_horizontal OR tactic-cut_vertical,0.5
-op-\sum,tactic-stack_horizontal OR tactic-stack_vertical,0.9
-op-^,tactic-stack_horizontal OR tactic-stack_vertical,0.7
-rel-=,tactic-count_equal,1
+token-+,tactic-stack_horizontal OR tactic-stack_vertical,0.9
+token-*,tactic-stack_horizontal OR tactic-stack_vertical,0.8
+token--,tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal OR tactic-cut_ell OR tactic-cut_square,0.7
+token-\div,tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal,0.9
+token-\sqrt,tactic-cut_horizontal OR tactic-cut_vertical,0.5
+token-\sum,tactic-stack_horizontal OR tactic-stack_vertical,0.9
+token-^,tactic-stack_horizontal OR tactic-stack_vertical,0.7
+token-=,tactic-count_equal,1
 token-1,token-dot,1
 type-integer,type-unit,0.8

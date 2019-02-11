@@ -4,8 +4,6 @@ logical-order,1
 quantifiers,NONE
 types,"real, node, edge"
 tokens,"$edge, 0,1,2,3,4,5,6,7,8,9"
-relations,"root,leaf,child"
-operators,""
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,tree-to-tree
 parse-generate-mapping,one-to-one
@@ -21,7 +19,7 @@ standard-accessibility-manipulations,"undo"
 accessible-facts,""
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE
-physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}, time:{}"
+physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"
 grammatical-dimensionality,2
 grammatical-granularity,discrete
 mean-branching-factor,\infty

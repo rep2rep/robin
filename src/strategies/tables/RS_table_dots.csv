@@ -22,7 +22,7 @@ standard-accessibility-manipulations,"add,stack,cut,count,undo"
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,TRUE
-physical-dimension-use,"X:{grammatical;inferential},Y:{grammatical;inferential},Z:{},colour:{},time:{},sound:{}"
+physical-dimension-use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
 grammatical-dimensionality,2
 grammatical-granularity,discrete
 mean-branching-factor,\infty

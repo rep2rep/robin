@@ -6,7 +6,7 @@ types,integer
 tokens,NONE
 relations,=
 operators,"+,-,*,\div,^,\sum"
-grammar-imports,"hindu-arabic-base-10-real-numerals,latin-alphabet"
+grammar-imports,"base-10-real-numerals,latin-alphabet"
 parse-generate-structures,string-to-tree
 parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
@@ -22,7 +22,7 @@ standard-accessibility-manipulations,"rewrite(fact|assm;term), lemma(wff), calc(
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE
-physical-dimension-use,"X:{grammatical;inferential}, Y:{inferential}, Z:{}, colour:{}, time:{}, sound:{}"
+physical-dimension-use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
 grammatical-dimensionality,1
 grammatical-granularity,discrete
 mean-branching-factor,\infty

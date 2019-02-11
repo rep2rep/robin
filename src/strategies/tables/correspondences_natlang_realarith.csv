@@ -14,10 +14,10 @@ token-seven,token-7,1
 token-eight,token-8,1
 token-nine,token-9,1
 token-ten,token-10,1
-token-plus,op-+,1
-token-minus,op--,1
-token-times,op-*,1
-token-divided_by,op-\div OR op-/,1
-token-smaller_than,rel-<,1
-token-greater_than,rel->,1
-token-equals,rel-=,1
+token-plus,token-+,1
+token-minus,token--,1
+token-times,token-*,1
+token-divided_by,token-\div OR token-/,1
+token-smaller_than,token-<,1
+token-greater_than,token->,1
+token-equals,token-=,1

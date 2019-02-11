@@ -123,6 +123,10 @@ let
          (PropertyReader.collection, "type-")),
        ("tokens",
          (PropertyReader.collection, "token-")),
+       ("operators",
+         (PropertyReader.collection, "token-")),
+       ("relations",
+         (PropertyReader.collection, "token-")),
        ("patterns",
          (PropertyReader.collection, "pattern-"))
     ];
