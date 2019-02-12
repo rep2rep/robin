@@ -5,7 +5,7 @@ import "strategies.property_importance";
 
 signature PROPERTY =
 sig
-    eqtype property;
+    type property;
 
     exception ParseError;
 
@@ -16,29 +16,53 @@ end;
 
 structure Property :> PROPERTY =
 struct
+
 type property = string;
 exception ParseError;
+
 val compare = String.compare;
 fun toString s = s;
 fun fromString s = s;
+
 end;
 
-structure QProperty :> PROPERTY =
+signature QPROPERTY =
+sig
+    type property;
+
+    exception ParseError;
+
+    val compare : property * property -> order;
+    val toString : property -> string;
+    val fromString : string -> property;
+    val toPair : property -> (Property.property * Importance.importance);
+    val fromPair : (Property.property * Importance.importance) -> property;
+    val withoutImportance : property -> Property.property;
+end;
+
+
+structure QProperty :> QPROPERTY =
 struct
-type property = (string * Importance.importance);
+
+type property = (Property.property * Importance.importance);
 exception ParseError;
-val compare = cmpJoin String.compare Importance.compare;
-fun toString (p, i) = "(" ^ p ^ ", " ^ (Importance.toString i) ^ ")";
+
+val compare = cmpJoin Property.compare Importance.compare;
+fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
 fun fromString s =
     let
         val splitter = fn c => c = #"(" orelse  c = #")" orelse c = #",";
     in
         case String.tokens splitter s of
             [a, b] => (case Importance.fromString b of
-                           SOME b' => (a, b')
+                           SOME b' => (Property.fromString a, b')
                          | NONE => raise ParseError)
           | _ => raise ParseError
     end;
+fun toPair (s, i) = (s, i);
+fun fromPair (s, i) = (s, i);
+fun withoutImportance (s, _) = s;
+
 end;
 
 structure PropertySet = Set(struct
