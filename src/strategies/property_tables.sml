@@ -3,23 +3,22 @@ import "util.dictionary";
 import "util.csv";
 import "util.logging";
 
+import "strategies.property";
 import "strategies.property_importance";
+import "strategies.property_correspondence";
 
 signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    structure SQ : SET;
-    structure S : SET;
-    structure D : DICTIONARY;
+    structure FileDict : DICTIONARY;
 
-    type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
     type qgenerator = (string -> string list) * string * Importance.importance;
     type rsgenerator = (string -> string list) * string;
 
-    val loadCorrespondenceTable : string -> correspondence list;
-    val loadQuestionTable : string -> (D.k, SQ.t SQ.set) D.dict;
-    val loadRepresentationTable : string -> (D.k, S.t S.set) D.dict;
+    val loadCorrespondenceTable : string -> Correspondence.correspondence list;
+    val loadQuestionTable : string -> (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
+    val loadRepresentationTable : string -> (FileDict.k, PropertySet.t PropertySet.set) FileDict.dict;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -34,40 +33,32 @@ struct
 
 exception TableError of string;
 
-structure SQ = Set(struct
-                    type t = (string * Importance.importance);
-                    val compare = fn ((a,x),(b,y)) =>
-                                     let
-                                         val scmp = String.compare (a, b);
-                                         val icmp = Importance.compare (x, y);
-                                     in
-                                         if scmp = EQUAL then icmp else scmp
-                                     end;
-                    val fmt = fn (s, i) => "(" ^ s ^ ", " ^
-                                           (Importance.toString i)
-                                           ^ ")";
-                    end);
-structure S = Set(struct
-                   type t = string;
-                   val compare = String.compare;
-                   val fmt = fn s => s;
-                   end);
+structure SQ = QPropertySet;
+structure S = PropertySet;
 val qset' = SQ.fromList;
 val set' = S.fromList;
 
-structure D = Dictionary(struct
-                          type k = string;
-                          val compare = String.compare;
-                          end);
+structure D = PropertyDictionary;
 val dict' = D.fromPairList;
 fun getValue d k = SOME (D.get d k)
                    handle D.KeyError => NONE;
+
+structure FileDict = Dictionary(struct
+                                 type k = string;
+                                 val compare = String.compare;
+                                 end);
+val filedict' = FileDict.fromPairList;
+
+structure GenDict = Dictionary(struct
+                                 type k = string;
+                                 val compare = String.compare;
+                                 end);
+val gdict' = GenDict.fromPairList;
 
 structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type correspondence = ((S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real);
 type qgenerator = (string -> string list) * string * Importance.importance;
 type rsgenerator = (string -> string list) * string;
 
@@ -208,8 +199,8 @@ fun readCorrespondence qpString rspString strengthString =
                 Disj (a', b')
             end;
 
-        fun setify (Prop s) = (set' [s], S.empty ())
-          | setify (Neg (Prop s)) = (S.empty (), set' [s])
+        fun setify (Prop s) = (set' [Property.fromString s], S.empty ())
+          | setify (Neg (Prop s)) = (S.empty (), set' [Property.fromString s])
           | setify (Neg _) = raise TableError
                                    "Correspondences incorrectly normalised"
           | setify (Conj (a, b)) =
@@ -223,8 +214,8 @@ fun readCorrespondence qpString rspString strengthString =
                   | isPos _ = false;
                 fun isNeg (Neg a) = true
                   | isNeg _ = false;
-                fun stripTreeness (Prop s) = s
-                  | stripTreeness (Neg (Prop s)) = s
+                fun stripTreeness (Prop s) = Property.fromString s
+                  | stripTreeness (Neg (Prop s)) = Property.fromString s
                   | stripTreeness _ = raise TableError
                                             "Correspondences incorrectly normalised";
                 val flattened = ConjFlatten (Conj (a, b));
@@ -306,24 +297,26 @@ concept of importance when dealing with the RS in abstract terms. The question
 generators give the default importance of a property, but the property tables
 can over-ride this importance by specifying it in a third column.
 *)
-val qPropertyKeyMap = ref (D.empty ());
+val qPropertyKeyMap = ref (GenDict.empty ());
 fun setQGenerators new =
     let
-        val _ = qPropertyKeyMap := D.union (dict' new) (!qPropertyKeyMap);
+        val _ = qPropertyKeyMap := GenDict.union (gdict' new) (!qPropertyKeyMap);
     in () end;
 fun setQGenerator new =
     let
-        val _ =  D.insert (!qPropertyKeyMap) new;
+        val _ =  GenDict.insert (!qPropertyKeyMap) new;
     in () end;
-val rPropertyKeyMap = ref (D.empty ());
+
+val rPropertyKeyMap = ref (GenDict.empty ());
 fun setRSGenerators new =
     let
-        val _ = rPropertyKeyMap := D.union (dict' new) (!rPropertyKeyMap);
+        val _ = rPropertyKeyMap := GenDict.union (gdict' new) (!rPropertyKeyMap);
     in () end;
 fun setRSGenerator new =
     let
-        val _ = D.insert (!rPropertyKeyMap) new;
+        val _ = GenDict.insert (!rPropertyKeyMap) new;
     in () end;
+
 
 fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
     let
@@ -366,18 +359,23 @@ fun loadQuestionTable filename = let
       | parseRow _ = raise TableError "Malformed question property entry";
     fun genProps (key, args, overrideImportance) =
         let
+            fun findQGenerator k = SOME (GenDict.get (!qPropertyKeyMap) k)
+                                   handle GenDict.KeyError => NONE;
             val (valparser, keypre, defaultImportance) =
-                case (getValue (!qPropertyKeyMap) key) of
+                case (findQGenerator key) of
                     SOME kt => kt
                   | NONE => ((fn s => [s]), key ^ "-", Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
+            fun makeProp v = QProperty.fromPair
+                                 (Property.fromString (keypre ^ v),
+                                  importance);
         in
-            qset' (map (fn v => (keypre ^ v, importance)) (valparser args))
+            qset' (map makeProp (valparser args))
         end;
 in
-    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+    filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
 end;
 
 fun loadRepresentationTable filename = let
@@ -386,14 +384,17 @@ fun loadRepresentationTable filename = let
       | parseRow _ = raise TableError "Malformed representation property entry";
     fun genProps (key, args) =
         let
-            val (valparser, keypre) = case (getValue (!rPropertyKeyMap) key) of
+            fun findRSGenerator k = SOME (GenDict.get (!rPropertyKeyMap) k)
+                                    handle GenDict.KeyError => NONE;
+            val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
                                         | NONE => ((fn s => [s]), key ^ "-");
+            fun makeProp v = Property.fromString (keypre ^ v);
         in
-            set' (map (fn v => keypre ^ v) (valparser args))
+            set' (map makeProp (valparser args))
         end;
 in
-    dict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+    filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
 end;
 
 end;
