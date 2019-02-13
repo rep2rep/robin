@@ -25,17 +25,20 @@ fun init (repTables, corrTables, qTables) = let
     val propertyTableRep =
         foldr (fn (a, b) => FileDict.union a b)
               (FileDict.empty ())
-              (map PropertyTables.loadRepresentationTable repTables);
+              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                             PropertyTables.loadRepresentationTable t)) repTables);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
         foldr (fn (a, b) => a @ b)
               []
-              (map PropertyTables.loadCorrespondenceTable corrTables);
+              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                             PropertyTables.loadCorrespondenceTable t)) corrTables);
     val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ =
         foldr (fn (a, b) => FileDict.union a b)
               (FileDict.empty ())
-              (map PropertyTables.loadQuestionTable qTables);
+              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                             PropertyTables.loadQuestionTable t)) qTables);
     fun dedupCorrespondences [] = []
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
@@ -45,11 +48,11 @@ fun init (repTables, corrTables, qTables) = let
                   if Correspondence.equal y z then
                       zs
                   else
-                      (Logging.write ("Conflicting correspondences:\n");
-                       Logging.write ("\t" ^
+                      (Logging.error ("ERROR: Conflicting correspondences:\n");
+                       Logging.error ("\t" ^
                                       (Correspondence.toString y) ^
                                       "\n");
-                       Logging.write ("\t" ^
+                       Logging.error ("\t" ^
                                       (Correspondence.toString z) ^
                                       "\n");
                        raise Fail "Conflicting correspondence values")
@@ -67,7 +70,7 @@ end;
 fun propertiesRS rep =
     FileDict.get (!propertyTableRep') rep
     handle FileDict.KeyError =>
-           (Logging.write ("ERROR: representation '" ^ rep ^ "' not found!\n");
+           (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise FileDict.KeyError);
 
 fun withoutImportance props = PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
@@ -75,7 +78,7 @@ fun withoutImportance props = PropertySet.fromList (QPropertySet.map (QProperty.
 fun propertiesQ q =
     FileDict.get (!propertyTableQ') q
     handle FileDict.KeyError =>
-           (Logging.write ("ERROR: question named '" ^ q ^ "' not found!\n");
+           (Logging.error ("ERROR: question named '" ^ q ^ "' not found!\n");
            raise FileDict.KeyError);
 
 (*
