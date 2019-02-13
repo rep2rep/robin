@@ -7,6 +7,8 @@ sig
     val enable : unit -> unit;
     val disable : unit -> unit;
 
+    val close : unit -> unit;
+
     val logStream : TextIO.outstream -> unit;
     val errStream : TextIO.outstream -> unit;
 
@@ -40,6 +42,11 @@ fun error s = put (!errStream_) s;
 
 fun enable () = enabled := true;
 fun disable () = enabled := false;
+
+fun close () = (
+    TextIO.closeOut (!logStream_);
+    TextIO.closeOut (!errStream_)
+)
 
 fun logStream s = logStream_ := s;
 fun errStream s = errStream_ := s;
