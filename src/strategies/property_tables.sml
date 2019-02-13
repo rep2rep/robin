@@ -1,7 +1,6 @@
 import "util.set";
 import "util.dictionary";
 import "util.csv";
-import "util.logging";
 
 import "strategies.property";
 import "strategies.property_importance";
@@ -269,7 +268,6 @@ fun loadCorrespondenceTable filename =
           | makeRow r = raise TableError
                               ("Correspondence table entry malformed: " ^
                                (listToString (fn s => s) r));
-        val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
     in
@@ -320,7 +318,6 @@ fun setRSGenerator new =
 
 fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
     let
-        val _ = Logging.write ("LOAD " ^ filename ^ "\n");
         val (setEmpty, setUnion) = sets;
         val csvFile = CSVLiberal.openIn filename;
         val csvDataWithHeader = CSVLiberal.input csvFile;
