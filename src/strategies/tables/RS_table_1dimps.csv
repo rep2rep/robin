@@ -5,18 +5,16 @@ quantifiers,NONE
 types,"trial_line,outcome_segment,probability_segment,real,label"
 tokens,"$trial_line,$outcome_segment,$probability_segment"
 patterns,"overlap,empty_segment"
-grammar-imports,"base-10-real-numerals, latin-alphabet"
-parse-generate-structures,planar-to-tree
-parse-generate-mapping,one-to-one
+grammar-imports,"latin-alphabet"
 limit-construction-size,FALSE
 grammatical-complexity,type-3
 ranges,NONE
 type-sorts,"categorical,continuous"
 rigorous,TRUE
 knowledge-manipulation-system,FALSE
-facts,"fact-scale-independence-of-ratio,length-additivity,non-negative-length"
+facts,"scale-independence-of-ratio,length-additivity,non-negative-length"
 fact-imports,NONE
-tactics,"draw_trial_line,draw_outcome_segment,draw_and,draw_or,draw_conditional,measure_length,measure_relative_length"
+tactics,"draw_trial_line,draw_outcome_segment,draw_and,draw_or,draw_conditional,measure_length,compare_lengths"
 logic-power,1
 standard-accessibility-manipulations,""
 accessible-facts,FALSE
