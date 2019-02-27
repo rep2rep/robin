@@ -1,19 +1,18 @@
-type-number,type-segment OR type-line,0.5
-type-ratio OR type-percentage OR type-fraction,type-segment OR type-line,0.5
-type-occurrence OR type-class,type-region,1
+type-number,type-segment OR type-region,0.75
+type-occurrence OR type-class,type-segment OR type-region,1
 token-none OR token-empty, token-$dot OR token-$segment,1
+token-zero, token-$dot,1
 token-universe OR token-all,type-region,1
 token-plus,tactic-join,0.25
 token-minus,tactic-delete,0.25
 token-times,tactic-area,0.25
 token-divided_by,tactic-compare_sizes,0.75
-token-union OR token-or,tactic-join,0.75
-token-intersection OR token-and,tactic-distinguish,0.75
-token-probability,tactic-area OR tactic-compare_sizes,0.75
-token-given OR token-if,tactic-focus_on_region,0.75
+token-union OR token-or,tactic-join,1
+token-intersection OR token-and,tactic-distinguish,1
+token-probability,tactic-area OR tactic-compare_sizes,1
+token-given OR token-if,tactic-focus_on_region,1
 token-if AND (NOT token-given),tactic-focus_on_region,-0.25
-token-equals,tactic-observe,0.5
+token-equals,tactic-observe,1
 fact-Bayes'-theorem,fact-scale-independence-of-ratio,1
 fact-law-of-total-probability OR fact-sigma-additivity,fact-area-additivity,1
-fact-De-Finetti-axiom,fact-scale-independence-of-ratio,1
 fact-non-negative-probability,fact-non-negative-area,1

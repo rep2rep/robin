@@ -1,10 +1,8 @@
-type-class,type-column OR type-row OR type-cell,0.75
+type-class OR type-occurrence,type-cell,0.75
 token-union,token-SUM,0.25
 token-intersection,token-PRODUCT,0.25
 token-probability,tactic-get_value OR tactic-compare_values,0.5
 token-universe,token-last_row AND token-last_column,1
-token-divided_by,token-/,0.75
-token-equals,token-=,1
-fact-law-of-total-probability,pattern-row-total OR pattern-column-total,0.5
-fact-law-of-total-probability,pattern-row-total OR pattern-column-total,0.5
-fact-Bayes'-theorem,pattern-cell-total-ratio,0.5
+fact-law-of-total-probability,fact-row-total AND fact-column-total,1
+fact-sigma-additivity,fact-row-total OR fact-column-total,0.25
+fact-unit-measure,fact-total-1,1
