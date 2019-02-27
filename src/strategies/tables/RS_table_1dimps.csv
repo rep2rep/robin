@@ -5,7 +5,7 @@ quantifiers,NONE
 types,"trial_line,outcome_segment,probability_segment,real,label"
 tokens,"$trial_line,$outcome_segment,$probability_segment"
 patterns,"overlap,empty_segment"
-grammar-imports,"latin-alphabet"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
 limit-construction-size,FALSE
 grammatical-complexity,type-3
 ranges,NONE
