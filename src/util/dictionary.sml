@@ -57,6 +57,7 @@ functor Dictionary(K :
                    sig
                        type k;
                        val compare : k * k -> order;
+                       val fmt : k -> string;
                    end
                   ) :> DICTIONARY where type k = K.k =
 struct
@@ -286,11 +287,14 @@ fun unionWith' _ LEAF t = t
         fun merge [] xs = xs
           | merge xs [] = xs
           | merge ((x, v)::xs) ((y, v')::ys) =
-            if K.compare(x, y) = EQUAL then (x, f(x, v, v'))::(merge xs ys)
-            else if K.compare(x, y) = LESS then (x, v)::(merge xs ((y, v')::ys))
-            else (y, v')::(merge ((x, v)::xs) ys);
+            case K.compare(x, y) of
+                EQUAL => (x, f(x, v, v'))::(merge xs ys)
+              | LESS => (x, v)::(merge xs ((y, v')::ys))
+              | GREATER => (y, v')::(merge ((x, v)::xs) ys);
+        val merged = merge tl tl';
+        val newdict = fromSortedPairList merged;
     in
-        ! (fromSortedPairList (merge tl tl'))
+        ! newdict
     end;
 fun unionWith f t u = ref (unionWith' f (!t) (!u));
 

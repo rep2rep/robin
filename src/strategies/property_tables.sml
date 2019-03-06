@@ -45,12 +45,14 @@ fun getValue d k = SOME (D.get d k)
 structure FileDict = Dictionary(struct
                                  type k = string;
                                  val compare = String.compare;
+                                 val fmt = (fn s => s);
                                  end);
 val filedict' = FileDict.fromPairList;
 
 structure GenDict = Dictionary(struct
                                  type k = string;
                                  val compare = String.compare;
+                                 val fmt = (fn s => s);
                                  end);
 val gdict' = GenDict.fromPairList;
 

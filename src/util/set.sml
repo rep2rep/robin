@@ -64,6 +64,7 @@ type t = O.t;
 structure D = Dictionary(struct
                           type k = t;
                           val compare = O.compare;
+                          val fmt = O.fmt;
                           end);
 type 'a set = ('a, unit) D.dict;
 
