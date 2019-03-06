@@ -1,3 +1,4 @@
+import "util.logging";
 import "util.set";
 import "util.dictionary";
 import "util.csv";
@@ -45,12 +46,14 @@ fun getValue d k = SOME (D.get d k)
 structure FileDict = Dictionary(struct
                                  type k = string;
                                  val compare = String.compare;
+                                 val fmt = (fn s => s);
                                  end);
 val filedict' = FileDict.fromPairList;
 
 structure GenDict = Dictionary(struct
                                  type k = string;
                                  val compare = String.compare;
+                                 val fmt = (fn s => s);
                                  end);
 val gdict' = GenDict.fromPairList;
 
@@ -273,11 +276,11 @@ fun loadCorrespondenceTable filename =
     in
         List.foldr (fn (r, xs) => (makeRow r) @ xs) [] csvData
     end
-    handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
+    handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
          | TableError reason => (
-             print ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
-             print ("       " ^ reason ^ "\n");
+             Logging.error ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
+             Logging.error ("       " ^ reason ^ "\n");
              raise TableError reason
          );
 
@@ -338,11 +341,11 @@ fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
     in
         [(csvHeader, properties)]
     end
-    handle IO.Io e => (print ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
+    handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
          | TableError reason => (
-             print ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
-             print ("       " ^ reason ^ "\n");
+             Logging.error ("ERROR: CSV parsing failed in file '" ^ filename ^ "'\n");
+             Logging.error ("       " ^ reason ^ "\n");
              raise TableError reason
          );
 

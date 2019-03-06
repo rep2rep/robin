@@ -64,6 +64,7 @@ type t = O.t;
 structure D = Dictionary(struct
                           type k = t;
                           val compare = O.compare;
+                          val fmt = O.fmt;
                           end);
 type 'a set = ('a, unit) D.dict;
 
@@ -74,7 +75,7 @@ fun toString items =
     let
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
         val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val joined = String.concat withCommas;
     in
         "{" ^ joined ^ "}"
     end;

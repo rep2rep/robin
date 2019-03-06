@@ -73,6 +73,7 @@ structure PropertySet = Set(struct
 structure PropertyDictionary = Dictionary(struct
                                            type k = Property.property;
                                            val compare = Property.compare;
+                                           val fmt = Property.toString;
                                            end);
 structure QPropertySet = Set(struct
                               type t = QProperty.property;

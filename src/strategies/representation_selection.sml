@@ -26,7 +26,8 @@ fun init (repTables, corrTables, qTables) = let
         foldr (fn (a, b) => FileDict.union a b)
               (FileDict.empty ())
               (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadRepresentationTable t)) repTables);
+                             PropertyTables.loadRepresentationTable t)) repTables)
+        handle FileDict.KeyError => (Logging.error "An RS table has been duplicated"; raise FileDict.KeyError);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
         foldr (fn (a, b) => a @ b)
