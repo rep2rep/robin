@@ -1,0 +1,23 @@
+intsum,
+sentential,true
+types,integer
+tokens,"1,2"
+operators,"\sum,*,+,\div"
+variables,"n:integer,i:integer"
+relations,=
+num-statements,1
+num-tokens,14
+num-distinct-tokens,9
+syntactic-patterns,"\sum from _ to _ of"
+homogeneous,true
+question-kind,proof
+question-function,prove
+question-value-type,proof
+dependency-type,statement
+rigorous,true
+related-facts,NONE
+related-facts-import,real-arithmetic
+related-types,NONE
+related-operators,"-,^,\sqrt"
+related-tokens,0
+related-patterns,NONE

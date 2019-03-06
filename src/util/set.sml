@@ -38,6 +38,7 @@ sig
 
     val size : t set -> int;
 
+    val equal : t set * t set -> bool;
     val isEmpty : t set -> bool;
     val contains : t set -> t -> bool;
     val subset : t set -> t set -> bool;
@@ -105,6 +106,7 @@ fun foldr f s xs = D.foldr (fn ((k, v), x) => f (k, x)) s xs;
 
 fun size xs = D.size xs;
 
+fun equal (xs, ys) = D.equal (xs, ys);
 fun isEmpty xs = D.isEmpty xs;
 fun contains xs x =
     let val v = D.get xs x

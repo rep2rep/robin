@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 MLC=polyc
 ifeq (, $(shell which rlwrap))
 	REPL=poly
@@ -15,8 +16,12 @@ dist/robin: $(ROBIN_TMP)
 
 .PHONY:$(ROBIN_TMP)
 $(ROBIN_TMP): base.sml src/main.sml
-	for f in $^; do \
-		echo "use \"$$f\";" >> $@ ; \
+	echo "use \""$<"\";" >> $@;
+	for f in $(filter-out base.sml,$^); do \
+		tmp=$$(dirname $$f)/$$(basename $$f .sml); \
+		tmp=$$(sed "s/^src\///" <<< $$tmp); \
+		tmp=$$(sed "s/\//\./g" <<< $$tmp); \
+		echo "import \"$$tmp\";" >> $@ ; \
 	done
 
 base.sml:

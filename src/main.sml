@@ -12,11 +12,33 @@ exception ArgumentError of int;
 
 structure RepSelect = RepresentationSelection;
 
-(* For now, we always solve the "medical" problem that starts in
-   a specified representation (read from command line).
-   This will obviously need to be input by a user in the future.
+fun filesMatchingPrefix dir prefix =
+    let
+        fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                      SOME f => getWholeDir direc (f::out)
+                                    | NONE => List.rev out;
+        val dirstream = OS.FileSys.openDir dir;
+        val filenames = getWholeDir dirstream [];
+        val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+        fun attachDir p = dir ^ p;
+    in
+        map (OS.FileSys.fullPath o attachDir) filteredFiles
+    end;
+
+(* The user supplies the specified problem as "name:representation",
+   for example "medical:bayes". This gets deconstructed to load a particular file.
 *)
-fun readQuestion fileName = ("medical", fileName);
+fun readQuestion fileName =
+    let
+        val separator = #":";
+    in
+        case (String.tokens (fn c => c = separator) fileName) of
+            [p, r] => (p, r)
+          | _ => (Logging.error ("ERROR: cannot parse \"problem" ^
+                                 (str separator) ^
+                                 "representation\" from the first argument");
+                  raise ArgumentError 1)
+    end;
 
 (* The first argument is the problem filename, second is number of reps to try *)
 fun parseArgs () =
@@ -29,12 +51,12 @@ fun parseArgs () =
                             (Int.toString defaultAlts) ^ "\n";
     in
         case args of
-            [] => (print "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
-          | [fname] => (print noNumAltError; (fname, defaultAlts))
+            [] => (Logging.error "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
+          | [fname] => (Logging.write noNumAltError; (fname, defaultAlts))
           | (fname::altNumString::rest) =>
             case (Int.fromString altNumString) of
                 SOME k => (fname, k)
-              | NONE => (print noNumAltError; (fname, defaultAlts))
+              | NONE => (Logging.write noNumAltError; (fname, defaultAlts))
     end;
 
 fun main () =
@@ -45,12 +67,8 @@ fun main () =
         val (qName, qRep) = question;
         val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
         val _ = RepSelect.init(
-                [BASE^"strategies/tables/RS_table_bayes.csv",
-                 BASE^"strategies/tables/RS_table_natlang.csv",
-                 BASE^"strategies/tables/RS_table_euler.csv",
-                 BASE^"strategies/tables/RS_table_geometric.csv",
-                 BASE^"strategies/tables/RS_table_contingency.csv"],
-                [BASE^"strategies/tables/correspondence_table.csv"],
+                filesMatchingPrefix (BASE^"strategies/tables/") "RS_table_",
+                filesMatchingPrefix (BASE^"strategies/tables/") "correspondences_",
                 [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
     in

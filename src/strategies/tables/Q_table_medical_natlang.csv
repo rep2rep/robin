@@ -1,24 +1,22 @@
 medical,
 sentential,true
 logic-order,1
-types,"number, percentage, thing, person, class, action"
-tokens,"98,3,1,population,disease,test"
-operators,"%,chance,probability_of,the,a,of,if"
-relations,"has, is, such, positive"
-num-statements,6
-num-tokens,63
+types,"percentage,ratio,thing,person,class,action,occurrence,possibilities"
+tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive,probability"
+num-statements,3
+num-tokens,64
 num-distinct-tokens,30
 syntactic-patterns,NONE
-homogeneous,false
 question-kind,calculation
-question-function,probability_of
-question-value-type,number
-dependency-type,class*class
-rigorous,false
-related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds, worldly knowledge"
+top-question-function,probability
+answer-type,ratio
+dependency-type,occurrence*occurrence
+error-allowed,0
+related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
 fact-imports,NONE
 related-types,NONE
-related-operators,"not,times,divided_by,plus,minus,equals,union,intersection,probability"
-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, universe, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say, zero, empty"
+related-operators,""
+related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection,probability, zero, empty, universe"
+useless-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
+useless-related-facts,"worldly-knowledge"
 related-patterns,NONE
-ranges,1-100

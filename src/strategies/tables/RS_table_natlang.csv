@@ -2,13 +2,14 @@ natlang,
 sentential,TRUE
 logical-order,\infty
 quantifiers,"for_all,exists"
-types,"thing,action,number,class,occurrence"
-tokens,"universe,all,empty,none,zero,one,is,equals,greater_than,smaller_than,plus,minus,times,divided_by,probability_of,union,or,intersection,and,given,if"
-grammar-imports,latin-alphabet
+types,"thing,action,number,class,occurrence,possibilities,unit,vertex,edge,node"
+tokens,"universe,all,empty,none,zero,one,two,three,four,five,six,seven,eight,nine,ten,is,equals,greater_than,smaller_than,plus,sum,add,minus,difference,subtract,remove,times,divided_by,to_the_power_of,probability_of,union,or,intersection,and,given,if,medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say, shepherd, red, sky, point, line, edge, vertex, node, dot, unit, complete, bipartite, count"
+grammar-imports,"base-10-real-numerals,latin-alphabet"
 parse-generate-structures,string-to-tree
 parse-generate-mapping,many-to-many
 limit-construction-size,FALSE
 grammatical-complexity,type-1
+rigorous,FALSE
 knowledge-manipulation-system,TRUE
 facts,NONE
 fact-imports,NONE

@@ -11,11 +11,11 @@ num-distinct-tokens,20
 syntactic-patterns,"\Pr(_|_), \Pr(_|_)=_"
 homogeneous,true
 question-kind,calculation
-question-function,\Pr
-question-value-type,real
+top-question-function,\Pr
+answer-type,real
 dependency-type,event*event
-rigorous,true
-related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, probability-bounds"
+error-allowed,0
+related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure"
 related-facts-import,real-arithmetic
 related-types,NONE
 related-operators,"+,*,-,\div,\cup,\cap,\setminus"
