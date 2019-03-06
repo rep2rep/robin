@@ -121,7 +121,7 @@ fun listToString fmt items =
     let
         val stringItems = map fmt items;
         val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val joined = String.concat withCommas;
     in
         "[" ^ joined ^ "]"
     end;
