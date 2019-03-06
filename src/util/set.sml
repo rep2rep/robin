@@ -75,7 +75,7 @@ fun toString items =
     let
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
         val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val joined = String.concat withCommas;
     in
         "{" ^ joined ^ "}"
     end;
