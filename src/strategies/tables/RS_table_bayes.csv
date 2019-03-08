@@ -1,8 +1,8 @@
 bayes,
 sentential,TRUE
 logical-order,1
-quantifiers,NONE
-types,"real,event,proof"
+quantifiers,"\forall"
+types,"real,event,formula,proof"
 tokens,"\Omega, \emptyset, 0,1,2,3,4,5,6,7,8,9,+,-,*,\div,\cup,\cap,\setminus,=,\Pr, |,="
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 parse-generate-structures,string-to-tree
@@ -10,12 +10,10 @@ parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
 grammatical-complexity,type-2
 rigorous,TRUE
-knowledge-manipulation-system,TRUE
-facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity, additive-inverse, add-def, mult-def, multiplicative-inverse"
+facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity, +inverse, add-def, mult-def, *inverse"
 fact-imports,"real-number-arithmetic,finite-set-algebra"
 tactics,"rewrite, lemma, calc"
 logic-power,2
-standard-accessibility-manipulations,"rewrite, lemma, calc, undo-action"
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE

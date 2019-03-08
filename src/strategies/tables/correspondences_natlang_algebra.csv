@@ -1,13 +1,2 @@
-type-number,type-integer,0.7
-token-zero,token-0,1
-token-one,token-1,1
-token-two,token-2,1
-token-plus,token-+,1
-token-minus,token--,1
-token-times,token-*,1
-token-divided_by,token-\div,1
-token-to_the_power_of OR token-squared,token-^,1
-token-sum,token-\sum,1
-token-equals OR token-is,token-=,1
-tactic-induction,tactic-induction,1
+type-number,type-integer,0.75
 type-statement-type-formula,0.75

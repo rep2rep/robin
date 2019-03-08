@@ -1,22 +1,19 @@
-algebra,
+arithmetic_algebra,
 sentential,TRUE
 logical-order,1
-quantifiers,NONE
-types,"integer,formula,proof"
-tokens,NONE
-relations,=
-operators,"+,-,*,\div,^,\sum"
+quantifiers,"\forall"
+types,"integer,real,formula,proof"
+tokens,"0,1,2,3,4,5,6,7,8,9"
+relations,"=,<,>,divides"
+operators,"+,-,*,\div,^,\sum, \vee, \neg"
 grammar-imports,"base-10-real-numerals,latin-alphabet"
-patterns,"_:integer^2"
 limit-construction-size,FALSE
 grammatical-complexity,type-2
-knowledge-manipulation-system,TRUE
-facts,NONE
+facts,"+associative, +commutative, *associative, *commutative, +zero, cancellative, distributivity, <transitive, <antisymmetric, +def, *def, -def, \div-def, divides-def"
 rigorous,TRUE
-fact-imports,real-number-arithmetic
+fact-imports,NONE
 tactics,"rewrite,lemma,calc,induction"
 logic-power,2
-standard-accessibility-manipulations,"rewrite(fact|assm;term), lemma(wff), calc(term), undo-action"
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE

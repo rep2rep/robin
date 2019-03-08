@@ -30,4 +30,6 @@ token-times,token-*,1
 token-divided_by,token-\div OR token-/,1
 token-smaller_than,token-<,1
 token-greater_than,token->,1
-token-equals,token-=,1
+token-equals OR token-is,token-=,1
+token-sum,token-\sum,1
+token-to_the_power_of OR token-squared,token-^,1
