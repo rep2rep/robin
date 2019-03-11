@@ -1,23 +1,15 @@
 intsum,
-sentential,true
-types,integer
-tokens,"1,2"
-operators,"\sum,*,+,\div"
-variables,"n:integer,i:integer"
-relations,=
-num-statements,1
+error-allowed,0
+answer-type,integer
+instrumental-types,"integer,proof"
+instrumental-tokens,"\sum,*,="
+instrumental-patterns,"\sum from _ to _ of, _:integer = _:integer"
+instrumental-facts,""
+instrumental-tactics,"induction"
+relevant-tokens,"n:integer, i:integer, +, \div"
+relevant-related-tokens,"-,^,\sqrt,0"
 num-tokens,14
 num-distinct-tokens,9
-syntactic-patterns,"\sum from _ to _ of"
-homogeneous,true
-question-kind,proof
-question-function,prove
-question-value-type,proof
-dependency-type,statement
-rigorous,true
-related-facts,NONE
-related-facts-import,real-arithmetic
-related-types,NONE
-related-operators,"-,^,\sqrt"
-related-tokens,0
-related-patterns,NONE
+num-statements,1
+noise-tokens,""
+noise-related-tokens,""

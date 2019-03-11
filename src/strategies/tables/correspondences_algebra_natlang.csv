@@ -4,10 +4,10 @@ type-integer,type-number AND type-integer,-0.9
 token-0,token-zero,1
 token-1,token-one,1
 token-2,token-two,1
-op-+,token-plus,1
-op--,token-minus,1
-op-*,token-times,1
-op-\div,token-divided_by,1
-op-^,token-to_the_power_of,1
-op-\sum,token-sum,1
-rel-=,token-equals OR token-is,1
+token-+,token-plus,1
+token--,token-minus,1
+token-*,token-times,1
+token-\div,token-divided_by,1
+token-^,token-to_the_power_of,1
+token-\sum,token-sum,1
+token-=,token-equals OR token-is,1
