@@ -11,7 +11,7 @@ num-distinct-tokens,20
 syntactic-patterns,"\Pr(_|_), \Pr(_|_)=_"
 homogeneous,true
 question-kind,calculation
-top-question-function,\Pr
+instrumental-tokens,\Pr
 answer-type,real
 dependency-type,event*event
 error-allowed,0

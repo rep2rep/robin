@@ -67,6 +67,8 @@ let
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
     val RSProperties = [
+        ("sentential",
+         (PropertyReader.bool, "sentential")),
         ("grammar-imports",
          (PropertyReader.collection, "import-")),
         ("parse-generate-structures",
@@ -114,69 +116,51 @@ let
         ("pr-distinct-state-change",
          (PropertyReader.label, "pr-distinct-state-change-")),
         ("pr-valid-state-change",
-         (PropertyReader.label, "pr-valid-state-change-"))
+         (PropertyReader.label, "pr-valid-state-change-")),
+       ("logical-order",
+         (PropertyReader.label, "logical-order-")),
+       ("types",
+         (PropertyReader.collection, "type-")),
+       ("tokens",
+         (PropertyReader.collection, "token-")),
+       ("operators",
+         (PropertyReader.collection, "token-")),
+       ("relations",
+         (PropertyReader.collection, "token-")),
+       ("patterns",
+         (PropertyReader.collection, "pattern-"))
     ];
     val QProperties = [
+        ("error-allowed",
+         (PropertyReader.label, "error-allowed-", High)),  (*previously rigorous*)
+        ("answer-type",
+         (PropertyReader.collection, "type-", High)), (*previously question-value-type*)
+        ("instrumental-tokens",
+         (PropertyReader.collection, "token-", Medium)),
+        ("instrumental-type",
+         (PropertyReader.collection, "type-", Medium)),
+        ("instrumental-patterns",
+         (PropertyReader.collection, "pattern-", Medium)),
+        ("instrumental-facts",
+         (PropertyReader.collection, "fact-", Medium)),
+        ("instrumental-tactics",
+         (PropertyReader.collection, "tactic-", Medium)),
+        ("relevant-tokens",
+         (PropertyReader.collection, "token-", Low)),
+        ("relevant-related-tokens",
+         (PropertyReader.collection, "token-", Low)),
         ("num-statements",
          (PropertyReader.label, "num-statements-", Zero)),
         ("num-tokens",
          (PropertyReader.label, "num-tokens-", Zero)),
         ("num-distinct-tokens",
          (PropertyReader.label, "num-distinct-tokens-", Zero)),
-        ("syntactic-patterns",
-         (PropertyReader.collection, "pattern-", Medium)),
-        ("homogeneous",
-         (PropertyReader.bool, "homogeneous", Zero)),
-        ("error-allowed",
-         (PropertyReader.label, "error-allowed-", High)),  (*previously rigorous*)
-        ("related-facts",
-         (PropertyReader.collection, "fact-", Medium)),
-  (*      ("related-facts-import",
-         (PropertyReader.collection, "import-", Low)),*)
-        ("related-types",
-         (PropertyReader.collection, "type-", Low)),
-        ("related-operators",
-         (PropertyReader.collection, "op-", Low)),
-        ("useless-related-tokens",
+        ("noise-tokens",
          (PropertyReader.collection, "token-", Noise)),
-        ("useless-related-facts",
-         (PropertyReader.collection, "fact-", Noise)),
-        ("related-tokens",
-         (PropertyReader.collection, "token-", Low)),
-        ("related-patterns",
-         (PropertyReader.collection, "pattern-", Low)),
-        ("variables",
-         (PropertyReader.collection, "var-", Medium)),
-    (*    ("question-kind",
-         (PropertyReader.label, "question-kind-", High)),
-        ("answer-kind",
-         (PropertyReader.label, "question-kind-", High)),*)
-        ("top-question-function",
-         (PropertyReader.label, "op-", High)), (*previously question-function*)
-        ("top-question-function",
-         (PropertyReader.label, "token-", High)), (*previously question-function*)
-        ("answer-type",
-         (PropertyReader.collection, "type-", High)), (*previously question-value-type*)
-        ("dependency-type",
-         (PropertyReader.collection, "type-", High))
+        ("noise-related-tokens",
+         (PropertyReader.collection, "token-", Noise))
     ];
     val QandRSProperties = [
-        ("quantifiers",
-         (PropertyReader.collection, "quantifier-", Medium)),
-        ("sentential",
-         (PropertyReader.bool, "sentential", Zero)),
-        ("logical-order",
-         (PropertyReader.label, "logical-order-", Low)),
-        ("types",
-         (PropertyReader.collection, "type-", Medium)),
-        ("tokens",
-         (PropertyReader.collection, "token-", Medium)),
-        ("relations",
-         (PropertyReader.collection, "rel-", Medium)),
-        ("operators",
-         (PropertyReader.collection, "op-", Medium)),
-        ("ranges",
-         (PropertyReader.collection, "range-", Medium))
     ];
 in
     PropertyTables.setQGenerators

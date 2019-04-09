@@ -1,0 +1,15 @@
+intsum,
+error-allowed,0
+answer-type,integer
+instrumental-types,"integer,proof"
+instrumental-tokens,"\sum,*,="
+instrumental-patterns,"\sum from _ to _ of, _:integer = _:integer"
+instrumental-facts,""
+instrumental-tactics,"induction"
+relevant-tokens,"n:integer, i:integer, +, \div"
+relevant-related-tokens,"-,^,\sqrt,0"
+num-tokens,14
+num-distinct-tokens,9
+num-statements,1
+noise-tokens,""
+noise-related-tokens,""

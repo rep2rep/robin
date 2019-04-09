@@ -1,0 +1,28 @@
+graphs,
+sentential,FALSE
+logical-order,0
+quantifiers,NONE
+types,"vertex, edge, vertex_set, edge_set, graph, integer, label"
+tokens,"$point,$line"
+relations,NONE
+operators,NONE
+patterns,"complete, bipartite, bipartite_complete, empty, acyclic"
+grammar-imports,"latin-alphabet"
+limit-construction-size,FALSE
+grammatical-complexity,type-3
+rigorous,TRUE
+knowledge-manipulation-system,FALSE
+facts,"count_invariant"
+fact-imports,NONE
+tactics,"edge_add,edge_remove,edge_count,vertex_add,vertex_remove,vertex_count,join_graphs,remove_graph,constructive_omega_rule"
+logic-power,0
+accessible-facts,TRUE
+accessible-tactics,TRUE
+accessible-grammatical-constructors,TRUE
+physical-dimension-use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
+grammatical-dimensionality,2
+grammatical-granularity,discrete
+mean-branching-factor,\infty
+pr-distinct-state-change,high
+pr-valid-state-change,high
+mean-solution-depth,5

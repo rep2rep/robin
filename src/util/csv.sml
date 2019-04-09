@@ -107,18 +107,18 @@ fun inputCell istr = let
         else case (TextIO.lookahead istr) of
                  NONE => result
                | SOME c => if (isDelimiter c) then
-                               if quoted then (TextIO.input1 istr; readCell quoted (result ^ (Char.toString c)))
+                               if quoted then (TextIO.input1 istr; readCell quoted ((Char.toString c) :: result))
                                else result
                            else if (c = #"\"" andalso not quoted) then (* Open quoted cell *)
                                (TextIO.input1 istr; readCell true result)
                            else if (c = #"\"" andalso quoted) then (* Close quoted cell, or escaped *)
                                if (escapedQuote istr) then
-                                   (TextIO.inputN (istr, 2); readCell true (result ^ "\"")) (* Consume the quotes and carry on *)
+                                   (TextIO.inputN (istr, 2); readCell true ("\"" :: result)) (* Consume the quotes and carry on *)
                                else (TextIO.input1 istr;
                                      result) (* End of cell *)
-                           else readCell quoted (result ^ TextIO.inputN (istr, 1));
+                           else readCell quoted (TextIO.inputN (istr, 1) :: result);
 in
-    readCell false ""
+    String.concat (List.rev (readCell false []))
 end;
 
 fun inputRow istr = let

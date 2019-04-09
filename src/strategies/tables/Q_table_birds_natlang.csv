@@ -1,22 +1,15 @@
 birds,
-sentential,true
-logic-order,1
-types,"ratio,class"
-tokens,"one,quarter,all,animals,birds,two,thirds,can,fly,half,flying,X,animal,probability,cannot"
-num-statements,4
-num-tokens,40
-num-distinct-tokens,21
-syntactic-patterns,NONE
-question-kind,calculation
-top-question-function,probability
-answer-type,ratio
-dependency-type,class*class
 error-allowed,0
-related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
-fact-imports,NONE
-related-types,NONE
-related-operators,""
-related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection,probability, zero, empty, universe"
-useless-related-tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,boo,carnal,being,fauna"
-useless-related-facts,"worldly-knowledge"
-related-patterns,NONE
+answer-type,ratio
+instrumental-tokens,"probability,and,not"
+instrumental-types,"ratio,class"
+instrumental-patterns,"_:ratio of _:class are _:class,probability of _:class and _:class"
+instrumental-facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity"
+instrumental-tactics,"deduce,calculate"
+relevant-tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
+relevant-related-tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"
+num-tokens,67
+num-distinct-tokens,31
+num-statements,5
+noise-tokens,"feathers"
+noise-related-tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,carnal,being,fauna"

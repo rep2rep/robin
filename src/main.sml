@@ -34,9 +34,9 @@ fun readQuestion fileName =
     in
         case (String.tokens (fn c => c = separator) fileName) of
             [p, r] => (p, r)
-          | _ => (print ("ERROR: cannot parse \"problem" ^
-                         (str separator) ^
-                         "representation\" from the first argument");
+          | _ => (Logging.error ("ERROR: cannot parse \"problem" ^
+                                 (str separator) ^
+                                 "representation\" from the first argument");
                   raise ArgumentError 1)
     end;
 
@@ -51,12 +51,12 @@ fun parseArgs () =
                             (Int.toString defaultAlts) ^ "\n";
     in
         case args of
-            [] => (print "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
-          | [fname] => (print noNumAltError; (fname, defaultAlts))
+            [] => (Logging.error "ERROR: No arguments given, requires 1 or 2."; raise ArgumentError 0)
+          | [fname] => (Logging.write noNumAltError; (fname, defaultAlts))
           | (fname::altNumString::rest) =>
             case (Int.fromString altNumString) of
                 SOME k => (fname, k)
-              | NONE => (print noNumAltError; (fname, defaultAlts))
+              | NONE => (Logging.write noNumAltError; (fname, defaultAlts))
     end;
 
 fun main () =

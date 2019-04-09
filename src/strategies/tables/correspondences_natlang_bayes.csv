@@ -1,12 +1,12 @@
 type-occurrence OR type-class,type-event,1
 token-none OR token-empty,token-\emptyset,0.75
 token-universe OR token-all,token-\Omega,0.75
-token-plus,op-\cup,0.25
-token-minus,op-\setminus,0.25
-token-times,op-\cap,0.25
-token-divided_by,op-|,0.25
-token-union OR token-or,op-\cup,1
-token-intersection OR op-and,op-\cap,1
-token-probability_of,op-\Pr,0.75
-token-given OR token-if,op-|,1
-token-if AND (NOT token-given),op-|,-0.75
+token-plus,token-\cup,0.25
+token-minus,token-\setminus,0.25
+token-times,token-\cap,0.25
+token-divided_by,token-|,0.25
+token-union OR token-or,token-\cup,1
+token-intersection OR token-and,token-\cap,1
+token-probability,token-\Pr,0.75
+token-given OR token-if,token-|,1
+token-if AND (NOT token-given),token-|,-0.25

@@ -1,0 +1,28 @@
+event_trees,
+sentential,FALSE
+logical-order,1
+quantifiers,NONE
+types,"real, node, edge"
+tokens,"$edge, 0,1,2,3,4,5,6,7,8,9"
+grammar-imports,"base-10-real-numerals, latin-alphabet"
+parse-generate-structures,tree-to-tree
+parse-generate-mapping,one-to-one
+limit-construction-size,FALSE
+grammatical-complexity,type-3
+rigorous,TRUE
+knowledge-manipulation-system,FALSE
+facts,""
+fact-imports,""
+tactics,"add_variable_children, reroot, calculate_node_pr, compare_nodes"
+logic-power,1
+standard-accessibility-manipulations,"undo"
+accessible-facts,""
+accessible-tactics,TRUE
+accessible-grammatical-constructors,FALSE
+physical-dimension-use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"
+grammatical-dimensionality,2
+grammatical-granularity,discrete
+mean-branching-factor,\infty
+pr-distinct-state-change,0.5
+pr-valid-state-change,1
+mean-solution-depth,10

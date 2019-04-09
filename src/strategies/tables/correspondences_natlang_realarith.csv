@@ -1,23 +1,35 @@
 type-number,type-real,0.75
 type-ratio,type-real,0.9
 type-ratio,type-rational,1
-type-percentage,type-real,0.75
+type-percentage,type-real,0.9
 token-none OR token-empty,token-0,0.25
-token-zero,token-0,1
-token-one,token-1,1
-token-two,token-2,1
-token-three,token-3,1
-token-four,token-4,1
-token-five,token-5,1
-token-six,token-6,1
-token-seven,token-7,1
-token-eight,token-8,1
-token-nine,token-9,1
-token-ten,token-10,1
-token-plus,op-+,1
-token-minus,op--,1
-token-times,op-*,1
-token-divided_by,op-\div OR op-/,1
-token-smaller_than,rel-<,1
-token-greater_than,rel->,1
-token-equals,rel-=,1
+token-zero,grammar-import-base-10-real-numerals OR token-0,1
+token-one,grammar-import-base-10-real-numerals OR token-1,1
+token-two,grammar-import-base-10-real-numerals OR token-2,1
+token-three,grammar-import-base-10-real-numerals OR token-3,1
+token-four,grammar-import-base-10-real-numerals OR token-4,1
+token-five,grammar-import-base-10-real-numerals OR token-5,1
+token-six,grammar-import-base-10-real-numerals OR token-6,1
+token-seven,grammar-import-base-10-real-numerals OR token-7,1
+token-eight,grammar-import-base-10-real-numerals OR token-8,1
+token-nine,grammar-import-base-10-real-numerals OR token-9,1
+token-ten,grammar-import-base-10-real-numerals OR token-10,1
+token-0,grammar-import-base-10-real-numerals OR token-0,1
+token-1,grammar-import-base-10-real-numerals OR token-1,1
+token-2,grammar-import-base-10-real-numerals OR token-2,1
+token-3,grammar-import-base-10-real-numerals OR token-3,1
+token-4,grammar-import-base-10-real-numerals OR token-4,1
+token-5,grammar-import-base-10-real-numerals OR token-5,1
+token-6,grammar-import-base-10-real-numerals OR token-6,1
+token-7,grammar-import-base-10-real-numerals OR token-7,1
+token-8,grammar-import-base-10-real-numerals OR token-8,1
+token-9,grammar-import-base-10-real-numerals OR token-9,1
+token-plus,token-+,1
+token-minus,token--,1
+token-times,token-*,1
+token-divided_by,token-\div OR token-/,1
+token-smaller_than,token-<,1
+token-greater_than,token->,1
+token-equals OR token-is,token-=,1
+token-sum,token-\sum,1
+token-to_the_power_of OR token-squared,token-^,1

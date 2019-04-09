@@ -1,22 +1,15 @@
 medical,
-sentential,true
-logic-order,1
-types,"percentage,ratio,thing,person,class,action,occurrence,possibilities"
-tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive,probability"
-num-statements,3
+error-allowed,0
+answer-type,ratio
+instrumental-tokens,"probability,if"
+instrumental-types,"ratio,percentage,class,occurrence"
+instrumental-patterns,"_:ratio _:class have _:class, if _ in _:class _ probability of _:occurrence"
+instrumental-facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity"
+instrumental-tactics,"deduce,calculate"
+relevant-tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive"
+relevant-related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection, zero, empty, universe"
 num-tokens,64
 num-distinct-tokens,30
-syntactic-patterns,NONE
-question-kind,calculation
-top-question-function,probability
-answer-type,ratio
-dependency-type,occurrence*occurrence
-error-allowed,0
-related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure, sigma-additivity"
-fact-imports,NONE
-related-types,NONE
-related-operators,""
-related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection,probability, zero, empty, universe"
-useless-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
-useless-related-facts,"worldly-knowledge"
-related-patterns,NONE
+num-statements,3
+noise-tokens,""
+noise-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
