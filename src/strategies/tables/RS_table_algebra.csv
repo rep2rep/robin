@@ -9,7 +9,7 @@ operators,"+,-,*,\div,^,\sum, \vee, \neg"
 grammar-imports,"base-10-real-numerals,latin-alphabet"
 limit-construction-size,FALSE
 grammatical-complexity,type-2
-facts,"+associative, +commutative, *associative, *commutative, +zero, cancellative, distributivity, <transitive, <antisymmetric, +def, *def, -def, \div-def, divides-def"
+facts,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
 rigorous,TRUE
 fact-imports,NONE
 tactics,"rewrite,lemma,calc,induction"

@@ -4,7 +4,7 @@ answer-type,ratio
 instrumental-tokens,"probability,and,not"
 instrumental-types,"ratio,class"
 instrumental-patterns,"_:ratio of _:class are _:class,probability of _:class and _:class"
-instrumental-facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity"
+instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental-tactics,"deduce,calculate"
 relevant-tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
 relevant-related-tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"

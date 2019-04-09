@@ -10,7 +10,7 @@ parse-generate-mapping,one-to-one
 limit-construction-size,FALSE
 grammatical-complexity,type-2
 rigorous,TRUE
-facts,"Bayes'-theorem, law-of-total-probability, non-negative-probability, unit-measure, sigma-additivity, +inverse, add-def, mult-def, *inverse"
+facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, +inverse, add-def, mult-def, *inverse"
 fact-imports,"real-number-arithmetic,finite-set-algebra"
 tactics,"rewrite, lemma, calc"
 logic-power,2

@@ -10,6 +10,6 @@ token-probability,tactic-measure_relative_length,1
 token-given OR token-if,tactic-draw_conditional,1
 token-if AND (NOT token-given),tactic-focus_on_region,-0.25
 token-equals,tactic-observe,0.5
-fact-Bayes'-theorem,fact-scale-independence-of-ratio,1
-fact-law-of-total-probability OR fact-sigma-additivity,fact-length-additivity,1
-fact-non-negative-probability,fact-non-negative-length,1
+fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
+fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$length_additivity,1
+fact-$non-negative_probability,fact-$non-negative_length,1

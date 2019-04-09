@@ -11,7 +11,7 @@ limit-construction-size,FALSE
 grammatical-complexity,type-3
 rigorous,TRUE
 knowledge-manipulation-system,FALSE
-facts,"scale-independence-of-ratio,area-additivity,non-negative-area"
+facts,"$scale_independence_of_ratio,$area_additivity,$non_negative_area"
 fact-imports,NONE
 tactics,"draw_point,draw_line,draw_segment,draw_polygon,delete,distinguish,join,distance,area,change_label,compare_sizes,focus_on_region,observe"
 logic-power,1
