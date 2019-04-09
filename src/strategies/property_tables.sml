@@ -15,14 +15,14 @@ sig
 
     type qgenerator = (string -> string list) * string * Importance.importance;
     type rsgenerator = (string -> string list) * string;
-    type questiontable = (D.k, SQ.t SQ.set) D.dict;
-    type representationtable = (D.k, S.t S.set) D.dict;
+    type questiontable = (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
+    type representationtable = (FileDict.k, PropertySet.t PropertySet.set) FileDict.dict;
 
-    val loadCorrespondenceTable : string -> correspondence list;
+    val loadCorrespondenceTable : string -> Correspondence.correspondence list;
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val computePsuedoQuestionTable: questiontable -> correspondence list -> questiontable;
+    val computePsuedoQuestionTable: questiontable -> Correspondence.correspondence list -> questiontable;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -67,8 +67,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
 
 type qgenerator = (string -> string list) * string * Importance.importance;
 type rsgenerator = (string -> string list) * string;
-type questiontable = (D.k, SQ.t SQ.set) D.dict;
-type representationtable = (D.k, S.t S.set) D.dict;
+type questiontable = (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
+type representationtable = (FileDict.k, PropertySet.t PropertySet.set) FileDict.dict;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -378,7 +378,7 @@ fun loadQuestionTable filename = let
                                  (Property.fromString (keypre ^ v),
                                   importance);
         in
-            qset' (map (fn v => (key, keypre ^ v, importance)) (valparser args))
+            qset' (map makeProp (valparser args))
         end;
 in
     filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
@@ -405,7 +405,7 @@ end;
 
 fun computePsuedoQuestionTable qtable corrs = let
 in
-    D.empty ()
+    FileDict.empty ()
 end;
 
 end;
