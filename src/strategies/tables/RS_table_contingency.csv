@@ -3,7 +3,7 @@ sentential,TRUE
 logical-order,1
 quantifiers,NONE
 types,"string,real,cell,column,row"
-tokens,NONE
+tokens,"$cell"
 relations,""
 operators,"+,-,*,/,=,SUM,PRODUCT"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
