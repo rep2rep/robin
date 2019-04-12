@@ -1,5 +1,5 @@
 geometric,
-mode,geometric
+mode,"geometric"
 types,"point,segment,line,polygon,region,real,label"
 tokens,"$dot,$line,$segment"
 grammar-imports,"latin-alphabet"

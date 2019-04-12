@@ -3,10 +3,10 @@ mode,"sentential"
 types,"real,event,formula,proof"
 tokens,"\forall,\Omega,\emptyset, 0,1,2,3,4,5,6,7,8,9,+,-,*,\div,\cup,\cap,\setminus,=,\Pr, |,="
 grammar-imports,"base-10-real-numerals, latin-alphabet"
-limit-construction-size,FALSE
+patterns,"\Pr(_:event),\Pr(_:event|_:event),\Pr(_:event|_:event)=_:real,\Pr(_:event)=_:real"
 grammatical-complexity,type-2
 rigorous,TRUE
-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, +inverse, add-def, mult-def, *inverse"
+facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, $+inverse, $add-def, $mult-def, $*inverse"
 fact-imports,"real-number-arithmetic,finite-set-algebra"
 tactics,"rewrite, lemma, calc"
 inferential-complexity,2

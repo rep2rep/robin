@@ -1,13 +1,8 @@
 event_trees,
 mode,"graph"
-logical-order,1
-quantifiers,NONE
 types,"real, node, edge"
 tokens,"$edge, 0,1,2,3,4,5,6,7,8,9"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
-parse-generate-structures,tree-to-tree
-parse-generate-mapping,one-to-one
-limit-construction-size,FALSE
 grammatical-complexity,type-3
 rigorous,TRUE
 knowledge-manipulation-system,FALSE
