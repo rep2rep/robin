@@ -1,19 +1,17 @@
 arithmetic_algebra,
-sentential,TRUE
-logical-order,1
-quantifiers,"\forall"
+mode,"sentential"
+quantifiers,"\forall,\exists"
 types,"integer,real,formula,proof"
 tokens,"0,1,2,3,4,5,6,7,8,9"
 relations,"=,<,>,divides"
 operators,"+,-,*,\div,^,\sum, \vee, \neg"
 grammar-imports,"base-10-real-numerals,latin-alphabet"
-limit-construction-size,FALSE
 grammatical-complexity,type-2
 facts,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
 rigorous,TRUE
 fact-imports,NONE
 tactics,"rewrite,lemma,calc,induction"
-logic-power,2
+inferential-complexity,2
 accessible-facts,TRUE
 accessible-tactics,TRUE
 accessible-grammatical-constructors,FALSE
