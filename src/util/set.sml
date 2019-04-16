@@ -73,11 +73,16 @@ fun fromList xs = D.fromPairList (map (fn x => (x, ())) xs);
 fun toList xs = map (fn (x,_) => x) (D.toPairList xs);
 fun toString items =
     let
+        val printThreshold = 100;
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
         val withCommas = intersperse ", " stringItems;
-        val joined = String.concat withCommas;
+        val tooLong = (D.size items) > printThreshold;
+        val mostItems = if tooLong
+                        then (List.take (withCommas, 2 * printThreshold))
+                        else withCommas;
+        val joined = String.concat mostItems;
     in
-        "{" ^ joined ^ "}"
+        "{" ^ joined ^ (if tooLong then "..." else "") ^ "}"
     end;
 
 
