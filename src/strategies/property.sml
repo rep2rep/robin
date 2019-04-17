@@ -1,4 +1,5 @@
 import "util.set";
+import "util.type";
 import "util.dictionary";
 
 import "strategies.property_importance";
@@ -10,6 +11,7 @@ sig
     exception ParseError;
 
     val compare : property * property -> order;
+    val propertyMatch : property * property -> bool;
     val toString : property -> string;
     val fromString : string -> property;
 end;
@@ -17,12 +19,60 @@ end;
 structure Property :> PROPERTY =
 struct
 
-type property = string;
+datatype property = Simple of string
+                  | Typed of (string * Type.T)
+                  | Attr of (string * string list);
+
 exception ParseError;
 
-val compare = String.compare;
-fun toString s = s;
-fun fromString s = s;
+fun compare (Simple s, Simple s') = String.compare (s, s')
+  | compare (Simple _, _) = LESS
+  | compare (_, Simple _) = GREATER
+  | compare (Typed (s,t), Typed (s',t')) = let val c = String.compare (s, s')
+                                           in if c = EQUAL
+                                              then Type.compare (t,t')
+                                              else c
+                                           end
+  | compare (Typed _, _) = LESS
+  | compare (_,Typed _) = GREATER
+  | compare (Attr (s,ss), Attr (s',ss')) = let val c = String.compare (s, s')
+                                           in if c = EQUAL
+                                              then List.collate String.compare (ss,ss')
+                                              else c
+                                           end
+  ;
+
+fun toStringSimplified (Simple s) = s
+  | toStringSimplified (Typed (s,_)) = s
+  | toStringSimplified (Attr (s,_)) = s;
+
+fun propertyMatch (Simple s, p) = (s = toStringSimplified p)
+  | propertyMatch (p, Simple s) = (s = toStringSimplified p)
+  | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.unify t t')
+  | propertyMatch (Attr (s,ss), Attr (s',ss')) = (s = s')
+  | propertyMatch _ = false
+
+fun toString (Simple s) = s
+  | toString (Typed (s,t)) = s ^ " : " ^ (Type.typeToString t)
+  | toString (Attr (s,a)) = s ^ " : {" ^ (String.concat (intersperse ", " a)) ^ "}";
+
+fun fromString x =
+    case map stringTrim (String.tokens (fn c => c = #":") x) of
+       [r,s] =>
+          if String.substring (s,0,1) = "{" then
+              if s = "{}" then Attr (r,[])
+              else let
+                        fun dropEnds [] = []
+                          | dropEnds [x] = []
+                          | dropEnds [x, y] = []
+                          | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
+                        val s' = String.implode (dropEnds (String.explode s));
+                    in
+                      Attr (r,map stringTrim (String.tokens (fn c => c = #";") s'))
+                    end
+          else Typed (r, Type.vartype s)
+     | [r] => Simple r
+     | _ => raise Match;
 
 end;
 

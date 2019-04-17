@@ -1,0 +1,151 @@
+import "util.logging";
+
+structure Type =
+struct
+
+(*
+To properly handle all the different tokens, it can be useful to give them
+'types'. We support a simple subset of the Standard ML type language: ground
+types, variables, pairs, functions, and unary type constructors. Variables are
+denoted by a preceding quote (e.g., 'a).
+For example,
+    ('a list * int) tree -> (('a * int) -> int) -> int
+would parse to
+    Function(
+        Constructor(
+            "tree",
+            Pair(
+                Constructor("list", Var "a"),
+                Ground "int")),
+        Function(
+            Function(
+                Pair(Var "a", Ground "int"),
+                Ground "int"),
+            Ground "int"))
+Note that * and -> have equal precedence and are right associative, so
+    'a * int -> int
+parses differently to
+    ('a * int) -> int
+The first is equivalent to 'a * (int -> int). This is a deviation from the SML
+standard, but is much easier to parse.
+*)
+datatype T = Ground of string
+           | Var of string
+           | Pair of T * T
+           | Function of T * T
+           | Constructor of string * T;
+
+fun occurs x (Ground _) = false
+  | occurs x (Var y) = (x = y)
+  | occurs x (Pair (s,t)) = (occurs x s orelse occurs x t)
+  | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
+  | occurs x (Constructor (_,t)) = occurs x t;
+
+fun unify (Ground s) (Ground s') = (s = s')
+  | unify (Var x) (Var y) = true
+  | unify (Var x) t = not (occurs x t)
+  | unify t (Var x) = not (occurs x t)
+  | unify (Pair(s,t)) (Pair(s',t')) = (unify s s') andalso (unify t t')
+  | unify (Function(s,t)) (Function(s',t')) = (unify s s') andalso (unify t t')
+  | unify (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (unify t t')
+  | unify _ _ = false;
+
+fun compare (Ground s, Ground s') = String.compare (s,s')
+  | compare (Ground _, _) = LESS
+  | compare (_, Ground _) = GREATER
+  | compare (Var s, Var s') = String.compare (s,s')
+  | compare (Var _, _) = LESS
+  | compare (_, Var _) = GREATER
+  | compare (Pair (t,u), Pair (t',u')) = let val c = compare (t,t')
+                                         in if c = EQUAL then compare (u,u') else c
+                                         end
+  | compare (Pair _, _) = LESS
+  | compare (_, Pair _) = GREATER
+  | compare (Function (t,u), Function (t',u')) = let val c = compare (t,t')
+                                                 in if c = EQUAL then compare (u,u') else c
+                                                 end
+  | compare (Function _, _) = LESS
+  | compare (_, Function _) = GREATER
+  | compare (Constructor (s,t), Constructor (s',t')) = let val c = String.compare (s,s')
+                                                       in if c = EQUAL then compare (t,t') else c
+                                                       end
+  ;
+
+fun typeToString (Ground s) = s
+  | typeToString (Var s) = "'" ^ s
+  | typeToString (Pair (t,u)) = "(" ^ (typeToString t) ^ " * " ^ (typeToString u) ^ ")"
+  | typeToString (Function (t, (Function (u,v)))) =
+    (typeToString t) ^ " -> (" ^ (typeToString (Function (u,v))) ^ ")"
+  | typeToString (Function (t,u)) = (typeToString t) ^ " -> " ^ (typeToString u)
+  | typeToString (Constructor (s,t)) = (typeToString t) ^ " " ^ s;
+
+fun typeDebugString (Ground s) = "Ground \"" ^ s ^ "\""
+  | typeDebugString (Var s) = "Var \"" ^ s ^ "\""
+  | typeDebugString (Pair (t,u)) = "Pair(" ^ (typeDebugString t) ^ ", "
+                                 ^ (typeDebugString u) ^ ")"
+  | typeDebugString (Function (t,u)) = "Function(" ^ (typeDebugString t) ^ ", "
+                                     ^ (typeDebugString u) ^ ")"
+  | typeDebugString (Constructor (s,t)) = "Constructor(\"" ^ s ^ "\", " ^ (typeDebugString t) ^ ")";
+
+fun vartype str =
+    let
+        fun readExactly [] _ = true
+          | readExactly _ [] = false
+          | readExactly (x::xs) (c::cs) =
+            if x = c then readExactly xs cs
+            else false;
+        fun collectUntil b [] xs = (String.implode (List.rev xs), [])
+          | collectUntil b (c::cs) xs =
+            if (b c) then (String.implode (List.rev xs), c::cs)
+            else collectUntil b cs (c::xs);
+        fun isInvalid c = not (Char.isAlpha c);
+        fun typeTokens [] out = List.rev out
+          | typeTokens (c::cs) out =
+            if c = #"'" then let val (tok, cs') = collectUntil (isInvalid) cs []
+                             in typeTokens cs' ((Var tok)::out) end
+            else if c = #"*" then typeTokens cs ((Ground "*")::out)
+            else if readExactly [#"-", #">"] (c::cs) then
+                typeTokens (List.drop (cs, 1)) ((Ground "->")::out)
+            else if Char.isSpace c then typeTokens cs out
+            else if c = #"(" then typeTokens cs ((Ground "(")::out)
+            else if c = #")" then typeTokens cs ((Ground ")")::out)
+            else let val (tok, cs') = collectUntil (isInvalid) (c::cs) []
+                 in typeTokens cs' ((Ground tok)::out) end;
+
+        fun toCloseParen [] _ = raise Match
+          | toCloseParen ((Ground "(")::ys) xs =
+            let
+                val (innerToks, rest) = toCloseParen ys [];
+                val innerType = readType innerToks
+            in
+                toCloseParen rest (innerType::xs)
+            end
+          | toCloseParen ((Ground ")")::ys) xs = (List.rev xs, ys)
+          | toCloseParen (c::cs) xs = toCloseParen cs (c::xs)
+        and readType [] = raise Match
+          | readType [x] = x
+          | readType ((Ground "(")::cs) =
+            let val (ins, outs) = toCloseParen cs []
+            in readType ((readType ins)::outs) end
+          | readType (c::(Ground "*")::cs) =
+            let val left = c;
+                val right = readType cs;
+            in Pair (left, right) end
+          | readType (c::(Ground "->")::cs) =
+            let val left = c;
+                val right = readType cs;
+            in Function (left, right) end
+          | readType (x::(Ground y)::cs) = readType ((Constructor (y, x))::cs)
+          | readType stuff =
+            let
+                val _ = Logging.write((listToString typeToString stuff) ^ "\n");
+            in raise Match end;
+
+        val chars = String.explode str;
+        val tokens = typeTokens chars [];
+        val finalType = readType tokens;
+    in
+        finalType
+    end;
+
+  end;
