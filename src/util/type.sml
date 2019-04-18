@@ -50,6 +50,7 @@ fun unify (Ground s) (Ground s') = (s = s')
   | unify (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (unify t t')
   | unify _ _ = false;
 
+(*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
   | compare (Ground _, _) = LESS
   | compare (_, Ground _) = GREATER
