@@ -8,3 +8,4 @@ token-^,tactic-stack_horizontal OR tactic-stack_vertical,0.7
 token-=,tactic-count_equal,1
 token-1,token-$dot,1
 type-integer,type-arrangement,0.9
+token-*,pattern-$rectangle,0.9
