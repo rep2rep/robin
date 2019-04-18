@@ -36,11 +36,25 @@ fun emptyIntn a b = S.isEmpty (S.intersection a b);
 
 fun strength (_, _, s) = s;
 
+fun propertyMatches p ps =
+  let 
+      val ms = S.filter (fn v => Property.propertyMatch (p,v)) ps
+  in not (S.isEmpty ms)
+  end
+
+fun allPropertiesMatch ps ps' =
+   let val contained = S.map (fn p => propertyMatches p ps') ps;
+   in all contained end;
+
+ fun somePropertiesMatch ps ps' =
+    let val contained = S.map (fn p => propertyMatches p ps') ps;
+    in any contained end;
+
 fun match qs rs ((qp, qn), (rp, rn), _) =
-    (S.subset qp qs) andalso
-    (S.subset rp rs) andalso
-    (emptyIntn qn qs) andalso
-    (emptyIntn rn rs);
+    (allPropertiesMatch qp qs) andalso
+    (allPropertiesMatch rp rs) andalso
+    (not (somePropertiesMatch qn qs)) andalso
+    (not (somePropertiesMatch rn rs));
 
 fun sameProperties ((qp, qn), (rp, rn), _) ((qp', qn'), (rp', rn'), _) =
     S.equal (qp, qp') andalso

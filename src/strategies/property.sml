@@ -12,6 +12,7 @@ sig
 
     val compare : property * property -> order;
     val propertyMatch : property * property -> bool;
+    val nameOf : property -> string;
     val toString : property -> string;
     val fromString : string -> property;
 end;
@@ -25,33 +26,38 @@ datatype property = Simple of string
 
 exception ParseError;
 
-(*A lexicographic order for the property type.
+fun nameOf (Simple s) = s
+  | nameOf (Typed (s,_)) = s
+  | nameOf (Attr (s,_)) = s;
+
+(*A lexicographic order for the property type. The name takes precedence, then
+  the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
   Useful for putting it into a dictionary; not for much else*)
 fun compare (Simple s, Simple s') = String.compare (s, s')
-  | compare (Simple _, _) = LESS
-  | compare (_, Simple _) = GREATER
   | compare (Typed (s,t), Typed (s',t')) = let val c = String.compare (s, s')
                                            in if c = EQUAL
                                               then Type.compare (t,t')
                                               else c
                                            end
-  | compare (Typed _, _) = LESS
-  | compare (_,Typed _) = GREATER
-  | compare (Attr (s,ss), Attr (s',ss')) = let val c = String.compare (s, s')
+  | compare (Attr (s,a), Attr (s',a')) = let val c = String.compare (s, s')
                                            in if c = EQUAL
-                                              then List.collate String.compare (ss,ss')
+                                              then List.collate String.compare (a,a')
                                               else c
                                            end
-  ;
-
-fun toStringSimplified (Simple s) = s
-  | toStringSimplified (Typed (s,_)) = s
-  | toStringSimplified (Attr (s,_)) = s;
+  | compare (p,p') = let val c = String.compare (nameOf p, nameOf p')
+                     in if c = EQUAL
+                        then case (p,p') of (Simple _, _) => LESS
+                                          | (_, Simple _) => GREATER
+                                          | (Typed _, _) => LESS
+                                          | (_, Typed _) => GREATER
+                                          | _ => raise Match
+                        else c
+                     end  ;
 
 (*propertyMatch is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information *)
-fun propertyMatch (Simple s, p) = (s = toStringSimplified p)
-  | propertyMatch (p, Simple s) = (s = toStringSimplified p)
+fun propertyMatch (Simple s, p) = (s = nameOf p)
+  | propertyMatch (p, Simple s) = (s = nameOf p)
   | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.unify t t')
   | propertyMatch (Attr (s,_), Attr (s',_)) = (s = s')
   | propertyMatch _ = false
