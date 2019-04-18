@@ -25,6 +25,8 @@ datatype property = Simple of string
 
 exception ParseError;
 
+(*A lexicographic order for the property type.
+  Useful for putting it into a dictionary; not for much else*)
 fun compare (Simple s, Simple s') = String.compare (s, s')
   | compare (Simple _, _) = LESS
   | compare (_, Simple _) = GREATER
@@ -46,33 +48,37 @@ fun toStringSimplified (Simple s) = s
   | toStringSimplified (Typed (s,_)) = s
   | toStringSimplified (Attr (s,_)) = s;
 
+(*propertyMatch is meant to be used for finding whether a correspondence holds
+  without the need to have type or attribute information *)
 fun propertyMatch (Simple s, p) = (s = toStringSimplified p)
   | propertyMatch (p, Simple s) = (s = toStringSimplified p)
   | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.unify t t')
-  | propertyMatch (Attr (s,ss), Attr (s',ss')) = (s = s')
+  | propertyMatch (Attr (s,_), Attr (s',_)) = (s = s')
   | propertyMatch _ = false
 
 fun toString (Simple s) = s
   | toString (Typed (s,t)) = s ^ " : " ^ (Type.typeToString t)
   | toString (Attr (s,a)) = s ^ " : {" ^ (String.concat (intersperse ", " a)) ^ "}";
 
+(*as-is, fromString is an ugly function. Very ad-hoc.*)
 fun fromString x =
-    case map stringTrim (String.tokens (fn c => c = #":") x) of
-       [r,s] =>
-          if String.substring (s,0,1) = "{" then
-              if s = "{}" then Attr (r,[])
-              else let
-                        fun dropEnds [] = []
-                          | dropEnds [x] = []
-                          | dropEnds [x, y] = []
-                          | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
-                        val s' = String.implode (dropEnds (String.explode s));
-                    in
-                      Attr (r,map stringTrim (String.tokens (fn c => c = #";") s'))
-                    end
-          else Typed (r, Type.vartype s)
-     | [r] => Simple r
-     | _ => raise Match;
+  if String.isPrefix "pattern-" x then Simple x else
+      case map stringTrim (String.tokens (fn c => c = #":") x) of
+         [r,s] =>
+            if String.substring (s,0,1) = "{" then
+                if s = "{}" then Attr (r,[])
+                else let
+                          fun dropEnds [] = []
+                            | dropEnds [x] = []
+                            | dropEnds [x, y] = []
+                            | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
+                          val s' = String.implode (dropEnds (String.explode s));
+                      in
+                        Attr (r,map stringTrim (String.tokens (fn c => c = #";") s'))
+                      end
+            else Typed (r, Type.vartype s)
+       | [r] => Simple r
+       | _ => raise Match;
 
 end;
 
