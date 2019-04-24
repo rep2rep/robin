@@ -3,6 +3,3 @@ token-union,token-SUM,0.25
 token-intersection,token-PRODUCT,0.25
 token-probability,tactic-get_value OR tactic-compare_values,0.5
 token-universe,token-last_row AND token-last_column,1
-fact-$law_of_total_probability,fact-$row_total AND fact-$column_total,1
-fact-$sigma_additivity,fact-$row_total OR fact-$column_total,0.25
-fact-$unit_measure,fact-total-1,1

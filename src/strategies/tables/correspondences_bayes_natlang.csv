@@ -1,0 +1,11 @@
+type-event,type-occurrence OR type-class,0.5
+token-\emptyset,token-none OR token-empty,0.5
+token-\Omega,token-universe OR token-all,0.75
+token-\cup,token-plus,0.25
+token-\setminus,token-minus,0.25
+token-\cup,token-union OR token-or,0.5
+token-\cap,token-intersection OR token-and,0.5
+token-\bar,token-complement OR token-not,0.5
+token-\Pr,token-probability,0.5
+token-|,token-given OR token-if,0.5
+tactic-calc,tactic-arithmetic_calculation,0.5
