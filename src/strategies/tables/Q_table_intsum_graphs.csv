@@ -1,4 +1,4 @@
-intsum,
+intsum,graphs
 error-allowed,0
 answer-type,integer
 instrumental-types,"vertex,edge,graph"

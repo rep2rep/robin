@@ -69,7 +69,7 @@ in
 end;
 
 fun propertiesRS rep =
-    FileDict.get (!propertyTableRep') rep
+    FileDict.get (!propertyTableRep') (rep, rep)
     handle FileDict.KeyError =>
            (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise FileDict.KeyError);
@@ -79,7 +79,7 @@ fun withoutImportance props = PropertySet.fromList (QPropertySet.map (QProperty.
 fun propertiesQ q =
     FileDict.get (!propertyTableQ') q
     handle FileDict.KeyError =>
-           (Logging.error ("ERROR: question named '" ^ q ^ "' not found!\n");
+           (Logging.error ("ERROR: question named '" ^ (#1 q) ^ "' not found!\n");
            raise FileDict.KeyError);
 
 (*
@@ -92,7 +92,7 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("\n");
         val _ = Logging.write ("BEGIN propInfluence\n");
         val _ = Logging.indent ();
-        val _ = Logging.write ("ARG q = " ^ q ^ " \n");
+        val _ = Logging.write ("ARG q = " ^ (#1 q) ^ ":" ^ (#2 q) ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
@@ -147,7 +147,7 @@ fun propInfluence (q, r, s) =
         val s' = List.foldl mix s propertyPairs;
     in
         Logging.write ("\n");
-        Logging.write ("RETURN (" ^ q ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
+        Logging.write ("RETURN (" ^ (#1 q) ^ ":" ^ (#2 q) ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
         Logging.dedent ();
         Logging.write ("END propInfluence\n\n");
         (q, r, s')
@@ -179,13 +179,13 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL questionRep = " ^ questionRep ^ "\n");
         val relevanceScore = (taskInfluence o userInfluence o propInfluence);
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
-        val representations = FileDict.keys (!propertyTableRep');
+        val representations = map (fn (r, _) => r) (FileDict.keys (!propertyTableRep'));
         val _ = Logging.write ("VAL representations = " ^
                      (listToString (fn s => s) representations) ^
                      "\n");
         val influencedRepresentations =
             List.map
-                (fn rep => relevanceScore (questionName, rep, 0.0))
+                (fn rep => relevanceScore (question, rep, 0.0))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
                        (listToString

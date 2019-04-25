@@ -48,9 +48,11 @@ fun getValue d k = SOME (D.get d k)
                    handle D.KeyError => NONE;
 
 structure FileDict = Dictionary(struct
-                                 type k = string;
-                                 val compare = String.compare;
-                                 val fmt = (fn s => s);
+                                 type k = string * string;
+                                 val compare =
+                                     cmpJoin String.compare String.compare;
+                                 val fmt =
+                                     (fn (s, t) => "(" ^ s ^ ", " ^ t ^ ")");
                                  end);
 val filedict' = FileDict.fromPairList;
 
@@ -325,18 +327,14 @@ fun setRSGenerator new =
     in () end;
 
 
-fun loadQorRSPropertiesFromFile sets parseRow genProps filename  =
+fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
     let
         val (setEmpty, setUnion) = sets;
+        val (parseHeader, parseRow) = parsers;
         val csvFile = CSVLiberal.openIn filename;
         val csvDataWithHeader = CSVLiberal.input csvFile;
-        val csvHeader =
-            (case (List.hd csvDataWithHeader) of
-                 [] => raise TableError "Table header blank"
-               | [h] => h
-               | [h, ""] => h
-               | _ => raise TableError "Missing table header")
-            handle List.Empty => raise TableError "Table is empty";
+        val csvHeader = parseHeader (List.hd csvDataWithHeader)
+                        handle List.Empty => raise TableError "Table is empty";
         val csvData = (List.tl csvDataWithHeader)
                       handle List.Empty => raise TableError "Table is empty";
 
@@ -360,9 +358,19 @@ fun loadQuestionTable filename = let
     fun parseImportance s = case Importance.fromString s of
                                 SOME i => i
                               | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");
+    fun parseHeader [] = raise TableError ("Q Table "
+                                           ^ "has empty header")
+      | parseHeader [x] = raise TableError ("Q Table "
+                                            ^ "is missing RS label in header")
+      | parseHeader [x, ""] = raise TableError ("Q Table "
+                                                ^ "has blank RS label in header")
+      | parseHeader [x, y] = (x, y)
+      | parseHeader _ = raise TableError ("Q Table "
+                                          ^ "has malformed header");
     fun parseRow [x, y] = (x, y, NONE)
       | parseRow [x, y, z] = (x, y, SOME (parseImportance z))
       | parseRow _ = raise TableError "Malformed question property entry";
+    val parsers = (parseHeader, parseRow);
     fun genProps (key, args, overrideImportance) =
         let
             fun findQGenerator k = SOME (GenDict.get (!qPropertyKeyMap) k)
@@ -381,13 +389,21 @@ fun loadQuestionTable filename = let
             qset' (map makeProp (valparser args))
         end;
 in
-    filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+    filedict' (loadQorRSPropertiesFromFile sets parsers genProps filename)
 end;
 
 fun loadRepresentationTable filename = let
     val sets = (S.empty, S.union);
+    fun parseHeader [] = raise TableError ("RS table "
+                                           ^ "has empty header.")
+      | parseHeader [x] = (x, x)
+      | parseHeader [x, ""] = (x, x)
+      | parseHeader _ = raise TableError ("RS Table "
+                                          ^ "has malformed header.")
     fun parseRow [x, y] = (x, y)
-      | parseRow _ = raise TableError "Malformed representation property entry";
+      | parseRow _ = raise TableError ("RS Table "
+                                       ^ "has malformed property entry");
+    val parsers = (parseHeader, parseRow);
     fun genProps (key, args) =
         let
             fun findRSGenerator k = SOME (GenDict.get (!rPropertyKeyMap) k)
@@ -400,12 +416,14 @@ fun loadRepresentationTable filename = let
             set' (map makeProp (valparser args))
         end;
 in
-    filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
+    filedict' (loadQorRSPropertiesFromFile sets parsers genProps filename)
 end;
 
 fun computePsuedoQuestionTable qtable corrs = let
+    val [((qName, qRS), sourceProperties)] = FileDict.toPairList qtable;
+    (* val propertyKinds = GenDict.keys (!qPropertyKeyMap); *)
 in
-    FileDict.empty ()
+    filedict' [(("pseudo-" ^ qName, qRS), sourceProperties)]
 end;
 
 end;
