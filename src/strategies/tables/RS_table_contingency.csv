@@ -1,22 +1,16 @@
 contingency,
-sentential,TRUE
-logical-order,1
-quantifiers,NONE
+mode,"sentential,grid"
 types,"string,real,cell,column,row"
-tokens,NONE
-relations,""
+tokens,"$cell,0,1,2,3,4,5,6,7,8,9"
 operators,"+,-,*,/,=,SUM,PRODUCT"
+patterns,"$ordered_row,$ordered_column,$equal_values"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
-parse-generate-structures,string-to-tree
-parse-generate-mapping,one-to-one
-limit-construction-size,FALSE
 grammatical-complexity,type-3
 rigorous,TRUE
-knowledge-manipulation-system,FALSE
-facts,"row-total,column-total,total-1"
+facts,"$row_total,$column_total,$total_1"
 fact-imports,NONE
 tactics,"add_value, add_formula, get_value, compare_values"
-logic-power,2
+inferential-complexity,2
 standard-accessibility-manipulations,"add_row, add_column, copy, paste"
 accessible-facts,FALSE
 accessible-tactics,FALSE

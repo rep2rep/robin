@@ -4,7 +4,7 @@ answer-type,proof
 instrumental-tokens,"prove,sum,equals"
 instrumental-types,"proof,natural"
 instrumental-patterns,"_-through-_"
-instrumental-facts,"+-commutative, +-associative"
+instrumental-facts,"$+-commutative, $+-associative"
 instrumental-tactics,"induction"
 relevant-tokens,"1,2,divided_by,minus,times,odd"
 relevant-related-tokens,"series,0,plus,squared"

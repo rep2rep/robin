@@ -1,23 +1,15 @@
 medical,
-sentential,true
-types,"real, event"
-tokens,"0.98, 0.97, 0.01"
-operators,"\Pr, \setminus"
-variables,"d:event, t:event"
-relations,=
-num-statements,4
-num-tokens,20
-num-distinct-tokens,20
-syntactic-patterns,"\Pr(_|_), \Pr(_|_)=_"
-homogeneous,true
-question-kind,calculation
-instrumental-tokens,\Pr
-answer-type,real
-dependency-type,event*event
 error-allowed,0
-related-facts,"Bayes'-theorem, law-of-total-probability, De-Finetti-axiom, non-negative-probability, unit-measure"
-related-facts-import,real-arithmetic
-related-types,NONE
-related-operators,"+,*,-,\div,\cup,\cap,\setminus"
-related-tokens,"0,1,\emptyset,\Omega"
-related-patterns,NONE
+answer-type,real
+instrumental-tokens,"\Pr,="
+instrumental-types,"real,event"
+instrumental-patterns,"\Pr(_|_), \Pr(_|_)=_"
+instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
+instrumental-tactics,"rewrite"
+relevant-tokens,"0.98, 0.97, 0.01,d:event,t:event"
+relevant-related-tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
+num-tokens,20
+num-distinct-tokens,14
+num-statements,4
+noise-tokens,""
+noise-related-tokens,""
