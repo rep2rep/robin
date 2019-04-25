@@ -1,7 +1,7 @@
 bayes,
 mode,"sentential"
 types,"real,event,formula,proof"
-tokens,"\forall,\Omega:event,\emptyset:event,\bar:event -> event, 0:real,1:real,+:real*real->real,-:real*real->real,*:real*real->real,\div:real*real->real,\cup:event*event->event,\cap:event*event->event,\setminus:event*event->event,=:real*real->real,=:event*event->event,\Pr:event*event->real,\Pr:event->real, |:event*event->event,=:event*event->formula,=:real*real->formula"
+tokens,"\forall,\Omega:event,\emptyset:event,\bar:event -> event, 0:real,1:real,+:real*real->real,-:real*real->real,*:real*real->real,\div:real*real->real,\cup:event*event->event,\cap:event*event->event,\setminus:event*event->event,\Pr:event*event->real,\Pr:event->real, |:event*event->event,=:event*event->formula,=:real*real->formula"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 patterns,"\Pr(_:event),\Pr(_:event|_:event),\Pr(_:event|_:event)=_:real,\Pr(_:event)=_:real"
 grammatical-complexity,type-2
