@@ -493,7 +493,7 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
                             (fn (q, r) => QPropertySet.union q r)
                             (QPropertySet.empty ())
                             (filtermap translateProperty matches);
-    val _ = QPropertySet.insert newProperties
+    val _ = QPropertySet.insert newProperties errorAllowed
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
 end;
