@@ -18,6 +18,7 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
     val filtermap : ('a -> 'b option) -> 'a list -> 'b list;
+    val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
     val all : bool list -> bool;
     val any : bool list -> bool;
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
@@ -116,6 +117,8 @@ fun filtermap f xs =
     in
         filtermap' f xs []
     end;
+
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
 
 fun all [] = true
   | all (b::bs) = b andalso (all bs);
