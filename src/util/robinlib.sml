@@ -23,6 +23,8 @@ sig
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
+    val unfold : ('a -> ('b * 'a) option) -> 'a -> 'b list;
+    val replicate : int -> 'a -> 'a list;
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
     val stringTrim : string -> string;
@@ -116,6 +118,23 @@ fun dropWhile pred [] = []
 fun takeWhile pred [] = []
   | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile pred xs)
                              else (takeWhile pred xs);
+
+fun unfold f seed =
+    let
+        fun unfold' f seed ans =
+            case f seed of
+                NONE => ans
+              | SOME (x, next) => (unfold' f next (x::ans));
+    in
+        List.rev (unfold' f seed [])
+    end;
+
+fun replicate n x =
+    let fun gen 0 = NONE
+          | gen n = SOME (x, n-1)
+    in
+        unfold gen n
+    end;
 
 fun listToString fmt items =
     let
