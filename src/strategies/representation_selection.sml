@@ -44,7 +44,7 @@ fun init (repTables, corrTables, qTables) = let
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
             | removeCorr y (z::zs) =
-              if Correspondence.sameProperties y z
+              if Correspondence.matchingProperties y z
               then (
                   if Correspondence.equal y z then
                       zs
@@ -126,10 +126,12 @@ fun propInfluence (q, r, s) =
                                 (fn p => ((PropertySet.fromList [p], PropertySet.empty ()),
                                           (PropertySet.fromList [p], PropertySet.empty ()),
                                           1.0))
-                                (PropertySet.intersection qProps rProps);
+                              (*)  (PropertySet.intersection qProps rProps);*)
+                                (Correspondence.matchingIntersectionLeft qProps rProps);
         val identityPairs' = List.filter (fn corr =>
                                              not(List.exists
-                                                     (Correspondence.sameProperties corr)
+                                                     (*(Correspondence.sameProperties corr)*)
+                                                     (Correspondence.matchingProperties corr)
                                                             propertyPairs'))
                                                 identityPairs;
         val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');

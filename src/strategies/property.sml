@@ -55,7 +55,8 @@ fun compare (Simple s, Simple s') = String.compare (s, s')
                      end  ;
 
 (*propertyMatch is meant to be used for finding whether a correspondence holds
-  without the need to have type or attribute information *)
+  without the need to have type or attribute information, and type-matching when
+  there is type information *)
 fun propertyMatch (Simple s, p) = (s = nameOf p)
   | propertyMatch (p, Simple s) = (s = nameOf p)
   | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.unify t t')
