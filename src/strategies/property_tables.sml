@@ -413,9 +413,89 @@ end;
 fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     val ((qName, qRS), sourceProperties) = qTable;
     val (targetRSName, targetRSProperties) = targetRSTable;
-    (* val propertyKinds = GenDict.keys (!qPropertyKeyMap); *)
+    val propertyPrefixes = List.filter
+                               (fn p => not (p = "error-allowed-")
+                                        andalso not (p = "num-distinct-tokens-")
+                                        andalso not (p = "num-statements-")
+                                        andalso not (p = "num-tokens-"))
+                               (map (fn (r, p, i) => p)
+                                    (GenDict.values (!qPropertyKeyMap)));
+    fun dropImportance props =
+        PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
+    fun liftImportance c =
+        let
+            val importanceLookup = (PropertyDictionary.fromPairList o
+                                    (map QProperty.toPair) o
+                                    QPropertySet.toList) sourceProperties;
+            val importanceMax = max Importance.compare;
+            val getImportance = PropertyDictionary.get importanceLookup;
+            val ((qp, _), _, _) = c;
+            val i = importanceMax (PropertySet.map getImportance qp);
+        in
+            (c, i)
+        end;
+    val sourceProps = dropImportance sourceProperties;
+    val matches' = List.filter
+                       (Correspondence.match
+                            sourceProps
+                            targetRSProperties)
+                      corrTable;
+    val identityPairs = PropertySet.map
+                            (fn p => ((PropertySet.fromList [p],
+                                       PropertySet.empty ()),
+                                      (PropertySet.fromList [p],
+                                       PropertySet.empty ()),
+                                      1.0))
+                            (PropertySet.intersection sourceProps
+                                                      targetRSProperties);
+    val identityPairs' = List.filter (fn corr =>
+                                         not(List.exists
+                                                 (Correspondence.sameProperties
+                                                      corr)
+                                                 matches'))
+                                     identityPairs;
+    val matches = map liftImportance (matches' @ identityPairs');
+    fun translateProperty (correspondence, importance) =
+        let
+            val ((qp, qn), (rp, rn), strength) = correspondence;
+            val properties = PropertySet.filter
+                                 (fn p =>
+                                     let val prop = Property.toString p;
+                                     in any (map
+                                                 (fn prefix => String.isPrefix
+                                                                   prefix
+                                                                   prop)
+                                                 propertyPrefixes)
+                                     end)
+                                 rp;
+        in
+            if strength > 0.5
+            then SOME (QPropertySet.fromList
+                           (PropertySet.map
+                                (fn p => QProperty.fromPair (p, importance))
+                                properties))
+            else NONE
+        end;
+    val errorAllowed = let
+        fun findError [] = raise Match
+          | findError (x::xs) =
+            let
+                val propString = Property.toString
+                                     (QProperty.withoutImportance x);
+                val isErrorAllowed = String.isPrefix "error-allowed-" propString;
+            in
+                if isErrorAllowed then x else findError xs
+            end;
+    in
+        findError (QPropertySet.toList sourceProperties)
+    end;
+    val newProperties = List.foldr
+                            (fn (q, r) => QPropertySet.union q r)
+                            (QPropertySet.empty ())
+                            (filtermap translateProperty matches);
+    val _ = QPropertySet.insert newProperties
 in
-    (("pseudo-" ^ qName, qRS), sourceProperties)
+    (("pseudo-" ^ qName, targetRSName), newProperties)
 end;
 
 end;
