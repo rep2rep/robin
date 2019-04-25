@@ -11,18 +11,17 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    structure FileDict : DICTIONARY;
-
     type qgenerator = (string -> string list) * string * Importance.importance;
     type rsgenerator = (string -> string list) * string;
-    type questiontable = (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
-    type representationtable = (FileDict.k, PropertySet.t PropertySet.set) FileDict.dict;
+    type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
+    type representationtable = string * PropertySet.t PropertySet.set;
+    type correspondencetable = Correspondence.correspondence list;
 
-    val loadCorrespondenceTable : string -> Correspondence.correspondence list;
+    val loadCorrespondenceTable : string -> correspondencetable;
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val computePsuedoQuestionTable: questiontable -> Correspondence.correspondence list -> questiontable;
+    val computePsuedoQuestionTable: questiontable -> representationtable -> correspondencetable -> questiontable;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -47,15 +46,6 @@ val dict' = D.fromPairList;
 fun getValue d k = SOME (D.get d k)
                    handle D.KeyError => NONE;
 
-structure FileDict = Dictionary(struct
-                                 type k = string * string;
-                                 val compare =
-                                     cmpJoin String.compare String.compare;
-                                 val fmt =
-                                     (fn (s, t) => "(" ^ s ^ ", " ^ t ^ ")");
-                                 end);
-val filedict' = FileDict.fromPairList;
-
 structure GenDict = Dictionary(struct
                                  type k = string;
                                  val compare = String.compare;
@@ -69,8 +59,9 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
 
 type qgenerator = (string -> string list) * string * Importance.importance;
 type rsgenerator = (string -> string list) * string;
-type questiontable = (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
-type representationtable = (FileDict.k, PropertySet.t PropertySet.set) FileDict.dict;
+type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
+type representationtable = string * PropertySet.t PropertySet.set;
+type correspondencetable = Correspondence.correspondence list;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -343,7 +334,7 @@ fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
                              (setEmpty ())
                              (map parseRow csvData);
     in
-        [(csvHeader, properties)]
+        (csvHeader, properties)
     end
     handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
@@ -389,15 +380,15 @@ fun loadQuestionTable filename = let
             qset' (map makeProp (valparser args))
         end;
 in
-    filedict' (loadQorRSPropertiesFromFile sets parsers genProps filename)
+    loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
 fun loadRepresentationTable filename = let
     val sets = (S.empty, S.union);
     fun parseHeader [] = raise TableError ("RS table "
                                            ^ "has empty header.")
-      | parseHeader [x] = (x, x)
-      | parseHeader [x, ""] = (x, x)
+      | parseHeader [x] = x
+      | parseHeader [x, ""] = x
       | parseHeader _ = raise TableError ("RS Table "
                                           ^ "has malformed header.")
     fun parseRow [x, y] = (x, y)
@@ -416,14 +407,15 @@ fun loadRepresentationTable filename = let
             set' (map makeProp (valparser args))
         end;
 in
-    filedict' (loadQorRSPropertiesFromFile sets parsers genProps filename)
+    loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
-fun computePsuedoQuestionTable qtable corrs = let
-    val [((qName, qRS), sourceProperties)] = FileDict.toPairList qtable;
+fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
+    val ((qName, qRS), sourceProperties) = qTable;
+    val (targetRSName, targetRSProperties) = targetRSTable;
     (* val propertyKinds = GenDict.keys (!qPropertyKeyMap); *)
 in
-    filedict' [(("pseudo-" ^ qName, qRS), sourceProperties)]
+    (("pseudo-" ^ qName, qRS), sourceProperties)
 end;
 
 end;

@@ -12,34 +12,34 @@ import "strategies.property_correspondence";
 structure RepresentationSelection =
 struct
 
-structure FileDict = PropertyTables.FileDict;
+structure TableDict = Dictionary(struct
+                                  type k = string * string;
+                                  val compare =
+                                      cmpJoin String.compare String.compare;
+                                  val fmt =
+                                      (fn (s, t) => "(" ^ s ^ ", " ^ t ^ ")");
+                                  end);
+
 
 (* Read in some data *)
 
-val propertyTableRep' = ref (FileDict.empty ());
+val propertyTableRep' = ref (TableDict.empty ());
 val correspondingTable' = ref [];
-val propertyTableQ' = ref (FileDict.empty ());
+val propertyTableQ' = ref (TableDict.empty ());
 
 fun init (repTables, corrTables, qTables) = let
+
     val _ = Logging.write "\n-- Load the representation tables\n";
+    fun rsTableToDict (rs, props) = TableDict.fromPairList [((rs, rs), props)];
     val propertyTableRep =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
+        foldr (fn (a, b) => TableDict.union a b)
+              (TableDict.empty ())
               (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadRepresentationTable t)) repTables)
-        handle FileDict.KeyError => (Logging.error "An RS table has been duplicated"; raise FileDict.KeyError);
+                             rsTableToDict (PropertyTables.loadRepresentationTable t)))
+                   repTables)
+        handle TableDict.KeyError => (Logging.error "An RS table has been duplicated"; raise TableDict.KeyError);
+
     val _ = Logging.write "\n-- Load the correspondence tables\n";
-    val correspondingTable =
-        foldr (fn (a, b) => a @ b)
-              []
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadCorrespondenceTable t)) corrTables);
-    val _ = Logging.write "\n-- Load the question tables\n";
-    val propertyTableQ =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadQuestionTable t)) qTables);
     fun dedupCorrespondences [] = []
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
@@ -62,25 +62,45 @@ fun init (repTables, corrTables, qTables) = let
       in
           x::(removeCorr x xs)
       end;
+    val correspondingTable = dedupCorrespondences (
+            foldr (fn (a, b) => a @ b)
+                  []
+                  (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                                 PropertyTables.loadCorrespondenceTable t))
+                       corrTables));
+
+    val _ = Logging.write "\n-- Load the question tables\n";
+    fun qTableToDict pair = TableDict.fromPairList [pair];
+    val propertyTableQ =
+        foldr (fn (a, b) => TableDict.union a b)
+              (TableDict.empty ())
+              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                             qTableToDict (PropertyTables.loadQuestionTable t)))
+                   qTables);
+
 in
     propertyTableRep' := propertyTableRep;
-    correspondingTable' := dedupCorrespondences correspondingTable;
+    correspondingTable' := correspondingTable;
     propertyTableQ' := propertyTableQ
 end;
 
 fun propertiesRS rep =
-    FileDict.get (!propertyTableRep') (rep, rep)
-    handle FileDict.KeyError =>
+    TableDict.get (!propertyTableRep') (rep, rep)
+    handle TableDict.KeyError =>
            (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
-           raise FileDict.KeyError);
+           raise TableDict.KeyError);
 
 fun withoutImportance props = PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
 
 fun propertiesQ q =
-    FileDict.get (!propertyTableQ') q
-    handle FileDict.KeyError =>
+    TableDict.get (!propertyTableQ') q
+    handle TableDict.KeyError =>
            (Logging.error ("ERROR: question named '" ^ (#1 q) ^ "' not found!\n");
-           raise FileDict.KeyError);
+           raise TableDict.KeyError);
+
+fun getQTable q = (q, propertiesQ q);
+
+fun getRSTable rs = (rs, propertiesRS rs);
 
 (*
 propInfluence : (question * representation * float) -> (question * representation * float)
@@ -179,7 +199,7 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL questionRep = " ^ questionRep ^ "\n");
         val relevanceScore = (taskInfluence o userInfluence o propInfluence);
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
-        val representations = map (fn (r, _) => r) (FileDict.keys (!propertyTableRep'));
+        val representations = map (fn (r, _) => r) (TableDict.keys (!propertyTableRep'));
         val _ = Logging.write ("VAL representations = " ^
                      (listToString (fn s => s) representations) ^
                      "\n");
