@@ -10,6 +10,8 @@ sig
     structure S: SET;
     structure D: DICTIONARY;
 
+    exception ParseError
+
     datatype 'a corrformula = Atom of 'a
                             | Neg of 'a corrformula
                             | Conj of 'a corrformula * 'a corrformula
@@ -34,6 +36,8 @@ struct
 structure S = PropertySet;
 
 structure D = PropertyDictionary;
+
+exception ParseError;
 
 datatype 'a corrformula = Atom of 'a
                         | Neg of 'a corrformula
@@ -110,17 +114,135 @@ fun toString ((qp, qn), (rp, rn), s) =
 fun normalise (Atom a) = Atom a
   | normalise (Neg a) =
     let
+        val a' = normalise a;
     in
+        case a' of
+            Atom t => Neg (Atom t)
+          | Neg t => t
+          | Conj (t, u) => normalise (Disj (Neg t, Neg u))
+          | Disj (t, u) => normalise (Conj (Neg t, Neg u))
     end
   | normalise (Conj (a, b)) =
     let
+        val a' = normalise a;
+        val b' = normalise b;
     in
+        case (a', b') of
+            (Disj (t, u), v) => normalise (Disj (Conj (t, v),
+                                                 Conj (u, v)))
+          | (t, Disj(u, v)) => normalise (Disj (Conj (t, u),
+                                                Disj (Conj (t, v))))
+          | (u, v) => Conj (u, v)
     end
   | normalise (Disj (a, b)) =
     let
+        val a' = normalise a;
+        val b' = normalise b;
     in
+        Disj (a', b')
     end;
 
-fun fromString propMaker s = (Atom (propMaker s), Atom (propMaker s), 1.0);
+fun fromString propMaker s =
+    let
+        val temp = (Atom (propMaker s), Atom (propMaker s), 1.0);
+        val parts = String.tokens (fn c => c = #",") s;
+        val [leftString, rightString, valString] = parts
+                                                   handle Match => raise Match;
+
+        fun tokenize string =
+            let
+                fun cluster [] xs = cluster [[]] xs
+                  | cluster cs [] = cs
+                  | cluster (c::cs) (x::xs) =
+                    case x of
+                        #"(" => cluster ([]::[#"("]::c::cs) xs
+                      | #")" => cluster ([]::[#")"]::c::cs) xs
+                      | s => if Char.isSpace s
+                             then cluster ([]::c::cs) xs
+                             else cluster ((s::c)::cs) xs;
+            in
+                List.rev (map (String.implode o List.rev)
+                              (List.filter
+                                   (fn cs => not (List.null xs))
+                                   (cluster [[]] (String.explode string))))
+            end;
+
+        fun nextToken [] = NONE
+          | nextToken (x::xs) = SOME x;
+        fun remainingTokens [] = []
+          | remainingTokens (x::xs) = xs;
+
+        fun expect s [] = raise ParseError
+          | expect s (x::xs) = if String.toLower(s) = String.toLower(x)
+                               then (s, xs)
+                               else raise ParseError;
+
+        fun parseAtom [] = raise ParseError
+          | parseAtom (x::xs) = if x = "("
+                                    then raise ParseError
+                                else if x = ")"
+                                    then raise ParseError
+                                else if String.toLower(x) = "and"
+                                    then raise ParseError
+                                else if String.toLower(x) = "or"
+                                    then raise ParseError
+                                else if String.toLower(x) = "not"
+                                    then raise ParseError
+                                else (x, xs)
+        and parseNeg [] = raise ParseError
+          | parseNeg xs =
+            let
+                val (neg, resta) = expect "not" xs;
+                val (atom, restb) = parseCForm resta;
+            in
+                (Neg atom, restb)
+            end
+        and parseConj [] = raise ParseError
+          | parseConj xs =
+            let
+                val (left, resta) = parseBForm xs;
+                val (andtok, restb) = expect "and" resta;
+                val (right, restc) = parseAForm restb;
+            in
+                (Conj (left, right), restc)
+            end
+        and parseDisj [] = raise ParseError
+          | parseDisj xs =
+            let
+                val (left, resta) = parseAForm xs;
+                val (ortok, restb) = expect "or" resta;
+                val (right, restc) = parseFormula restb;
+            in
+                (Disj (left, right), restc)
+            end
+        and parseFormula xs = parseDisj xs
+                              handle ParseError => parseAForm xs
+        and parseAForm xs = parseConj xs
+                            handle ParseError => parseBForm xs
+        and parseBForm xs = parseNeg xs
+                            handle ParseError => parseCForm xs
+        and parseCForm xs = parseAtom xs
+                            handle ParseError =>
+                                   let
+                                       val (lparn, resta) = expect "(" xs;
+                                       val (toks, restb) = toCloseParen resta;
+                                   in
+                                       case restb of
+                                           [] => parseForm toks
+                                         | _ => raise ParseError
+                                   end;
+
+        fun parse tokens =
+            let
+                val (tree, tokens) = parseFormula tokens;
+            in
+                if (List.null tokens) then tree
+                else raise Match
+            end;
+
+        val read = (normalise o parse o tokenize);
+    in
+        (read leftString, read rightString, Real.fromString valString)
+    end;
 
 end;
