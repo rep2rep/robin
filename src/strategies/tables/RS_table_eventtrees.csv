@@ -1,14 +1,14 @@
 event_trees,
 mode,"graph"
-types,"real, node, edge"
-tokens,"$edge, 0,1,2,3,4,5,6,7,8,9"
+types,"real, event_tree, event_node, conjunction_edge"
+tokens,"$conjunction_edge, 0,1,2,3,4,5,6,7,8,9"
+patterns,"$subgraph, $branch"
 grammar-imports,"base-10-real-numerals, latin-alphabet"
 grammatical-complexity,type-3
 rigorous,TRUE
-knowledge-manipulation-system,FALSE
 facts,""
 fact-imports,""
-tactics,"add_variable_children, reroot, calculate_node_pr, compare_nodes"
+tactics,"add_variable_children, reroot, calculate_node_pr, compare_values"
 inferential-complexity,1
 standard-accessibility-manipulations,"undo"
 accessible-facts,""

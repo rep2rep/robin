@@ -1,4 +1,5 @@
 import "util.set";
+import "util.type";
 import "util.dictionary";
 
 import "strategies.property_importance";
@@ -10,6 +11,8 @@ sig
     exception ParseError;
 
     val compare : property * property -> order;
+    val propertyMatch : property * property -> bool;
+    val nameOf : property -> string;
     val toString : property -> string;
     val fromString : string -> property;
 end;
@@ -17,12 +20,72 @@ end;
 structure Property :> PROPERTY =
 struct
 
-type property = string;
+datatype property = Simple of string
+                  | Typed of (string * Type.T)
+                  | Attr of (string * string list);
+
 exception ParseError;
 
-val compare = String.compare;
-fun toString s = s;
-fun fromString s = s;
+fun nameOf (Simple s) = s
+  | nameOf (Typed (s,_)) = s
+  | nameOf (Attr (s,_)) = s;
+
+(*A lexicographic order for the property type. The name takes precedence, then
+  the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
+  Useful for putting it into a dictionary; not for much else*)
+fun compare (Simple s, Simple s') = String.compare (s, s')
+  | compare (Typed (s,t), Typed (s',t')) = let val c = String.compare (s, s')
+                                           in if c = EQUAL
+                                              then Type.compare (t,t')
+                                              else c
+                                           end
+  | compare (Attr (s,a), Attr (s',a')) = let val c = String.compare (s, s')
+                                           in if c = EQUAL
+                                              then List.collate String.compare (a,a')
+                                              else c
+                                           end
+  | compare (p,p') = let val c = String.compare (nameOf p, nameOf p')
+                     in if c = EQUAL
+                        then case (p,p') of (Simple _, _) => LESS
+                                          | (_, Simple _) => GREATER
+                                          | (Typed _, _) => LESS
+                                          | (_, Typed _) => GREATER
+                                          | _ => raise Match
+                        else c
+                     end  ;
+
+(*propertyMatch is meant to be used for finding whether a correspondence holds
+  without the need to have type or attribute information, and type-matching when
+  there is type information *)
+fun propertyMatch (Simple s, p) = (s = nameOf p)
+  | propertyMatch (p, Simple s) = (s = nameOf p)
+  | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.match t t')
+  | propertyMatch (Attr (s,_), Attr (s',_)) = (s = s')
+  | propertyMatch _ = false
+
+fun toString (Simple s) = s
+  | toString (Typed (s,t)) = s ^ " : " ^ (Type.toString t)
+  | toString (Attr (s,a)) = s ^ " : {" ^ (String.concat (intersperse ", " a)) ^ "}";
+
+(*as-is, fromString is an ugly function. Very ad-hoc.*)
+fun fromString x =
+  if String.isPrefix "pattern-" x then Simple x else
+      case map stringTrim (String.tokens (fn c => c = #":") x) of
+         [r,s] =>
+            if String.substring (s,0,1) = "{" then
+                if s = "{}" then Attr (r,[])
+                else let
+                          fun dropEnds [] = []
+                            | dropEnds [x] = []
+                            | dropEnds [x, y] = []
+                            | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
+                          val s' = String.implode (dropEnds (String.explode s));
+                      in
+                        Attr (r,map stringTrim (String.tokens (fn c => c = #";") s'))
+                      end
+            else Typed (r, Type.fromString s)
+       | [r] => Simple r
+       | _ => raise Match;
 
 end;
 
