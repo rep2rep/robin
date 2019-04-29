@@ -127,8 +127,8 @@ fun propInfluence (q, r, s) =
             case importance of
                 Importance.Noise => 0.0
               | Importance.Zero => 0.0
-              | Importance.Low => 0.5 * strength
-              | Importance.Medium => strength
+              | Importance.Low => 0.33 * strength
+              | Importance.Medium => 0.67 * strength
               | Importance.High => strength;
         val qProps = withoutImportance qProps';
         val propertyPairs' = List.filter
