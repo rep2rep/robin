@@ -26,7 +26,7 @@ sig
     val strength : correspondence -> real;
 
     val toString : correspondence -> string;
-    val fromString : (string -> Property.property) -> string -> correspondence;
+    val fromString : string -> correspondence;
 end;
 
 
@@ -154,7 +154,7 @@ fun toString (q, r, s) =
         ^ ")"
     end;
 
-fun fromString toProperty s =
+fun fromString s =
     let
         val parts = String.tokens (fn c => c = #",") s;
         val (leftString, rightString, valString) =
@@ -263,7 +263,7 @@ fun fromString toProperty s =
                                    SOME x => x
                                  | NONE => raise ParseError;
 
-        val read = (formulamap toProperty) o normalise o parse o tokenize;
+        val read = (formulamap Property.fromString) o normalise o parse o tokenize;
     in
         (read leftString, read rightString, realFromString valString)
     end;
