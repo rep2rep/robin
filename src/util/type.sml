@@ -4,6 +4,9 @@ signature TYPE =
 sig
     exception ParseError;
     type T;
+    val outputArity : T -> int;
+    val inputArity : T -> int;
+    val order : T -> int;
     val match : T -> T -> bool;
     val compare : T * T -> order;
     val toString : T -> string;
@@ -51,6 +54,21 @@ datatype T = Ground of string
            | Pair of T * T
            | Function of T * T
            | Constructor of string * T;
+
+fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
+  | dimensionality _ =  1
+
+fun inputArity (Function (s,t)) = dimensionality s + inputArity t
+  | inputArity (Pair (s,t)) = inputArity s + inputArity t
+  | inputArity _ = 0
+
+fun outputArity (Pair (s,t)) = outputArity s + outputArity t
+  | outputArity (Function (s,t)) = outputArity t
+  | outputArity _ = 1
+
+fun order (Pair (s,t)) = Int.max(order s, order t)
+  | order (Function (s,t)) = Int.max(1 + order s, order t)
+  | order _ = 0
 
 fun occurs x (Ground _) = false
   | occurs x (Var y) = (x = y)
