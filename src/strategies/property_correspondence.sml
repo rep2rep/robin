@@ -10,8 +10,11 @@ sig
     structure S: SET;
     structure D: DICTIONARY;
 
-    type correspondence = (S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real;
-    type importance = Importance.importance;
+    datatype 'a corrformula = Atom of 'a
+                            | Neg of 'a corrformula
+                            | Conj of 'a corrformula * 'a corrformula
+                            | Disj of 'a corrformula * 'a corrformula;
+    type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
     val match : S.t S.set -> S.t S.set -> correspondence -> bool;
@@ -19,6 +22,7 @@ sig
     val strength : correspondence -> real;
 
     val toString : correspondence -> string;
+    val fromString : (string -> Property.property) -> string -> correspondence;
 end;
 
 
@@ -29,8 +33,16 @@ structure S = PropertySet;
 
 structure D = PropertyDictionary;
 
-type correspondence = (S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real;
-type importance = Importance.importance;
+datatype 'a corrformula = Atom of 'a
+                        | Neg of 'a corrformula
+                        | Conj of 'a corrformula * 'a corrformula
+                        | Disj of 'a corrformula * 'a corrformula;
+type correspondence = Property.property corrformula * Property.property corrformula * real;
+
+fun formulamap f (Atom a) = Atom (f a)
+  | formulamap f (Neg a) = Neg (formulamap f a)
+  | formulamap f (Conj (a, b)) = Conj (formulamap f a, formulamap f b)
+  | formulamap f (Disj (a, b)) = Disj (formulamap f a, formulamap f b);
 
 fun emptyIntn a b = S.isEmpty (S.intersection a b);
 
@@ -61,5 +73,21 @@ fun toString ((qp, qn), (rp, rn), s) =
     (S.toString rn) ^
     ")) -> " ^
     (Real.toString s);
+
+fun normalise (Atom a) = Atom a
+  | normalise (Neg a) =
+    let
+    in
+    end
+  | normalise (Conj (a, b)) =
+    let
+    in
+    end
+  | normalise (Disj (a, b)) =
+    let
+    in
+    end;
+
+fun fromString propMaker s = (Atom (propMaker s), Atom (propMaker s), 1.0);
 
 end;
