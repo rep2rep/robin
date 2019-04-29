@@ -3,10 +3,10 @@ token-none OR token-empty,token-\emptyset,0.75
 token-universe OR token-all,token-\Omega,0.75
 token-plus,token-\cup,0.25
 token-minus,token-\setminus,0.25
-token-times,token-\cap,0.25
-token-divided_by,token-|,0.25
 token-union OR token-or,token-\cup,1
 token-intersection OR token-and,token-\cap,1
+token-complement OR token-not,token-\bar,1
 token-probability,token-\Pr,0.75
 token-given OR token-if,token-|,1
 token-if AND (NOT token-given),token-|,-0.25
+tactic-arithmetic_calculation,tactic-calc,0.75

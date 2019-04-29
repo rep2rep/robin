@@ -1,0 +1,8 @@
+type-event,type-zone,1
+token-\emptyset,pattern-$shading,1
+token-\Omega OR token-all,type-diagram,1
+token-\cup,tactic-join,1
+token-\cap,tactic-distinguish,1
+token-=,type-zone,1
+token-+,tactic-join,0.25
+token--,tactic-delete,0.25

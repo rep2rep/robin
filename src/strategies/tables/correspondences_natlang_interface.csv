@@ -1,7 +1,0 @@
-type-class OR type-occurrence,dimension-use-X-dense OR dimension-use-Y-dense OR dimension-use-COLOUR-dense,0.25
-type-class OR type-occurrence,dimension-use-X-topological OR dimension-use-Y-topological OR dimension-use-COLOUR-topological,0.75
-type-class*class OR type-occurrence*occurrence,(dimension-use-X-topological AND dimension-use-Y-topological) OR (dimension-use-X-topological AND dimension-use-COLOUR-topological) OR (dimension-use-Y-topological AND dimension-use-COLOUR-topological),0.75
-type-number OR type-ratio OR type-fraction,dimension-use-X-metric OR dimension-use-Y-metric OR dimension-use-COLOUR-metric,0.75
-type-number OR type-ratio OR type-fraction,dimension-use-X-dense OR dimension-use-Y-dense OR dimension-use-COLOUR-dense,0.5
-token-times,(dimension-use-X-metric AND dimension-use-Y-metric) OR (dimension-use-Y-metric AND dimension-use-COLOUR-metric) OR (dimension-use-X-metric AND dimension-use-COLOUR-metric),0.25
-token-and,(dimension-use-X-topological AND dimension-use-Y-topological) OR (dimension-use-Y-topological AND dimension-use-COLOUR-topological) OR (dimension-use-X-topological AND dimension-use-COLOUR-topological),0.25
