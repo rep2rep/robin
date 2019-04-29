@@ -11,7 +11,7 @@ sig
     exception ParseError;
 
     val compare : property * property -> order;
-    val propertyMatch : property * property -> bool;
+    val match : property * property -> bool;
     val nameOf : property -> string;
     val toString : property -> string;
     val fromString : string -> property;
@@ -57,11 +57,11 @@ fun compare (Simple s, Simple s') = String.compare (s, s')
 (*propertyMatch is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information, and type-matching when
   there is type information *)
-fun propertyMatch (Simple s, p) = (s = nameOf p)
-  | propertyMatch (p, Simple s) = (s = nameOf p)
-  | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.match t t')
-  | propertyMatch (Attr (s,_), Attr (s',_)) = (s = s')
-  | propertyMatch _ = false
+fun match (Simple s, p) = (s = nameOf p)
+  | match (p, Simple s) = (s = nameOf p)
+  | match (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.match t t')
+  | match (Attr (s,_), Attr (s',_)) = (s = s')
+  | match _ = false
 
 fun toString (Simple s) = s
   | toString (Typed (s,t)) = s ^ " : " ^ (Type.toString t)
