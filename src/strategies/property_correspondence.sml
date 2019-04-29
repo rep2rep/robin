@@ -50,67 +50,6 @@ fun formulamap f (Atom a) = Atom (f a)
   | formulamap f (Conj (a, b)) = Conj (formulamap f a, formulamap f b)
   | formulamap f (Disj (a, b)) = Disj (formulamap f a, formulamap f b);
 
-fun emptyIntn a b = S.isEmpty (S.intersection a b);
-
-fun strength (_, _, s) = s;
-
-fun filterMatches p ps = S.filter (fn v => Property.propertyMatch (p,v)) ps;
-
-fun propertyMatches p ps = not (S.isEmpty (filterMatches p ps));
-
-fun allPropertiesMatch ps ps' =
-    let val contained = S.map (fn p => propertyMatches p ps') ps;
-    in all contained end;
-
-fun somePropertiesMatch ps ps' =
-    let val contained = S.map (fn p => propertyMatches p ps') ps;
-    in any contained end;
-
-fun joinSets [] = S.empty ()
-  | joinSets (h::t) = S.union h (joinSets t)
-
-(* finds matches between two property sets,
-but only returns the matches of the left (ps) *)
-fun matchingIntersectionLeft ps ps' =
-    let val x = S.map (fn p => filterMatches p ps) ps'
-    in foldr (fn (a,b) => S.union a b) (S.empty ()) x
-    end;
-
-
-fun match qs rs ((qp, qn), (rp, rn), _) =
-    (allPropertiesMatch qp qs) andalso
-    (allPropertiesMatch rp rs) andalso
-    (not (somePropertiesMatch qn qs)) andalso
-    (not (somePropertiesMatch rn rs));
-
-fun biMatch (ps,ps') = allPropertiesMatch ps ps' andalso allPropertiesMatch ps' ps
-
-fun matchingProperties ((qp, qn), (rp, rn), _) ((qp', qn'), (rp', rn'), _) =
-    biMatch (qp, qp') andalso
-    biMatch (qn, qn') andalso
-    biMatch (rp, rp') andalso
-    biMatch (rn, rn');
-
-fun sameProperties ((qp, qn), (rp, rn), _) ((qp', qn'), (rp', rn'), _) =
-    S.equal (qp, qp') andalso
-    S.equal (qn, qn') andalso
-    S.equal (rp, rp') andalso
-    S.equal (rn, rn');
-
-fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
-
-fun toString ((qp, qn), (rp, rn), s) =
-    "((" ^
-    (S.toString qp) ^
-    ", " ^
-    (S.toString qn) ^
-    "), (" ^
-    (S.toString rp) ^
-    ", " ^
-    (S.toString rn) ^
-    ")) -> " ^
-    (Real.toString s);
-
 fun normalise (Atom a) = Atom a
   | normalise (Neg a) =
     let
@@ -142,12 +81,86 @@ fun normalise (Atom a) = Atom a
         Disj (a', b')
     end;
 
-fun fromString propMaker s =
+fun isoTrees eq x y =
     let
-        val temp = (Atom (propMaker s), Atom (propMaker s), 1.0);
+        fun isoTrees' (Atom a) (Atom b) = eq(a, b)
+          | isoTrees' (Neg a) (Neg b) = isoTrees' a b
+          | isoTrees' (Conj (a, b)) (Conj (c, d)) =
+            (isoTrees' a c andalso isoTrees' b d) orelse
+            (isoTrees' a d andalso isoTrees' b c)
+          | isoTrees' (Disj (a, b)) (Disj (c, d)) =
+            (isoTrees' a c andalso isoTrees' b d) orelse
+            (isoTrees' a d andalso isoTrees' b c)
+          | isoTrees' _ _ = false;
+    in
+        isoTrees' (normalise x) (normalise y)
+    end;
+
+fun strength (_, _, s) = s;
+
+fun filterMatches p ps = S.filter (fn v => Property.match (p,v)) ps;
+
+(* finds matches between two property sets,
+but only returns the matches of the left (ps) *)
+fun matchingIntersectionLeft ps ps' =
+    let val x = S.map (fn p => filterMatches p ps) ps'
+    in foldr (fn (a,b) => S.union a b) (S.empty ()) x
+    end;
+
+fun isMatchedIn p ps = S.isEmpty (filterMatches p ps);
+
+fun matchTree ps (Atom p) = isMatchedIn p ps
+  | matchTree ps (Neg a) = not (matchTree ps a)
+  | matchTree ps (Conj (a, b)) = (matchTree ps a) andalso (matchTree ps b)
+  | matchTree ps (Disj (a, b)) = (matchTree ps a) orelse (matchTree ps b);
+
+fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r)
+
+fun matchingProperties (q, r, _) (q', r', _) =
+    let
+        fun eq (p1, p2) = Property.match(p1, p2);
+    in
+        isoTrees eq q q' andalso isoTrees eq r r'
+    end;
+
+fun sameProperties (q, r, _) (q', r', _) =
+    let
+        fun eq (p1, p2) = Property.compare(p1, p2) = EQUAL;
+    in
+        isoTrees eq q q' andalso isoTrees eq r r'
+    end;
+
+fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
+
+fun toString (q, r, s) =
+    let
+        fun treeToString (Atom a) = Property.toString a
+          | treeToString (Neg a) = "NOT " ^ (treeToString a)
+          | treeToString (Conj (a, b)) = (treeToString a)
+                                         ^ " AND "
+                                         ^ (treeToString b)
+          | treeToString (Disj (Conj (a, b), c)) = "("
+                                                   ^ (treeToString (Conj (a, b)))
+                                                   ^ ")"
+                                                   ^ " OR "
+                                                   ^ (treeToString c)
+          | treeToString (Disj (a, b)) = (treeToString a)
+                                         ^ " OR "
+                                         ^ (treeToString b);
+    in
+        "(" ^ (treeToString q)
+        ^ ", " ^ (treeToString r)
+        ^ "," ^ (Real.toString s)
+        ^ ")"
+    end;
+
+fun fromString toProperty s =
+    let
         val parts = String.tokens (fn c => c = #",") s;
-        val [leftString, rightString, valString] = parts
-                                                   handle Match => raise Match;
+        val (leftString, rightString, valString) =
+            case parts of
+                [l, r, v] => (l, r, v)
+              | _ => raise Match;
 
         fun tokenize string =
             let
@@ -246,9 +259,13 @@ fun fromString propMaker s =
                 else raise Match
             end;
 
-        val read = (normalise o parse o tokenize);
+        fun realFromString r = case (Real.fromString r) of
+                                   SOME x => x
+                                 | NONE => raise ParseError;
+
+        val read = (formulamap toProperty) o normalise o parse o tokenize;
     in
-        (read leftString, read rightString, Real.fromString valString)
+        (read leftString, read rightString, realFromString valString)
     end;
 
 end;
