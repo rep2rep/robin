@@ -64,7 +64,7 @@ fun propertyMatch (Simple s, p) = (s = nameOf p)
   | propertyMatch _ = false
 
 fun toString (Simple s) = s
-  | toString (Typed (s,t)) = s ^ " : " ^ (Type.typeToString t)
+  | toString (Typed (s,t)) = s ^ " : " ^ (Type.toString t)
   | toString (Attr (s,a)) = s ^ " : {" ^ (String.concat (intersperse ", " a)) ^ "}";
 
 (*as-is, fromString is an ugly function. Very ad-hoc.*)
@@ -83,7 +83,7 @@ fun fromString x =
                       in
                         Attr (r,map stringTrim (String.tokens (fn c => c = #";") s'))
                       end
-            else Typed (r, Type.vartype s)
+            else Typed (r, Type.fromString s)
        | [r] => Simple r
        | _ => raise Match;
 

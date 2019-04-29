@@ -29,20 +29,6 @@ fun label str = [str];
 fun collection str = if str = "NONE" then []
                      else map stringTrim (String.tokens (fn c => c = #",") str);
 
-(*)
-fun typedToken s =
-    case (String.tokens (fn c => c = #":") s) of
-        [x,y] => (x, vartype y)
-      | [x] => (x, vartype "_")
-      | _ => raise PropertyTables.TableError
-                   ("Unable to read token:type info from " ^ s);
-
-fun normaliseTypedToken (x,y) = x ^ " : " ^ (typeToString y)
-
-fun typedCollection str = if str = "NONE" then []
-                    else map (normaliseTypedToken o typedToken o stringTrim)
-                             (String.tokens (fn c => c = #",") str);
-*)
 fun dimension str =
     let
         fun parseDimProps s = if s = "{}" then []
@@ -75,11 +61,7 @@ fun dimension str =
     in
         List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels)
     end;
-(*)
-fun attrCollection str = if str = "NONE" then []
-                         else map (normaliseTypedToken o typedToken o stringTrim)
-                                  (String.tokens (fn c => c = #",") str);*)
-
+    
 end;
 
 

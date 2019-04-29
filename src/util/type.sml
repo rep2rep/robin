@@ -1,6 +1,16 @@
 import "util.logging";
 
-structure Type =
+signature TYPE =
+sig
+  type T
+  val match : T -> T -> bool
+  val compare : T * T -> order
+  val toString : T -> string
+  val toDebugString : T -> string
+  val fromString : string -> T
+end;
+
+structure Type : TYPE =
 struct
 
 (*
@@ -72,23 +82,23 @@ fun compare (Ground s, Ground s') = String.compare (s,s')
                                                        end
   ;
 
-fun typeToString (Ground s) = s
-  | typeToString (Var s) = "'" ^ s
-  | typeToString (Pair (t,u)) = "(" ^ (typeToString t) ^ " * " ^ (typeToString u) ^ ")"
-  | typeToString (Function (t, (Function (u,v)))) =
-    (typeToString t) ^ " -> (" ^ (typeToString (Function (u,v))) ^ ")"
-  | typeToString (Function (t,u)) = (typeToString t) ^ " -> " ^ (typeToString u)
-  | typeToString (Constructor (s,t)) = (typeToString t) ^ " " ^ s;
+fun toString (Ground s) = s
+  | toString (Var s) = "'" ^ s
+  | toString (Pair (t,u)) = "(" ^ (toString t) ^ " * " ^ (toString u) ^ ")"
+  | toString (Function (t, (Function (u,v)))) =
+    (toString t) ^ " -> (" ^ (toString (Function (u,v))) ^ ")"
+  | toString (Function (t,u)) = (toString t) ^ " -> " ^ (toString u)
+  | toString (Constructor (s,t)) = (toString t) ^ " " ^ s;
 
-fun typeDebugString (Ground s) = "Ground \"" ^ s ^ "\""
-  | typeDebugString (Var s) = "Var \"" ^ s ^ "\""
-  | typeDebugString (Pair (t,u)) = "Pair(" ^ (typeDebugString t) ^ ", "
-                                 ^ (typeDebugString u) ^ ")"
-  | typeDebugString (Function (t,u)) = "Function(" ^ (typeDebugString t) ^ ", "
-                                     ^ (typeDebugString u) ^ ")"
-  | typeDebugString (Constructor (s,t)) = "Constructor(\"" ^ s ^ "\", " ^ (typeDebugString t) ^ ")";
+fun toDebugString (Ground s) = "Ground \"" ^ s ^ "\""
+  | toDebugString (Var s) = "Var \"" ^ s ^ "\""
+  | toDebugString (Pair (t,u)) = "Pair(" ^ (toDebugString t) ^ ", "
+                                 ^ (toDebugString u) ^ ")"
+  | toDebugString (Function (t,u)) = "Function(" ^ (toDebugString t) ^ ", "
+                                     ^ (toDebugString u) ^ ")"
+  | toDebugString (Constructor (s,t)) = "Constructor(\"" ^ s ^ "\", " ^ (toDebugString t) ^ ")";
 
-fun vartype str =
+fun fromString str =
     let
         fun readExactly [] _ = true
           | readExactly _ [] = false
@@ -139,7 +149,7 @@ fun vartype str =
           | readType (x::(Ground y)::cs) = readType ((Constructor (y, x))::cs)
           | readType stuff =
             let
-                val _ = Logging.write((listToString typeToString stuff) ^ "\n");
+                val _ = Logging.write((listToString toString stuff) ^ "\n");
             in raise Match end;
 
         val chars = String.explode str;
