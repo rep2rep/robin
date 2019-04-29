@@ -59,7 +59,7 @@ fun compare (Simple s, Simple s') = String.compare (s, s')
   there is type information *)
 fun propertyMatch (Simple s, p) = (s = nameOf p)
   | propertyMatch (p, Simple s) = (s = nameOf p)
-  | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.unify t t')
+  | propertyMatch (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.match t t')
   | propertyMatch (Attr (s,_), Attr (s',_)) = (s = s')
   | propertyMatch _ = false
 

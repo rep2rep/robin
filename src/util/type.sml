@@ -41,14 +41,14 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
-fun unify (Ground s) (Ground s') = (s = s')
-  | unify (Var x) (Var y) = true
-  | unify (Var x) t = not (occurs x t)
-  | unify t (Var x) = not (occurs x t)
-  | unify (Pair(s,t)) (Pair(s',t')) = (unify s s') andalso (unify t t')
-  | unify (Function(s,t)) (Function(s',t')) = (unify s s') andalso (unify t t')
-  | unify (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (unify t t')
-  | unify _ _ = false;
+fun match (Ground s) (Ground s') = (s = s')
+(*  | match (Var x) (Var y) = true*)
+  | match (Var x) t = true (*not (occurs x t)*)
+  | match t (Var x) = true (*not (occurs x t)*)
+  | match (Pair(s,t)) (Pair(s',t')) = (match s s') andalso (match t t')
+  | match (Function(s,t)) (Function(s',t')) = (match s s') andalso (match t t')
+  | match (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (match t t')
+  | match _ _ = false;
 
 (*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
