@@ -424,15 +424,22 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
         PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
     fun liftImportance c =
         let
-            val importanceLookup = (PropertyDictionary.fromPairList o
-                                    (map QProperty.toPair) o
-                                    QPropertySet.toList) sourceProperties;
-            val importanceMax = max Importance.compare;
-            val getImportance = PropertyDictionary.get importanceLookup;
+            fun getImportance prop =
+                let
+                    fun importanceLookup' prop [] ans = ans
+                      | importanceLookup' prop ((x, i)::xs) ans =
+                        if (Property.compare(prop, x) = EQUAL)
+                        then importanceLookup' prop xs (i::ans)
+                        else importanceLookup' prop xs ans
+                in
+                    importanceLookup' prop
+                                      (QPropertySet.map QProperty.toPair
+                                                        sourceProperties)
+                                      []
+                end;
             val ((qp, _), _, _) = c;
-            val i = importanceMax (PropertySet.map getImportance qp);
         in
-            (c, i)
+            map (fn i => (c, i)) (flatmap (fn x => x) (PropertySet.map getImportance qp))
         end;
     val sourceProps = dropImportance sourceProperties;
     val matches' = List.filter
@@ -454,7 +461,7 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
                                                       corr)
                                                  matches'))
                                      identityPairs;
-    val matches = map liftImportance (matches' @ identityPairs');
+    val matches = flatmap liftImportance (matches' @ identityPairs');
     fun translateProperty (correspondence, importance) =
         let
             val ((qp, qn), (rp, rn), strength) = correspondence;
