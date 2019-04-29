@@ -131,7 +131,7 @@ fun normalise (Atom a) = Atom a
             (Disj (t, u), v) => normalise (Disj (Conj (t, v),
                                                  Conj (u, v)))
           | (t, Disj(u, v)) => normalise (Disj (Conj (t, u),
-                                                Disj (Conj (t, v))))
+                                                Conj (t, v)))
           | (u, v) => Conj (u, v)
     end
   | normalise (Disj (a, b)) =
@@ -163,17 +163,23 @@ fun fromString propMaker s =
             in
                 List.rev (map (String.implode o List.rev)
                               (List.filter
-                                   (fn cs => not (List.null xs))
+                                   (fn cs => not (List.null cs))
                                    (cluster [[]] (String.explode string))))
             end;
 
-        fun nextToken [] = NONE
-          | nextToken (x::xs) = SOME x;
-        fun remainingTokens [] = []
-          | remainingTokens (x::xs) = xs;
+        fun toCloseParen xs =
+            let
+                fun toCloseParen' [] _ _ = raise ParseError
+                  | toCloseParen' (")"::cs) vs 0 = (List.rev vs, cs)
+                  | toCloseParen' (")"::cs) vs n =  toCloseParen' cs (")"::vs) (n-1)
+                  | toCloseParen' ("("::cs) vs n = toCloseParen' cs ("("::vs) (n+1)
+                  | toCloseParen' (c::cs) vs n = toCloseParen' cs (c::vs) n;
+            in
+                toCloseParen' xs [] 0
+            end;
 
         fun expect s [] = raise ParseError
-          | expect s (x::xs) = if String.toLower(s) = String.toLower(x)
+          | expect s (x::xs) = if x = s
                                then (s, xs)
                                else raise ParseError;
 
@@ -182,17 +188,17 @@ fun fromString propMaker s =
                                     then raise ParseError
                                 else if x = ")"
                                     then raise ParseError
-                                else if String.toLower(x) = "and"
+                                else if x = "AND"
                                     then raise ParseError
-                                else if String.toLower(x) = "or"
+                                else if x = "OR"
                                     then raise ParseError
-                                else if String.toLower(x) = "not"
+                                else if x = "NOT"
                                     then raise ParseError
-                                else (x, xs)
+                                else (Atom x, xs)
         and parseNeg [] = raise ParseError
           | parseNeg xs =
             let
-                val (neg, resta) = expect "not" xs;
+                val (neg, resta) = expect "NOT" xs;
                 val (atom, restb) = parseCForm resta;
             in
                 (Neg atom, restb)
@@ -201,7 +207,7 @@ fun fromString propMaker s =
           | parseConj xs =
             let
                 val (left, resta) = parseBForm xs;
-                val (andtok, restb) = expect "and" resta;
+                val (andtok, restb) = expect "AND" resta;
                 val (right, restc) = parseAForm restb;
             in
                 (Conj (left, right), restc)
@@ -210,7 +216,7 @@ fun fromString propMaker s =
           | parseDisj xs =
             let
                 val (left, resta) = parseAForm xs;
-                val (ortok, restb) = expect "or" resta;
+                val (ortok, restb) = expect "OR" resta;
                 val (right, restc) = parseFormula restb;
             in
                 (Disj (left, right), restc)
@@ -228,7 +234,7 @@ fun fromString propMaker s =
                                        val (toks, restb) = toCloseParen resta;
                                    in
                                        case restb of
-                                           [] => parseForm toks
+                                           [] => parseFormula toks
                                          | _ => raise ParseError
                                    end;
 
