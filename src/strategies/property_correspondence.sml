@@ -19,14 +19,20 @@ sig
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
-    val match : S.t S.set -> S.t S.set -> correspondence -> bool;
-    val matchingIntersectionLeft : S.t S.set -> S.t S.set -> S.t S.set;
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
-    val strength : correspondence -> real;
+    val match : S.t S.set -> S.t S.set -> correspondence -> bool;
 
+    val leftMatches : S.t S.set -> correspondence -> S.t S.set;
+    val rightMatches : S.t S.set -> correspondence -> S.t S.set;
+
+    val identity : Property.property -> correspondence;
+
+    val strength : correspondence -> real;
     val toString : correspondence -> string;
     val fromString : string -> correspondence;
+
+    val matchingIntersectionLeft : S.t S.set -> S.t S.set -> S.t S.set;
 end;
 
 
@@ -107,12 +113,55 @@ fun matchingIntersectionLeft ps ps' =
     in foldr (fn (a,b) => S.union a b) (S.empty ()) x
     end;
 
-fun isMatchedIn p ps = S.isEmpty (filterMatches p ps);
+fun isMatchedIn p ps = not (S.isEmpty (filterMatches p ps));
 
 fun matchTree ps (Atom p) = isMatchedIn p ps
   | matchTree ps (Neg a) = not (matchTree ps a)
   | matchTree ps (Conj (a, b)) = (matchTree ps a) andalso (matchTree ps b)
   | matchTree ps (Disj (a, b)) = (matchTree ps a) orelse (matchTree ps b);
+
+fun collectMatches ps p =
+    let
+        fun removeOne [] a zs = zs
+          | removeOne (x::xs) a zs = if Property.match(x, a)
+                                     then (removeOne xs a zs)
+                                     else (removeOne xs a (x::zs));
+        fun removeAll xs zs = List.foldr
+                                  (fn (x, zs) => removeOne zs x [])
+                                  zs xs;
+        fun collectMatches' ps (Atom p) = if (isMatchedIn p ps)
+                                          then ([p], [])
+                                          else ([], [])
+          | collectMatches' ps (Neg a) =
+            let
+                val (keep, remove) = collectMatches' ps a;
+            in
+                (remove, keep)
+            end
+          | collectMatches' ps (Conj (a, b)) =
+            let
+                val (keep, remove) = collectMatches' ps a;
+                val (keep', remove') = collectMatches' ps b;
+            in
+                (keep@keep', remove@remove')
+            end
+          | collectMatches' ps (Disj (a, b)) =
+            let
+                val (keep, remove) = collectMatches' ps a;
+                val (keep', remove') = collectMatches' ps b;
+                val option1 = removeAll remove keep;
+                val option2 = removeAll remove' keep';
+            in
+                if List.null option1 then (keep', remove') else (keep, remove)
+            end;
+        val (keep, remove) = collectMatches' ps p;
+    in
+        S.fromList (removeAll remove keep)
+    end;
+
+fun leftMatches ps (p, _, _) = collectMatches ps p;
+
+fun rightMatches ps (_, p, _) = collectMatches ps p;
 
 fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r)
 
@@ -132,6 +181,8 @@ fun sameProperties (q, r, _) (q', r', _) =
 
 fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
 
+fun identity p = (Atom p, Atom p, 1.0);
+
 fun toString (q, r, s) =
     let
         fun treeToString (Atom a) = Property.toString a
@@ -150,7 +201,7 @@ fun toString (q, r, s) =
     in
         "(" ^ (treeToString q)
         ^ ", " ^ (treeToString r)
-        ^ "," ^ (Real.toString s)
+        ^ ", " ^ (Real.toString s)
         ^ ")"
     end;
 

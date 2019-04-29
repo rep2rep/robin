@@ -96,6 +96,7 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
+        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
@@ -117,8 +118,8 @@ fun propInfluence (q, r, s) =
                                         QPropertySet.toList) qProps';
                 val importanceMax = max Importance.compare;
                 val getImportance = PropertyDictionary.get importanceLookup;
-                val ((qp, _), _, _) = c;
                 val flatten = flatmap (fn x => x);
+                val qp = Correspondence.leftMatches qProps c;
                 val i = importanceMax (flatten (PropertySet.map getImportance qp));
             in
                 (c, i)
@@ -130,14 +131,11 @@ fun propInfluence (q, r, s) =
               | Importance.Low => 0.33 * strength
               | Importance.Medium => 0.67 * strength
               | Importance.High => strength;
-        val qProps = withoutImportance qProps';
         val propertyPairs' = List.filter
                                  (Correspondence.match qProps rProps)
                                  (!correspondingTable');
         val identityPairs = PropertySet.map
-                                (fn p => ((PropertySet.fromList [p], PropertySet.empty ()),
-                                          (PropertySet.fromList [p], PropertySet.empty ()),
-                                          1.0))
+                                (fn p => Correspondence.identity p)
                               (*)  (PropertySet.intersection qProps rProps);*)
                                 (Correspondence.matchingIntersectionLeft qProps rProps);
         val identityPairs' = List.filter (fn corr =>
