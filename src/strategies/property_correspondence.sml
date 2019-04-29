@@ -120,6 +120,11 @@ fun matchTree ps (Atom p) = isMatchedIn p ps
   | matchTree ps (Conj (a, b)) = (matchTree ps a) andalso (matchTree ps b)
   | matchTree ps (Disj (a, b)) = (matchTree ps a) orelse (matchTree ps b);
 
+(* TODO: Show that this returns an empty list when matchTree ps p
+         would return false, and a nonempty list when matchTree ps p
+         would return true. Better would be to show that the properties
+         returned are exactly those that occur in the formula that are
+         not also negated in the formula, but that might be quite tricky. *)
 fun collectMatches ps p =
     let
         fun removeOne [] a zs = zs
