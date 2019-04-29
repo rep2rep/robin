@@ -17,6 +17,7 @@ sig
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
+    val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
     val all : bool list -> bool;
     val any : bool list -> bool;
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
@@ -96,6 +97,8 @@ fun enumerateFrom _ [] = []
   | enumerateFrom i (x::xs) = (i, x)::(enumerateFrom (i+1) xs);
 
 fun enumerate xs = enumerateFrom 0 xs;
+
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
 
 fun all [] = true
   | all (b::bs) = b andalso (all bs);

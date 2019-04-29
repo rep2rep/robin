@@ -148,7 +148,7 @@ let
          (PropertyReader.collection, "type-", High)), (*previously question-value-type*)
         ("instrumental-tokens",
          (PropertyReader.collection, "token-", Medium)),
-        ("instrumental-type",
+        ("instrumental-types",
          (PropertyReader.collection, "type-", Medium)),
         ("instrumental-patterns",
          (PropertyReader.collection, "pattern-", Medium)),

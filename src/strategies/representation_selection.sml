@@ -101,13 +101,25 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
         fun liftImportance c =
             let
+                fun collateImportances propPairs =
+                    let
+                        val uniqueProperties = PropertySet.fromList (map (fn (p, i) => p) propPairs);
+                        fun collectImportances p' [] ans = ans
+                          | collectImportances p' ((p,i)::ps) ans =
+                            if (Property.compare (p', p) = EQUAL) then collectImportances p' ps (i::ans)
+                            else collectImportances p' ps ans;
+                    in
+                        PropertySet.map (fn p => (p, collectImportances p propPairs [])) uniqueProperties
+                    end;
                 val importanceLookup = (PropertyDictionary.fromPairList o
+                                        collateImportances o
                                         (map QProperty.toPair) o
                                         QPropertySet.toList) qProps';
                 val importanceMax = max Importance.compare;
                 val getImportance = PropertyDictionary.get importanceLookup;
                 val ((qp, _), _, _) = c;
-                val i = importanceMax (PropertySet.map getImportance qp);
+                val flatten = flatmap (fn x => x);
+                val i = importanceMax (flatten (PropertySet.map getImportance qp));
             in
                 (c, i)
             end;
