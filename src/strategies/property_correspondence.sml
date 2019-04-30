@@ -212,7 +212,24 @@ fun toString (q, r, s) =
 
 fun fromString s =
     let
-        val parts = String.tokens (fn c => c = #",") s;
+        fun removeParens s =
+            let
+                fun charIs c = fn x => x = c
+                fun flipAndDropIf p [] = raise Match
+                  | flipAndDropIf p xs = case List.rev xs of
+                                             (y::ys) => if p y then ys
+                                                        else raise Match
+                                           | [] => [];
+                val chars = String.explode s;
+                val dropped = flipAndDropIf
+                                  (charIs #"(") (flipAndDropIf
+                                                     (charIs #")") chars)
+                              handle Match => chars;
+                val s' = String.implode dropped;
+            in
+                s'
+            end;
+        val parts = String.tokens (fn c => c = #",") (removeParens s);
         val (leftString, rightString, valString) =
             case parts of
                 [l, r, v] => (l, r, v)
