@@ -13,6 +13,8 @@ sig
     val compare : property * property -> order;
     val match : property * property -> bool;
     val nameOf : property -> string;
+    val typeOf : property -> Type.T;
+    val attributesOf : property -> string list;
     val toString : property -> string;
     val fromString : string -> property;
 end;
@@ -29,6 +31,12 @@ exception ParseError;
 fun nameOf (Simple s) = s
   | nameOf (Typed (s,_)) = s
   | nameOf (Attr (s,_)) = s;
+
+fun typeOf (Typed (_,t)) = t
+  | typeOf _ = raise Match;
+
+fun attributesOf (Attr (_,a)) = a
+  | attributesOf _ = raise Match;
 
 (*A lexicographic order for the property type. The name takes precedence, then
   the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
