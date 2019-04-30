@@ -2,12 +2,16 @@ import "util.logging";
 
 signature TYPE =
 sig
-  type T
-  val match : T -> T -> bool
-  val compare : T * T -> order
-  val toString : T -> string
-  val toDebugString : T -> string
-  val fromString : string -> T
+    exception ParseError;
+    type T;
+    val outputArity : T -> int;
+    val inputArity : T -> int;
+    val order : T -> int;
+    val match : T -> T -> bool;
+    val compare : T * T -> order;
+    val toString : T -> string;
+    val toDebugString : T -> string;
+    val fromString : string -> T;
 end;
 
 structure Type : TYPE =
@@ -32,18 +36,42 @@ would parse to
                 Pair(Var "a", Ground "int"),
                 Ground "int"),
             Ground "int"))
-Note that * and -> have equal precedence and are right associative, so
-    'a * int -> int
-parses differently to
-    ('a * int) -> int
-The first is equivalent to 'a * (int -> int). This is a deviation from the SML
-standard, but is much easier to parse.
+Note that constructors bind tighter than pairs, and pairs bind tighter than
+function application. Thus the correct parse of
+    'a list * int -> real
+is
+    Function(
+        Pair(
+            Constructor ("list", Var "a"),
+            Ground "int"),
+        Ground "real")
 *)
+
+exception ParseError;
+
 datatype T = Ground of string
            | Var of string
            | Pair of T * T
            | Function of T * T
            | Constructor of string * T;
+
+fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
+  | dimensionality _ =  1
+
+(* how many arguments do you need to plug in before you get a non-functional value? *)
+fun inputArity (Function (s,t)) = dimensionality s + inputArity t
+  | inputArity (Pair (s,t)) = inputArity s + inputArity t
+  | inputArity _ = 0
+
+(* how many values do you get once you've plugged in as many arguments as you can?*)
+fun outputArity (Pair (s,t)) = outputArity s + outputArity t
+  | outputArity (Function (s,t)) = outputArity t
+  | outputArity _ = 1
+
+(* order is the depth of nested Function constructors *)
+fun order (Pair (s,t)) = Int.max(order s, order t)
+  | order (Function (s,t)) = 1 + Int.max(order s, order t)
+  | order _ = 0
 
 fun occurs x (Ground _) = false
   | occurs x (Var y) = (x = y)
@@ -113,50 +141,97 @@ fun fromString str =
         fun typeTokens [] out = List.rev out
           | typeTokens (c::cs) out =
             if c = #"'" then let val (tok, cs') = collectUntil (isInvalid) cs []
-                             in typeTokens cs' ((Var tok)::out) end
-            else if c = #"*" then typeTokens cs ((Ground "*")::out)
+                             in typeTokens cs' (("'" ^ tok)::out) end
+            else if c = #"*" then typeTokens cs ("*"::out)
             else if readExactly [#"-", #">"] (c::cs) then
-                typeTokens (List.drop (cs, 1)) ((Ground "->")::out)
+                typeTokens (List.drop (cs, 1)) ("->"::out)
             else if Char.isSpace c then typeTokens cs out
-            else if c = #"(" then typeTokens cs ((Ground "(")::out)
-            else if c = #")" then typeTokens cs ((Ground ")")::out)
+            else if c = #"(" then typeTokens cs ("("::out)
+            else if c = #")" then typeTokens cs (")"::out)
             else let val (tok, cs') = collectUntil (isInvalid) (c::cs) []
-                 in typeTokens cs' ((Ground tok)::out) end;
+                 in typeTokens cs' (tok::out) end;
 
-        fun toCloseParen [] _ = raise Match
-          | toCloseParen ((Ground "(")::ys) xs =
+        fun expect s [] = raise ParseError
+          | expect s (x::xs) = if s = x then (Ground x, xs) else raise ParseError
+
+        fun toCloseParen [] _ = raise ParseError
+          | toCloseParen ("("::ys) xs =
             let
-                val (innerToks, rest) = toCloseParen ys [];
-                val innerType = readType innerToks
+                val (innerToks, resta) = toCloseParen ys [];
             in
-                toCloseParen rest (innerType::xs)
+                toCloseParen resta (innerToks @ xs)
             end
-          | toCloseParen ((Ground ")")::ys) xs = (List.rev xs, ys)
+          | toCloseParen (")"::ys) xs = (List.rev xs, ys)
           | toCloseParen (c::cs) xs = toCloseParen cs (c::xs)
-        and readType [] = raise Match
-          | readType [x] = x
-          | readType ((Ground "(")::cs) =
-            let val (ins, outs) = toCloseParen cs []
-            in readType ((readType ins)::outs) end
-          | readType (c::(Ground "*")::cs) =
-            let val left = c;
-                val right = readType cs;
-            in Pair (left, right) end
-          | readType (c::(Ground "->")::cs) =
-            let val left = c;
-                val right = readType cs;
-            in Function (left, right) end
-          | readType (x::(Ground y)::cs) = readType ((Constructor (y, x))::cs)
-          | readType stuff =
+        and readGround [] = raise ParseError
+          | readGround (x::xs) = if x = "(" then raise ParseError
+                                 else if x = ")" then raise ParseError
+                                 else if x = "*" then raise ParseError
+                                 else if x = "->" then raise ParseError
+                                 else if (String.isPrefix "'" x) then raise ParseError
+                                 else (Ground x, xs)
+        and readVar [] = raise ParseError
+          | readVar (x::xs) = if (String.isPrefix "'" x)
+                              then (Var (String.extract(x, 1, NONE)), xs)
+                              else raise ParseError
+        and readConstructor [] = raise ParseError
+          | readConstructor xs =
             let
-                val _ = Logging.write((listToString toString stuff) ^ "\n");
-            in raise Match end;
+                val (inner, resta) = readCType xs;
+                val (label, restb) = readGround resta;
+            in
+                case label of
+                    Ground l => (Constructor (l, inner), restb)
+                  | _ => raise ParseError
+            end
+        and readPair [] = raise ParseError
+          | readPair xs =
+            let
+                val (left, resta) = readBType xs;
+                val (star, restb) = expect "*" resta;
+                val (right, restc) = readAType restb; (* Pairs can nest right, so allow all Atypes (functions need parens) *)
+            in
+                (Pair (left, right), restc)
+            end
+        and readFun [] = raise ParseError
+          | readFun xs =
+            let
+                val (left, resta) = readAType xs;
+                val (arrow, restb) = expect "->" resta;
+                val (right, restc) = readType restb; (* Functions can nest right, so allow all types *)
+            in
+                (Function (left, right), restc)
+            end
+        and readAType [] = raise ParseError
+          | readAType xs = readPair xs
+                           handle ParseError => readBType xs
+        and readBType [] = raise ParseError
+          | readBType xs = readConstructor xs
+                           handle ParseError => readCType xs
+        and readCType [] = raise ParseError
+          | readCType xs = readVar xs
+                           handle ParseError => readGround xs
+                                                handle ParseError =>
+                                                       let
+                                                           val (lparen, resta) = expect "(" xs;
+                                                           val (inner, restb) = toCloseParen resta [];
+                                                           val (innerType, restc) = readType inner;
+                                                       in
+                                                           case restc of
+                                                               [] => (innerType, restb)
+                                                             | _ => raise ParseError
+                                                       end
+        and readType [] = raise ParseError
+          | readType xs = readFun xs
+                          handle ParseError => readAType xs;
 
         val chars = String.explode str;
         val tokens = typeTokens chars [];
-        val finalType = readType tokens;
+        val (finalType, rest) = readType tokens;
     in
-        finalType
+        case rest of
+            [] => finalType
+          | _ => (Logging.error("Extra characters at end of type!"); raise ParseError)
     end;
 
   end;
