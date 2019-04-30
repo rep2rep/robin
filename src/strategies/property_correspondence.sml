@@ -12,10 +12,7 @@ sig
 
     exception ParseError
 
-    datatype 'a corrformula = Atom of 'a
-                            | Neg of 'a corrformula
-                            | Conj of 'a corrformula * 'a corrformula
-                            | Disj of 'a corrformula * 'a corrformula;
+    type 'a corrformula;
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
