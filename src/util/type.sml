@@ -51,16 +51,19 @@ datatype T = Ground of string
 fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
   | dimensionality _ =  1
 
+(* how many arguments do you need to plug in before you get a non-functional value? *)
 fun inputArity (Function (s,t)) = dimensionality s + inputArity t
   | inputArity (Pair (s,t)) = inputArity s + inputArity t
   | inputArity _ = 0
 
+(* how many values do you get once you've plugged in as many arguments as you can?*)
 fun outputArity (Pair (s,t)) = outputArity s + outputArity t
   | outputArity (Function (s,t)) = outputArity t
   | outputArity _ = 1
 
+(* order is the depth of nested Function constructors *)
 fun order (Pair (s,t)) = Int.max(order s, order t)
-  | order (Function (s,t)) = Int.max(1 + order s, order t)
+  | order (Function (s,t)) = 1 + Int.max(order s, order t)
   | order _ = 0
 
 fun occurs x (Ground _) = false
