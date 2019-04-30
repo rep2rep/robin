@@ -192,14 +192,37 @@ fun toString (q, r, s) =
     let
         fun treeToString (Atom a) = Property.toString a
           | treeToString (Neg a) = "NOT " ^ (treeToString a)
+          | treeToString (Conj (x as (Disj _), y as (Disj _))) =
+            "("
+            ^ (treeToString x)
+            ^ ") AND ("
+            ^ (treeToString y)
+            ^ ")"
+          | treeToString (Conj (x as(Disj _), y)) = "("
+                                                     ^ (treeToString x)
+                                                     ^ ") AND "
+                                                     ^ (treeToString y)
+          | treeToString (Conj (x, y as (Disj _))) = (treeToString x)
+                                                     ^ " AND ("
+                                                     ^ (treeToString y)
+                                                     ^ ")"
           | treeToString (Conj (a, b)) = (treeToString a)
                                          ^ " AND "
                                          ^ (treeToString b)
-          | treeToString (Disj (Conj (a, b), c)) = "("
-                                                   ^ (treeToString (Conj (a, b)))
-                                                   ^ ")"
-                                                   ^ " OR "
-                                                   ^ (treeToString c)
+          | treeToString (Disj (x as (Conj _), y as (Conj _))) =
+            "("
+            ^ (treeToString x)
+            ^ ") OR ("
+            ^ (treeToString y)
+            ^ ")"
+          | treeToString (Disj (x as (Conj _), y)) = "("
+                                                     ^ (treeToString x)
+                                                     ^ ") OR "
+                                                     ^ (treeToString y)
+          | treeToString (Disj (x, y as (Conj _))) = (treeToString x)
+                                                     ^ " OR ("
+                                                     ^ (treeToString y)
+                                                     ^ ")"
           | treeToString (Disj (a, b)) = (treeToString a)
                                          ^ " OR "
                                          ^ (treeToString b);
