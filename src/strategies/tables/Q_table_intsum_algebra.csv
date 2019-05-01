@@ -7,9 +7,9 @@ instrumental_patterns,"\sum from _ to _ of, _:integer = _:integer"
 instrumental_facts,""
 instrumental_tactics,"induction"
 relevant_tokens,"n:integer, i:integer, +, \div"
-relevant_related-tokens,"-,^,\sqrt,0"
+relevant_related_tokens,"-,^,\sqrt,0"
 num_tokens,14
 num_distinct_tokens,9
 num_statements,1
 noise_tokens,""
-noise_related-tokens,""
+noise_related_tokens,""
