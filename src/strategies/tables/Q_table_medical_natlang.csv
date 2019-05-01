@@ -1,15 +1,15 @@
 medical,
-error-allowed,0
-answer-type,ratio
-instrumental-tokens,"probability,if"
-instrumental-types,"ratio,percentage,class,occurrence"
-instrumental-patterns,"_:ratio _:class have _:class, if _ in _:class _ probability of _:occurrence"
-instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental-tactics,"deduce,calculate"
-relevant-tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive"
-relevant-related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection, zero, empty, universe"
-num-tokens,64
-num-distinct-tokens,30
-num-statements,3
-noise-tokens,""
-noise-related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
+error_allowed,0
+answer_type,ratio
+instrumental_tokens,"probability,if"
+instrumental_types,"ratio,percentage,class,occurrence"
+instrumental_patterns,"_:ratio _:class have _:class, if _ in _:class _ probability of _:occurrence"
+instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
+instrumental_tactics,"deduce,calculate"
+relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive"
+relevant_related-tokens,"not,times,divided_by,plus,minus,equals,union,intersection, zero, empty, universe"
+num_tokens,64
+num_distinct_tokens,30
+num_statements,3
+noise_tokens,""
+noise_related-tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"

@@ -1,15 +1,15 @@
 birds,
-error-allowed,0
-answer-type,real
-instrumental-tokens,"\Pr,\cap,\bar,="
-instrumental-types,"real,event"
-instrumental-patterns,"\Pr(_:event|_:event) = _:real, \Pr(_:event \cap _:event) = _:real"
-instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental-tactics,"rewrite,calc"
-relevant-tokens,"1, \div, 4, b, f, \Omega, 2, 3, |"
-relevant-related-tokens,"*, +, -, \cup, 0, assume, calculate"
-num-tokens,30
-num-distinct-tokens,12
-num-statements,4
-noise-tokens,""
-noise-related-tokens,""
+error_allowed,0
+answer_type,real
+instrumental_tokens,"\Pr,\cap,\bar,="
+instrumental_types,"real,event"
+instrumental_patterns,"\Pr(_:event|_:event) = _:real, \Pr(_:event \cap _:event) = _:real"
+instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
+instrumental_tactics,"rewrite,calc"
+relevant_tokens,"1, \div, 4, b, f, \Omega, 2, 3, |"
+relevant_related-tokens,"*, +, -, \cup, 0, assume, calculate"
+num_tokens,30
+num_distinct_tokens,12
+num_statements,4
+noise_tokens,""
+noise_related-tokens,""
