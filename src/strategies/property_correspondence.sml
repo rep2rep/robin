@@ -1,5 +1,6 @@
 import "util.set";
 import "util.dictionary";
+import "util.formula";
 
 import "strategies.property";
 import "strategies.property_importance";
@@ -10,15 +11,26 @@ sig
     structure S: SET;
     structure D: DICTIONARY;
 
-    type correspondence = (S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real;
-    type importance = Importance.importance;
+    exception ParseError
+
+    type 'a corrformula;
+    type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
-    val match : S.t S.set -> S.t S.set -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
-    val strength : correspondence -> real;
+    val matchingProperties : correspondence -> correspondence -> bool;
+    val match : S.t S.set -> S.t S.set -> correspondence -> bool;
 
+    val leftMatches : S.t S.set -> correspondence -> S.t S.set;
+    val rightMatches : S.t S.set -> correspondence -> S.t S.set;
+
+    val identity : Property.property -> correspondence;
+
+    val strength : correspondence -> real;
     val toString : correspondence -> string;
+    val fromString : string -> correspondence;
+
+    val matchingIntersectionLeft : S.t S.set -> S.t S.set -> S.t S.set;
 end;
 
 
@@ -29,37 +41,140 @@ structure S = PropertySet;
 
 structure D = PropertyDictionary;
 
-type correspondence = (S.t S.set * S.t S.set) * (S.t S.set * S.t S.set) * real;
-type importance = Importance.importance;
+structure F = Formula(struct
+                       val neg = "NOT";
+                       val conj = "AND";
+                       val disj = "OR";
+                       end);
 
-fun emptyIntn a b = S.isEmpty (S.intersection a b);
+exception ParseError;
+
+type 'a corrformula = 'a F.formula;
+type correspondence = Property.property corrformula * Property.property corrformula * real;
 
 fun strength (_, _, s) = s;
 
-fun match qs rs ((qp, qn), (rp, rn), _) =
-    (S.subset qp qs) andalso
-    (S.subset rp rs) andalso
-    (emptyIntn qn qs) andalso
-    (emptyIntn rn rs);
+fun filterMatches p ps = S.filter (fn v => Property.match (p,v)) ps;
 
-fun sameProperties ((qp, qn), (rp, rn), _) ((qp', qn'), (rp', rn'), _) =
-    S.equal (qp, qp') andalso
-    S.equal (qn, qn') andalso
-    S.equal (rp, rp') andalso
-    S.equal (rn, rn');
+(* finds matches between two property sets,
+but only returns the matches of the left (ps) *)
+fun matchingIntersectionLeft ps ps' =
+    let val x = S.map (fn p => filterMatches p ps) ps'
+    in foldr (fn (a,b) => S.union a b) (S.empty ()) x
+    end;
+
+fun isMatchedIn p ps = not (S.isEmpty (filterMatches p ps));
+
+fun matchTree ps p =
+    let
+        fun a x = isMatchedIn x ps;
+        fun n x = not x;
+        fun c (x, y) = x andalso y;
+        fun d (x, y) = x orelse y;
+    in
+        F.fold a n c d p
+    end;
+
+(* TODO: Show that this returns an empty list when matchTree ps p
+         would return false, and a nonempty list when matchTree ps p
+         would return true. Better would be to show that the properties
+         returned are exactly those that occur in the formula that are
+         not also negated in the formula, but that might be quite tricky. *)
+fun collectMatches ps p =
+    let
+        fun removeOne [] a zs = zs
+          | removeOne (x::xs) a zs = if Property.match(x, a)
+                                     then (removeOne xs a zs)
+                                     else (removeOne xs a (x::zs));
+        fun removeAll xs zs = List.foldr
+                                  (fn (x, zs) => removeOne zs x [])
+                                  zs xs;
+        fun collectMatches' ps t =
+            let
+                fun a x = if (isMatchedIn x ps) then ([x], []) else ([], []);
+                fun n (x, y) = (y, x);
+                fun c ((x, y), (x', y')) = (x@x', y@y');
+                fun d ((x, y), (x', y')) =
+                    let
+                        val option1 = removeAll y x;
+                        val option2 = removeAll y' x';
+                    in
+                        if List.null option1 then (x', y') else (x, y)
+                    end;
+            in
+                F.fold a n c d t
+            end;
+        val (keep, remove) = collectMatches' ps p;
+    in
+        S.fromList (removeAll remove keep)
+    end;
+
+fun leftMatches ps (p, _, _) = collectMatches ps p;
+
+fun rightMatches ps (_, p, _) = collectMatches ps p;
+
+fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r)
+
+fun matchingProperties (q, r, _) (q', r', _) =
+    let
+        fun eq (p1, p2) = Property.match(p1, p2);
+    in
+        F.equal eq (q, q') andalso F.equal eq (r, r')
+    end;
+
+fun sameProperties (q, r, _) (q', r', _) =
+    let
+        fun eq (p1, p2) = Property.compare(p1, p2) = EQUAL;
+    in
+        F.equal eq (q, q') andalso F.equal eq (r, r')
+    end;
 
 fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
 
-fun toString ((qp, qn), (rp, rn), s) =
-    "((" ^
-    (S.toString qp) ^
-    ", " ^
-    (S.toString qn) ^
-    "), (" ^
-    (S.toString rp) ^
-    ", " ^
-    (S.toString rn) ^
-    ")) -> " ^
-    (Real.toString s);
+fun identity p = (F.Atom p, F.Atom p, 1.0);
+
+fun toString (q, r, s) =
+    let
+        val treeToString = F.toString Property.toString;
+    in
+        "(" ^ (treeToString q)
+        ^ ", " ^ (treeToString r)
+        ^ ", " ^ (Real.toString s)
+        ^ ")"
+    end;
+
+fun fromString s =
+    let
+        fun removeParens s =
+            let
+                fun charIs c = fn x => x = c
+                fun flipAndDropIf p [] = raise Match
+                  | flipAndDropIf p xs = case List.rev xs of
+                                             (y::ys) => if p y then ys
+                                                        else raise Match
+                                           | [] => [];
+                val chars = String.explode s;
+                val dropped = flipAndDropIf
+                                  (charIs #"(") (flipAndDropIf
+                                                     (charIs #")") chars)
+                              handle Match => chars;
+                val s' = String.implode dropped;
+            in
+                s'
+            end;
+        val parts = String.tokens (fn c => c = #",") (removeParens s);
+        val (leftString, rightString, valString) =
+            case parts of
+                [l, r, v] => (l, r, v)
+              | _ => raise Match;
+
+        fun realFromString r = case (Real.fromString r) of
+                                   SOME x => x
+                                 | NONE => raise ParseError;
+
+        val read = F.fromString Property.fromString;
+    in
+        (read leftString, read rightString, realFromString valString)
+    end;
 
 end;

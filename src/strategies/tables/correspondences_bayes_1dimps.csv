@@ -1,0 +1,13 @@
+type-real,type-outcome_segment,0.75
+type-event,type-trial_line OR type-outcome_segment,0.1
+token-\emptyset,token-empty_segment,0.5
+token-\Omega,type-trial_line,1
+token-|,tactic-measure_relative_length,1
+token-\div,tactic-measure_relative_length,0.25
+token-\cup,tactic-draw_or,1
+token-\cap,tactic-draw_and,1
+token-\Pr,tactic-measure_relative_length,1
+token-=,tactic-compare_sizes,0.5
+fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
+fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$length_additivity,1
+fact-$non-negative_probability,fact-$non-negative_length,1

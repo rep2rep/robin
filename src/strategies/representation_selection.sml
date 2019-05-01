@@ -44,7 +44,7 @@ fun init (repTables, corrTables, qTables) = let
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
             | removeCorr y (z::zs) =
-              if Correspondence.sameProperties y z
+              if Correspondence.matchingProperties y z
               then (
                   if Correspondence.equal y z then
                       zs
@@ -116,6 +116,7 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
+        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
@@ -137,8 +138,8 @@ fun propInfluence (q, r, s) =
                                         QPropertySet.toList) qProps';
                 val importanceMax = max Importance.compare;
                 val getImportance = PropertyDictionary.get importanceLookup;
-                val ((qp, _), _, _) = c;
                 val flatten = flatmap (fn x => x);
+                val qp = Correspondence.leftMatches qProps c;
                 val i = importanceMax (flatten (PropertySet.map getImportance qp));
             in
                 (c, i)
@@ -147,21 +148,20 @@ fun propInfluence (q, r, s) =
             case importance of
                 Importance.Noise => 0.0
               | Importance.Zero => 0.0
-              | Importance.Low => 0.5 * strength
-              | Importance.Medium => strength
+              | Importance.Low => 0.33 * strength
+              | Importance.Medium => 0.67 * strength
               | Importance.High => strength;
-        val qProps = withoutImportance qProps';
         val propertyPairs' = List.filter
                                  (Correspondence.match qProps rProps)
                                  (!correspondingTable');
         val identityPairs = PropertySet.map
-                                (fn p => ((PropertySet.fromList [p], PropertySet.empty ()),
-                                          (PropertySet.fromList [p], PropertySet.empty ()),
-                                          1.0))
-                                (PropertySet.intersection qProps rProps);
+                                (fn p => Correspondence.identity p)
+                              (*)  (PropertySet.intersection qProps rProps);*)
+                                (Correspondence.matchingIntersectionLeft qProps rProps);
         val identityPairs' = List.filter (fn corr =>
                                              not(List.exists
-                                                     (Correspondence.sameProperties corr)
+                                                     (*(Correspondence.sameProperties corr)*)
+                                                     (Correspondence.matchingProperties corr)
                                                             propertyPairs'))
                                                 identityPairs;
         val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');
