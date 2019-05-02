@@ -21,7 +21,7 @@ sig
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val computePsuedoQuestionTable: questiontable -> representationtable -> correspondencetable -> questiontable;
+    val computePseudoQuestionTable: questiontable -> representationtable -> correspondencetable -> questiontable;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -230,7 +230,7 @@ local structure KindSet = Set(struct
                                                   Property.stringOfKind k');
                                val fmt = Property.stringOfKind;
                                end) in
-fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
+fun computePseudoQuestionTable qTable targetRSTable corrTable = let
     val ((qName, qRS), sourceProperties) = qTable;
     val (targetRSName, targetRSProperties) = targetRSTable;
     val badKinds = (KindSet.fromList o (map Property.kindOfString)) [
@@ -238,10 +238,11 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
                        "num_tokens",
                        "num_distinct_tokens"
                    ];
-    val propertyKinds = List.filter
-                            (fn k => not (KindSet.contains badKinds k))
-                            (map (fn (r, k, i) => k)
-                                 (GenDict.values (!qPropertyKeyMap)));
+    val propertyKinds = KindSet.fromList
+                            (List.filter
+                                 (fn k => not (KindSet.contains badKinds k))
+                                 (map (fn (r, k, i) => k)
+                                      (GenDict.values (!qPropertyKeyMap))));
     fun dropImportance props =
         PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
     fun liftImportance c =
@@ -301,9 +302,8 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     fun translateProperty (correspondence, importance) =
         let
             val strength = Correspondence.strength correspondence;
-            fun hasKind k p = (Property.kindOf p) = k;
             fun hasValidKind p =
-                any (map (fn k => hasKind k p) propertyKinds);
+                KindSet.contains propertyKinds (Property.kindOf p);
             val properties =
                 PropertySet.filter hasValidKind (Correspondence.rightMatches
                                                      targetRSProperties
@@ -316,21 +316,28 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
             else NONE
         end;
     val errorAllowed = let
-        fun findError [] = raise Match
-          | findError (x::xs) =
+        fun isErrorAllowedProperty qp =
             let
-                val propString = Property.toString
-                                     (QProperty.withoutImportance x);
-                val isErrorAllowed = String.isPrefix "error-allowed-" propString;
+                val (p, _) = QProperty.toPair qp;
+                val k = Property.kindOf p;
+                val errorAllowedKind = Property.kindOfString "error_allowed";
             in
-                if isErrorAllowed then x else findError xs
+                k = errorAllowedKind
             end;
+        val potentialEAProps = QPropertySet.toList
+                               o (QPropertySet.filter isErrorAllowedProperty);
+        fun findError qps =
+            case potentialEAProps qps of
+                (x::xs) => SOME x
+              | [] => NONE
     in
-        findError (QPropertySet.toList sourceProperties)
+        findError sourceProperties
     end;
     val unionAll = List.foldr (fn (a, b) => QPropertySet.union a b) (QPropertySet.empty ());
     val newProperties = unionAll (filtermap translateProperty matches);
-    val _ = QPropertySet.insert newProperties errorAllowed
+    val _ = case errorAllowed of
+                SOME ea => QPropertySet.insert newProperties ea
+              | NONE => ();
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
 end;
