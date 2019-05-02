@@ -227,6 +227,9 @@ fun collectLeftMatches ps ps' =
         unionAll x
     end;
 
+fun collectOfKind ps k =
+    filter (fn p => Property.stringOfpKind (Property.kindOf p) = k) ps;
+
 
 end;
 

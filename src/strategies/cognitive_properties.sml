@@ -28,7 +28,7 @@ fun numberOfSymbolTypesCost qT uP =
     in sigmoid C W T x
     end;
 
-fun subRSvariety qT =  ;
+fun subRSvariety qT = PropertySet.collectOfKind qT "mode" ;
 fun subRSvarietyCost qT uP =
     let val C =  ;
         val W =  ;
