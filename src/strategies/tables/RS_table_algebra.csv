@@ -6,20 +6,20 @@ tokens,"0,1,2,3,4,5,6,7,8,9"
 relations,"=,<,>,divides"
 operators,"+,-,*,\div,^,\sum, \vee, \neg"
 patterns,"_:integer=_:integer"
-grammar-imports,"base-10-real-numerals,latin-alphabet"
-grammatical-complexity,type-2
+grammar_imports,"base_10_real_numerals,latin_alphabet"
+grammatical_complexity,type-2
 facts,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
 rigorous,TRUE
-fact-imports,NONE
+fact_imports,NONE
 tactics,"rewrite,lemma,calc,induction"
-inferential-complexity,2
-accessible-facts,TRUE
-accessible-tactics,TRUE
-accessible-grammatical-constructors,FALSE
-physical-dimension-use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
-grammatical-dimensionality,1
-grammatical-granularity,discrete
-mean-branching-factor,\infty
-pr-distinct-state-change,0.004
-pr-valid-state-change,1
-mean-solution-depth,10
+inferential_complexity,2
+accessible_fact,TRUE
+accessible_tactics,TRUE
+accessible_grammatical_constructors,FALSE
+physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
+grammatical_dimensionality,1
+grammatical_granularity,discrete
+mean_branching_factor,\infty
+pr_distinct_state_change,0.004
+pr_valid_state_change,1
+mean_solution_depth,10
