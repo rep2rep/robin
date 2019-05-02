@@ -258,11 +258,7 @@ fun fromString builder s =
 
         fun parse tokens =
             let
-                val _ = print (listToString (fn s => s) tokens);
-                val _ = print "\n";
                 val (tree, tokens) = parseFormula tokens;
-                val _ = print (toString (fn s => s) tree);
-                val _ = print "\n";
             in
                 if (List.null tokens) then tree
                 else raise ParseError
