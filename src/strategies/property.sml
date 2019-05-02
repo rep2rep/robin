@@ -15,8 +15,12 @@ sig
     val stringOfKind : kind -> string;
     val kindOfString : string -> kind;
 
+    val sameKind : kind * kind -> bool;
     val kindOf : property -> kind;
     val valueOf : property -> value;
+    val LabelOf : property -> string;
+    val NumberOf : property -> int;
+    val BooleanOf : property -> bool;
     val typeOf : property -> Type.T;
     val attributesOf : property -> string list;
 
@@ -38,6 +42,8 @@ datatype value = Label of string | Number of int | Boolean of bool;
 fun kindOfString s = s;
 fun stringOfKind s = s;
 
+fun sameKind (k,k') = (k = k');
+
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE";
@@ -54,6 +60,18 @@ fun toKindValuePair (Simple kv) = kv
 
 fun kindOf p = #1 (toKindValuePair p);
 fun valueOf p = #2 (toKindValuePair p);
+
+fun LabelOf p =
+    case valueOf p of Label s => s
+                    | _ => (print "Not a Label";raise Match);
+
+fun NumberOf p =
+    case valueOf p of Number n => n
+                    | _ => (print "Not a Number";raise Match);
+
+fun BooleanOf p =
+    case valueOf p of Boolean b => b
+                    | _ => (print "Not a Boolean";raise Match);
 
 fun typeOf (Typed (_,t)) = t
   | typeOf _ = raise Match;
@@ -224,7 +242,9 @@ fun collectLeftMatches ps ps' =
     end;
 
 fun collectOfKind ps k =
-    filter (fn p => Property.stringOfpKind (Property.kindOf p) = k) ps;
+    let fun isOfKind p = Property.sameKind (Property.kindOf p, Property.kindOfString k);
+    in filter isOfKind ps
+    end;
 
 
 end;
@@ -235,8 +255,25 @@ structure PropertyDictionary = Dictionary(struct
                                            val compare = Property.compare;
                                            val fmt = Property.toString;
                                            end);
-structure QPropertySet = Set(struct
-                              type t = QProperty.property;
-                              val compare = QProperty.compare;
-                              val fmt = QProperty.toString;
-                              end);
+structure QPropertySet =
+struct
+structure QS = Set(struct
+                    type t = QProperty.property;
+                    val compare = QProperty.compare;
+                    val fmt = QProperty.toString;
+                    end);
+open QS;
+
+fun collectOfKind ps k =
+    let fun isOfKind p = Property.sameKind
+                            (Property.kindOf (#1 (QProperty.toPair p)),
+                             Property.kindOfString k);
+    in filter isOfKind ps
+    end;
+
+fun collectOfImportance ps i =
+    let fun isOfImportance p = (#2 (QProperty.toPair p) = i);
+    in filter isOfImportance ps
+    end;
+
+end;
