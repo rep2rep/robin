@@ -1,15 +1,15 @@
 birds,
-error-allowed,0
-answer-type,ratio
-instrumental-tokens,"probability,and,not"
-instrumental-types,"ratio,class"
-instrumental-patterns,"_:ratio of _:class are _:class,probability of _:class and _:class"
-instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental-tactics,"deduction, arithmetic_calculation"
-relevant-tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
-relevant-related-tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"
-num-tokens,67
-num-distinct-tokens,31
-num-statements,5
-noise-tokens,"feathers"
-noise-related-tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,carnal,being,fauna"
+error_allowed,0
+answer_type,ratio
+instrumental_tokens,"probability,and,not"
+instrumental_types,"ratio,class"
+instrumental_patterns,"_:ratio of _:class are _:class,probability of _:class and _:class"
+instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
+instrumental_tactics,"deduction, arithmetic_calculation"
+relevant_tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
+relevant_related_tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"
+num_tokens,67
+num_distinct_tokens,31
+num_statements,5
+noise_tokens,"feathers"
+noise_related_tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,carnal,being,fauna"

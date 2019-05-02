@@ -13,8 +13,8 @@ sig
 
     structure FileDict : DICTIONARY;
 
-    type qgenerator = (string -> string list) * string * Importance.importance;
-    type rsgenerator = (string -> string list) * string;
+    type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
+    type rsgenerator = (string -> Property.value list) * Property.kind;
 
     val loadCorrespondenceTable : string -> Correspondence.correspondence list;
     val loadQuestionTable : string -> (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
@@ -61,8 +61,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> string list) * string * Importance.importance;
-type rsgenerator = (string -> string list) * string;
+type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
+type rsgenerator = (string -> Property.value list) * Property.kind;
 
 datatype CorrTree = Prop of string
                   | Neg of CorrTree
@@ -177,12 +177,12 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [s]), key ^ "-", Importance.Low);
+                  | NONE => ((fn s => [Property.Label s]),Property.kindOfString (key ), Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
             fun makeProp v = QProperty.fromPair
-                                 (Property.fromString (keypre ^ v),
+                                 (Property.fromKindValuePair ( keypre, v),
                                   importance);
         in
             qset' (map makeProp (valparser args))
@@ -201,8 +201,8 @@ fun loadRepresentationTable filename = let
                                     handle GenDict.KeyError => NONE;
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
-                                        | NONE => ((fn s => [s]), key ^ "-");
-            fun makeProp v = Property.fromString (keypre ^ v);
+                                        | NONE => ((fn s => [Property.Label s]), Property.kindOfString (key ));
+            fun makeProp v = Property.fromKindValuePair ( keypre, v);
         in
             set' (map makeProp (valparser args))
         end;

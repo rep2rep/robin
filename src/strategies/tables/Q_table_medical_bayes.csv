@@ -1,15 +1,15 @@
 medical,
-error-allowed,0
-answer-type,real
-instrumental-tokens,"\Pr,="
-instrumental-types,"real,event"
-instrumental-patterns,"\Pr(_|_), \Pr(_|_)=_"
-instrumental-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental-tactics,"rewrite"
-relevant-tokens,"0.98, 0.97, 0.01,d:event,t:event"
-relevant-related-tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
-num-tokens,20
-num-distinct-tokens,14
-num-statements,4
-noise-tokens,""
-noise-related-tokens,""
+error_allowed,0
+answer_type,real
+instrumental_tokens,"\Pr,="
+instrumental_types,"real,event"
+instrumental_patterns,"\Pr(_|_), \Pr(_|_)=_"
+instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
+instrumental_tactics,"rewrite"
+relevant_tokens,"0.98, 0.97, 0.01,d:event,t:event"
+relevant_related_tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
+num_tokens,20
+num_distinct_tokens,14
+num_statements,4
+noise_tokens,""
+noise_related_tokens,""

@@ -1,15 +1,15 @@
 intsum,
-error-allowed,0
-answer-type,integer
-instrumental-types,"integer,proof"
-instrumental-tokens,"\sum,*,="
-instrumental-patterns,"\sum from _ to _ of, _:integer = _:integer"
-instrumental-facts,""
-instrumental-tactics,"induction"
-relevant-tokens,"n:integer, i:integer, +, \div"
-relevant-related-tokens,"-,^,\sqrt,0"
-num-tokens,14
-num-distinct-tokens,9
-num-statements,1
-noise-tokens,""
-noise-related-tokens,""
+error_allowed,0
+answer_type,integer
+instrumental_types,"integer,proof"
+instrumental_tokens,"\sum,*,="
+instrumental_patterns,"\sum from _ to _ of, _:integer = _:integer"
+instrumental_facts,""
+instrumental_tactics,"induction"
+relevant_tokens,"n:integer, i:integer, +, \div"
+relevant_related_tokens,"-,^,\sqrt,0"
+num_tokens,14
+num_distinct_tokens,9
+num_statements,1
+noise_tokens,""
+noise_related_tokens,""
