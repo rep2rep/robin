@@ -30,7 +30,6 @@ sig
     val toString : correspondence -> string;
     val fromString : string -> correspondence;
 
-    val matchingIntersectionLeft : S.t S.set -> S.t S.set -> S.t S.set;
 end;
 
 
@@ -54,20 +53,9 @@ type correspondence = Property.property corrformula * Property.property corrform
 
 fun strength (_, _, s) = s;
 
-fun filterMatches p ps = S.filter (fn v => Property.match (p,v)) ps;
-
-(* finds matches between two property sets,
-but only returns the matches of the left (ps) *)
-fun matchingIntersectionLeft ps ps' =
-    let val x = S.map (fn p => filterMatches p ps) ps'
-    in foldr (fn (a,b) => S.union a b) (S.empty ()) x
-    end;
-
-fun isMatchedIn p ps = not (S.isEmpty (filterMatches p ps));
-
 fun matchTree ps p =
     let
-        fun a x = isMatchedIn x ps;
+        fun a x = PropertySet.isMatchedIn x ps;
         fun n x = not x;
         fun c (x, y) = x andalso y;
         fun d (x, y) = x orelse y;
@@ -91,7 +79,7 @@ fun collectMatches ps p =
                                   zs xs;
         fun collectMatches' ps t =
             let
-                fun a x = if (isMatchedIn x ps) then ([x], []) else ([], []);
+                fun a x = if (PropertySet.isMatchedIn x ps) then ([x], []) else ([], []);
                 fun n (x, y) = (y, x);
                 fun c ((x, y), (x', y')) = (x@x', y@y');
                 fun d ((x, y), (x', y')) =
