@@ -77,28 +77,28 @@ let
     open Importance;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
-    val tokenKind = Property.pKindOfString "token";
-    val typeKind = Property.pKindOfString "type";
-    val factKind = Property.pKindOfString "fact";
-    val tacticKind = Property.pKindOfString "tactic";
-    val patternKind = Property.pKindOfString "pattern";
-    val modeKind = Property.pKindOfString "mode";
-    val importKind = Property.pKindOfString "import";
-    val gComplexityKind = Property.pKindOfString "grammatical_complexity";
-    val rigorousKind = Property.pKindOfString "rigorous";
-    val iComplexityKind = Property.pKindOfString "inferential_complexity";
-    val samKind = Property.pKindOfString "standard_accessibility_manipulation";
-    val kmsKind = Property.pKindOfString "knowledge_manipulation_system";
-    val eemKind = Property.pKindOfString "editable_external_memory";
-    val errorKind = Property.pKindOfString "error_allowed";
-    val dimensionUseKind = Property.pKindOfString "dimension_use";
-    val gDimensionalityKind = Property.pKindOfString "grammatical_dimensionality";
-    val gGranularityKind = Property.pKindOfString "grammatical_granularity";
-    val branchingFactorKind = Property.pKindOfString "mean_branching_factor";
-    val prDistinctKind = Property.pKindOfString "pr_distinct_state_change";
-    val prValidKind = Property.pKindOfString "pr_valid_state_change";
-    val numTokensKind = Property.pKindOfString "num_tokens";
-    val numDistinctTokensKind = Property.pKindOfString "num_distinct_tokens";
+    val tokenKind = Property.kindOfString "token";
+    val typeKind = Property.kindOfString "type";
+    val factKind = Property.kindOfString "fact";
+    val tacticKind = Property.kindOfString "tactic";
+    val patternKind = Property.kindOfString "pattern";
+    val modeKind = Property.kindOfString "mode";
+    val importKind = Property.kindOfString "import";
+    val gComplexityKind = Property.kindOfString "grammatical_complexity";
+    val rigorousKind = Property.kindOfString "rigorous";
+    val iComplexityKind = Property.kindOfString "inferential_complexity";
+    val samKind = Property.kindOfString "standard_accessibility_manipulation";
+    val kmsKind = Property.kindOfString "knowledge_manipulation_system";
+    val eemKind = Property.kindOfString "editable_external_memory";
+    val errorKind = Property.kindOfString "error_allowed";
+    val dimensionUseKind = Property.kindOfString "dimension_use";
+    val gDimensionalityKind = Property.kindOfString "grammatical_dimensionality";
+    val gGranularityKind = Property.kindOfString "grammatical_granularity";
+    val branchingFactorKind = Property.kindOfString "mean_branching_factor";
+    val prDistinctKind = Property.kindOfString "pr_distinct_state_change";
+    val prValidKind = Property.kindOfString "pr_valid_state_change";
+    val numTokensKind = Property.kindOfString "num_tokens";
+    val numDistinctTokensKind = Property.kindOfString "num_distinct_tokens";
 
     val RSProperties = [
         ("mode", (PropertyReader.collection, modeKind)),

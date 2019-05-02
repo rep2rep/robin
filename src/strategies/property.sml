@@ -8,15 +8,15 @@ signature PROPERTY =
 sig
     exception ParseError;
 
-    type pKind;
-    datatype pValue = Label of string | Number of int | Boolean of bool;
+    type kind;
+    datatype value = Label of string | Number of int | Boolean of bool;
     type property;
 
-    val stringOfpKind : pKind -> string;
-    val pKindOfString : string -> pKind;
+    val stringOfKind : kind -> string;
+    val kindOfString : string -> kind;
 
-    val kindOf : property -> pKind;
-    val valueOf : property -> pValue;
+    val kindOf : property -> kind;
+    val valueOf : property -> value;
     val typeOf : property -> Type.T;
     val attributesOf : property -> string list;
 
@@ -24,30 +24,26 @@ sig
     val match : property * property -> bool;
 
     val toString : property -> string;
-    val fromKindValuePair : pKind * pValue -> property;
+    val fromKindValuePair : kind * value -> property;
     val fromString : string -> property;
 end;
 
 structure Property :> PROPERTY =
 struct
 
-type pKind = string;
-datatype pValue = Label of string | Number of int | Boolean of bool;
+type kind = string;
+datatype value = Label of string | Number of int | Boolean of bool;
 
-fun pKindOfString s = s;
-fun stringOfpKind s = s;
+fun kindOfString s = s;
+fun stringOfKind s = s;
 
-fun pValueOfBool b = Boolean b;
-fun pValueOfInt n = Number n;
-fun pValueofString s = Label s;
+fun stringOfValue (Label s) = s
+  | stringOfValue (Number n) = Int.toString n
+  | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE";
 
-fun stringOfpValue (Label s) = s
-  | stringOfpValue (Number n) = Int.toString n
-  | stringOfpValue (Boolean b) = if b then "TRUE" else "FALSE";
-
-datatype property = Simple of (pKind * pValue)
-                  | Typed of ((pKind * pValue) * Type.T)
-                  | Attr of ((pKind * pValue) * string list);
+datatype property = Simple of (kind * value)
+                  | Typed of ((kind * value) * Type.T)
+                  | Attr of ((kind * value) * string list);
 
 exception ParseError;
 
@@ -110,19 +106,19 @@ fun match (Simple kv, p) = (kv = kvOf p)
   | match _ = false
 
 (*
-fun toString (Simple (k,v)) = k ^ "[" ^ stringOfpValue v ^ "]"
-  | toString (Typed ((k,v),t)) = k ^ "[" ^ stringOfpValue v  ^ " : " ^ (Type.toString t) ^ "]"
-  | toString (Attr ((k,v),a)) = k ^ "[" ^ stringOfpValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}"  ^ "]";
+fun toString (Simple (k,v)) = k ^ "[" ^ stringOfValue v ^ "]"
+  | toString (Typed ((k,v),t)) = k ^ "[" ^ stringOfValue v  ^ " : " ^ (Type.toString t) ^ "]"
+  | toString (Attr ((k,v),a)) = k ^ "[" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}"  ^ "]";
   *)
-fun toString (Simple (k,v)) = k ^ "-" ^ stringOfpValue v
-  | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfpValue v  ^ " : " ^ (Type.toString t)
-  | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfpValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
+fun toString (Simple (k,v)) = k ^ "-" ^ stringOfValue v
+  | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfValue v  ^ " : " ^ (Type.toString t)
+  | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
 
 
 (*as-is, fromKindValuePair is an ugly function. *)
 fun fromKindValuePair (k,vRaw) =
-    if stringOfpKind k = "pattern" then Simple (k,vRaw) else
-      let val sv = stringOfpValue vRaw
+    if stringOfKind k = "pattern" then Simple (k,vRaw) else
+      let val sv = stringOfValue vRaw
       in
         case map stringTrim (String.tokens (fn c => c = #":") sv) of
            [v,s] =>
@@ -153,8 +149,8 @@ fun breakStringUntil c s =
 
 fun fromString s =
   let val (ks,vs) = breakStringUntil #"-" s
-  in if vs = "" then fromKindValuePair (pKindOfString s, Boolean true)
-     else fromKindValuePair (pKindOfString ks, Label vs)
+  in if vs = "" then fromKindValuePair (kindOfString s, Boolean true)
+     else fromKindValuePair (kindOfString ks, Label vs)
   end;
 
 end;
