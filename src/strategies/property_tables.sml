@@ -223,16 +223,25 @@ in
     loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
+local structure KindSet = Set(struct
+                               type t = Property.kind;
+                               fun compare (k, k') =
+                                   String.compare(Property.stringOfKind k,
+                                                  Property.stringOfKind k');
+                               val fmt = Property.stringOfKind;
+                               end) in
 fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     val ((qName, qRS), sourceProperties) = qTable;
     val (targetRSName, targetRSProperties) = targetRSTable;
-    val propertyPrefixes = List.filter
-                               (fn p => not (p = "error-allowed-")
-                                        andalso not (p = "num-distinct-tokens-")
-                                        andalso not (p = "num-statements-")
-                                        andalso not (p = "num-tokens-"))
-                               (map (fn (r, p, i) => p)
-                                    (GenDict.values (!qPropertyKeyMap)));
+    val badKinds = (KindSet.fromList o (map Property.kindOfString)) [
+                       "error_allowed",
+                       "num_tokens",
+                       "num_distinct_tokens"
+                   ];
+    val propertyKinds = List.filter
+                            (fn k => not (KindSet.contains badKinds k))
+                            (map (fn (r, k, i) => k)
+                                 (GenDict.values (!qPropertyKeyMap)));
     fun dropImportance props =
         PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
     fun liftImportance c =
@@ -292,14 +301,9 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     fun translateProperty (correspondence, importance) =
         let
             val strength = Correspondence.strength correspondence;
-            fun hasKind k p =
-                let
-                    val pString = Property.toString p;
-                in
-                    String.isPrefix k pString
-                end;
+            fun hasKind k p = (Property.kindOf p) = k;
             fun hasValidKind p =
-                any (map (fn k => hasKind k p) propertyPrefixes);
+                any (map (fn k => hasKind k p) propertyKinds);
             val properties =
                 PropertySet.filter hasValidKind (Correspondence.rightMatches
                                                      targetRSProperties
@@ -329,6 +333,7 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     val _ = QPropertySet.insert newProperties errorAllowed
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
+end;
 end;
 
 end;
