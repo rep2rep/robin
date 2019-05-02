@@ -237,22 +237,39 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
         PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
     fun liftImportance c =
         let
-            fun getImportance prop =
+            fun collateImportances props =
                 let
-                    fun importanceLookup' prop [] ans = ans
-                      | importanceLookup' prop ((x, i)::xs) ans =
-                        if (Property.compare(prop, x) = EQUAL)
-                        then importanceLookup' prop xs (i::ans)
-                        else importanceLookup' prop xs ans
+                    val uniqueProperties = dropImportance props;
+                    fun collectImportances p' qps =
+                        let
+                            fun filterSome' [] ans = List.rev ans
+                              | filterSome' ((SOME x)::xs) ans = filterSome' xs (x::ans)
+                              | filterSome' (NONE::xs) ans = filterSome' xs ans;
+                            fun filterSome xs = filterSome' xs [];
+                            fun someImportance qp =
+                                let
+                                    val (p, i) = QProperty.toPair qp;
+                                in
+                                    if (Property.compare (p', p) = EQUAL)
+                                    then SOME i else NONE
+                                end;
+                        in
+                            filterSome (QPropertySet.map someImportance qps)
+                        end;
                 in
-                    importanceLookup' prop
-                                      (QPropertySet.map QProperty.toPair
-                                                        sourceProperties)
-                                      []
+                    PropertyDictionary.fromPairList (
+                        PropertySet.map
+                            (fn p => (p, collectImportances p props))
+                            uniqueProperties)
                 end;
-            val ((qp, _), _, _) = c;
+            val importanceLookup = collateImportances sourceProperties;
+            val getImportance = PropertyDictionary.get importanceLookup;
+            val flatten = flatmap (fn x => x);
+            val qp = Correspondence.leftMatches
+                         (dropImportance sourceProperties)
+                         c;
         in
-            map (fn i => (c, i)) (flatmap (fn x => x) (PropertySet.map getImportance qp))
+            map (fn i => (c, i)) (flatten (PropertySet.map getImportance qp))
         end;
     val sourceProps = dropImportance sourceProperties;
     val matches' = List.filter
@@ -261,39 +278,37 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
                             targetRSProperties)
                       corrTable;
     val identityPairs = PropertySet.map
-                            (fn p => ((PropertySet.fromList [p],
-                                       PropertySet.empty ()),
-                                      (PropertySet.fromList [p],
-                                       PropertySet.empty ()),
-                                      1.0))
-                            (PropertySet.intersection sourceProps
-                                                      targetRSProperties);
-    val identityPairs' = List.filter (fn corr =>
-                                         not(List.exists
-                                                 (Correspondence.sameProperties
-                                                      corr)
-                                                 matches'))
-                                     identityPairs;
+                            Correspondence.identity
+                            (PropertySet.collectLeftMatches
+                                 sourceProps
+                                 targetRSProperties);
+    val identityPairs' = List.filter
+                             (fn corr =>
+                                 not(List.exists
+                                         (Correspondence.matchingProperties corr)
+                                         matches'))
+                             identityPairs;
     val matches = flatmap liftImportance (matches' @ identityPairs');
     fun translateProperty (correspondence, importance) =
         let
-            val ((qp, qn), (rp, rn), strength) = correspondence;
-            val properties = PropertySet.filter
-                                 (fn p =>
-                                     let val prop = Property.toString p;
-                                     in any (map
-                                                 (fn prefix => String.isPrefix
-                                                                   prefix
-                                                                   prop)
-                                                 propertyPrefixes)
-                                     end)
-                                 rp;
+            val strength = Correspondence.strength correspondence;
+            fun hasKind k p =
+                let
+                    val pString = Property.toString p;
+                in
+                    String.isPrefix k pString
+                end;
+            fun hasValidKind p =
+                any (map (fn k => hasKind k p) propertyPrefixes);
+            val properties =
+                PropertySet.filter hasValidKind (Correspondence.rightMatches
+                                                     targetRSProperties
+                                                     correspondence);
+            val makeQProperty = fn p => QProperty.fromPair (p, importance);
         in
             if strength > 0.5
             then SOME (QPropertySet.fromList
-                           (PropertySet.map
-                                (fn p => QProperty.fromPair (p, importance))
-                                properties))
+                           (PropertySet.map makeQProperty properties))
             else NONE
         end;
     val errorAllowed = let
@@ -309,10 +324,8 @@ fun computePsuedoQuestionTable qTable targetRSTable corrTable = let
     in
         findError (QPropertySet.toList sourceProperties)
     end;
-    val newProperties = List.foldr
-                            (fn (q, r) => QPropertySet.union q r)
-                            (QPropertySet.empty ())
-                            (filtermap translateProperty matches);
+    val unionAll = List.foldr (fn (a, b) => QPropertySet.union a b) (QPropertySet.empty ());
+    val newProperties = unionAll (filtermap translateProperty matches);
     val _ = QPropertySet.insert newProperties errorAllowed
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
