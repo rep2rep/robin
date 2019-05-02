@@ -61,7 +61,7 @@ fun match (Simple s, p) = (s = nameOf p)
   | match (p, Simple s) = (s = nameOf p)
   | match (Typed (s,t), Typed (s',t')) = (s = s' andalso Type.match t t')
   | match (Attr (s,_), Attr (s',_)) = (s = s')
-  | match _ = false
+  | match _ = false;
 
 fun toString (Simple s) = s
   | toString (Typed (s,t)) = s ^ " : " ^ (Type.toString t)
@@ -128,11 +128,33 @@ fun withoutImportance (s, _) = s;
 
 end;
 
-structure PropertySet = Set(struct
-                             type t = Property.property;
-                             val compare = Property.compare;
-                             val fmt = Property.toString;
-                             end);
+structure PropertySet =
+struct
+structure S = Set(struct
+                type t = Property.property;
+                val compare = Property.compare;
+                val fmt = Property.toString;
+                end);
+open S;
+
+fun filterMatches p ps = filter (fn v => Property.match (p,v)) ps;
+
+fun isMatchedIn p ps = not (isEmpty (filterMatches p ps));
+
+(* finds matches between two property sets,
+   but only returns the matches of the left (ps) *)
+fun collectLeftMatches ps ps' =
+    let
+        val x = map (fn p => filterMatches p ps) ps';
+        val unionAll = List.foldr (fn (a, b) => union a b) (empty ())
+    in
+        unionAll x
+    end;
+
+
+end;
+
+
 structure PropertyDictionary = Dictionary(struct
                                            type k = Property.property;
                                            val compare = Property.compare;
