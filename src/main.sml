@@ -67,9 +67,9 @@ fun main () =
         val (qName, qRep) = question;
         val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
         val _ = RepSelect.init(
-                filesMatchingPrefix (BASE^"strategies/tables/") "RS_table_",
-                filesMatchingPrefix (BASE^"strategies/tables/") "correspondences_",
-                [BASE^"strategies/tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
+                filesMatchingPrefix ("tables/") "RS_table_",
+                filesMatchingPrefix ("tables/") "correspondences_",
+                ["tables/Q_table_" ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations question numAlternatives;
     in
         Logging.write ("RECOMMEND: " ^
