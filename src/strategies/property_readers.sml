@@ -20,15 +20,22 @@ import "strategies.property_tables";
 structure PropertyReader =
 struct
 
+fun boolean str =
+    if (String.implode (map Char.toLower (String.explode str))) = "true"
+    then [Property.Boolean true] else [Property.Boolean false];
 
-fun bool str = if ((String.implode (map Char.toLower (String.explode str))) = "true")
-               then [""] else [];
+fun number str =
+    case Int.fromString str of
+        SOME n => [Property.Number n]
+      | NONE => if str = "\\infty" then [Property.Number ~1] else raise PropertyTables.TableError ("Unable to read number from " ^ str);
 
-fun label str = [str];
+fun label str = [Property.Label str];
 
 fun collection str = if str = "NONE" then []
-                     else map stringTrim (String.tokens (fn c => c = #",") str);
+                     else map (Property.Label o stringTrim) (String.tokens (fn c => c = #",") str);
 
+fun collection' str = if str = "NONE" then []
+                    else map (stringTrim) (String.tokens (fn c => c = #",") str);
 fun dimension str =
     let
         fun parseDimProps s = if s = "{}" then []
@@ -50,7 +57,7 @@ fun dimension str =
                   | _ => raise PropertyTables.TableError
                                ("Unable to read dimensions from " ^ dimval)
             end;
-        val dimensions = collection str;
+        val dimensions = collection' str;
         val dimensionsWithValues = map createPairs dimensions;
         val dimensionsSplitOut = map (fn (x, y) =>
                                          map (fn z => x ^ "-" ^ z) y)
@@ -59,9 +66,10 @@ fun dimension str =
                                          map (fn z:string => z) y)
                                      dimensionsWithValues;
     in
-        List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels)
+        map Property.Label
+          (List.foldr (fn (a, b) => a @ b) [] (dimensionsSplitOut @ dimensionsNoLabels))
     end;
-    
+
 end;
 
 
@@ -69,89 +77,80 @@ let
     open Importance;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
+    val tokenKind = Property.pKindOfString "token";
+    val typeKind = Property.pKindOfString "type";
+    val factKind = Property.pKindOfString "fact";
+    val tacticKind = Property.pKindOfString "tactic";
+    val patternKind = Property.pKindOfString "pattern";
+    val modeKind = Property.pKindOfString "mode";
+    val importKind = Property.pKindOfString "import";
+    val gComplexityKind = Property.pKindOfString "grammatical_complexity";
+    val rigorousKind = Property.pKindOfString "rigorous";
+    val iComplexityKind = Property.pKindOfString "inferential_complexity";
+    val samKind = Property.pKindOfString "standard_accessibility_manipulation";
+    val kmsKind = Property.pKindOfString "knowledge_manipulation_system";
+    val eemKind = Property.pKindOfString "editable_external_memory";
+    val errorKind = Property.pKindOfString "error_allowed";
+    val dimensionUseKind = Property.pKindOfString "dimension_use";
+    val gDimensionalityKind = Property.pKindOfString "grammatical_dimensionality";
+    val gGranularityKind = Property.pKindOfString "grammatical_granularity";
+    val branchingFactorKind = Property.pKindOfString "mean_branching_factor";
+    val prDistinctKind = Property.pKindOfString "pr_distinct_state_change";
+    val prValidKind = Property.pKindOfString "pr_valid_state_change";
+    val numTokensKind = Property.pKindOfString "num_tokens";
+    val numDistinctTokensKind = Property.pKindOfString "num_distinct_tokens";
+
     val RSProperties = [
-        ("mode",
-         (PropertyReader.collection, "mode-")),
-        ("grammar-imports",
-         (PropertyReader.collection, "import-")),
-        ("grammatical-complexity",
-         (PropertyReader.label,  "grammatical-complexity-")),
-        ("rigorous",
-         (PropertyReader.bool, "rigorous")),
-        ("knowledge-manipulation-system",
-         (PropertyReader.bool, "knowledge-manipulation-system")),
-        ("facts",
-         (PropertyReader.collection, "fact-")),
-        ("fact-imports",
-         (PropertyReader.collection, "import-")),
-        ("tactics",
-         (PropertyReader.collection, "tactic-")),
-        ("logic-power",
-         (PropertyReader.label, "logic-power-")),
-        ("standard-accessibility-manipulations",
-         (PropertyReader.collection, "accessible-manipulation-")),
-        ("accessible-facts",
-         (PropertyReader.bool, "accessible-facts")),
-        ("accessible-tactics",
-         (PropertyReader.bool, "accessible-tactics")),
-        ("accessible-grammatical-constructors",
-         (PropertyReader.bool, "accessible-grammatical-constructors")),
-        ("editable-external-memory",
-         (PropertyReader.bool, "editable-external-memory")),
-        ("physical-dimension-use",
-         (PropertyReader.dimension, "dimension-use-")),
-        ("grammatical-dimensionality",
-         (PropertyReader.label, "grammatical-dimensionality-")),
-        ("grammatical-granularity",
-         (PropertyReader.label, "grammatical-granularity-")),
-        ("mean-branching-factor",
-         (PropertyReader.label, "mean-branching-factor-")),
-        ("mean-solution-depth",
-         (PropertyReader.label, "mean-solution-depth-")),
-        ("pr-distinct-state-change",
-         (PropertyReader.label, "pr-distinct-state-change-")),
-        ("pr-valid-state-change",
-         (PropertyReader.label, "pr-valid-state-change-")),
-       ("types",
-         (PropertyReader.collection, "type-")),
-       ("tokens",
-         (PropertyReader.collection, "token-")),
-       ("operators",
-         (PropertyReader.collection, "token-")),
-       ("relations",
-         (PropertyReader.collection, "token-")),
-       ("patterns",
-         (PropertyReader.collection, "pattern-"))
+        ("mode", (PropertyReader.collection, modeKind)),
+        ("grammar_imports", (PropertyReader.collection, importKind)),
+        ("grammatical_complexity", (PropertyReader.label, gComplexityKind)),
+        ("rigorous", (PropertyReader.boolean, rigorousKind)),
+        ("knowledge_manipulation_system", (PropertyReader.boolean, kmsKind)),
+        ("facts", (PropertyReader.collection, factKind)),
+        ("fact_imports", (PropertyReader.collection, importKind)),
+        ("tactics", (PropertyReader.collection, tacticKind)),
+        ("inferential_complexity", (PropertyReader.number, iComplexityKind)),
+        ("standard_accessibility_manipulations", (PropertyReader.collection, samKind)),
+        ("editable_external_memory", (PropertyReader.boolean, eemKind)),
+        ("physical_dimension_use", (PropertyReader.dimension, dimensionUseKind)),
+        ("grammatical_dimensionality", (PropertyReader.number, gDimensionalityKind)),
+        ("grammatical_granularity", (PropertyReader.label, gGranularityKind)),
+        ("mean_branching_factor", (PropertyReader.number, branchingFactorKind)),
+        ("pr_distinct_state_change", (PropertyReader.label, prDistinctKind)),
+        ("pr_valid_state_change", (PropertyReader.label, prValidKind)),
+        ("types", (PropertyReader.collection, typeKind)),
+        ("tokens", (PropertyReader.collection, tokenKind)),
+        ("operators", (PropertyReader.collection, tokenKind)),
+        ("relations", (PropertyReader.collection, tokenKind)),
+        ("patterns", (PropertyReader.collection, patternKind))
     ];
     val QProperties = [
-        ("error-allowed",
-         (PropertyReader.label, "error-allowed-", High)),  (*previously rigorous*)
-        ("answer-type",
-         (PropertyReader.collection, "type-", High)), (*previously question-value-type*)
-        ("instrumental-tokens",
-         (PropertyReader.collection, "token-", Medium)),
-        ("instrumental-types",
-         (PropertyReader.collection, "type-", Medium)),
-        ("instrumental-patterns",
-         (PropertyReader.collection, "pattern-", Medium)),
-        ("instrumental-facts",
-         (PropertyReader.collection, "fact-", Medium)),
-        ("instrumental-tactics",
-         (PropertyReader.collection, "tactic-", Medium)),
-        ("relevant-tokens",
-         (PropertyReader.collection, "token-", Low)),
-        ("relevant-related-tokens",
-         (PropertyReader.collection, "token-", Low)),
-        ("num-statements",
-         (PropertyReader.label, "num-statements-", Zero)),
-        ("num-tokens",
-         (PropertyReader.label, "num-tokens-", Zero)),
-        ("num-distinct-tokens",
-         (PropertyReader.label, "num-distinct-tokens-", Zero)),
-        ("noise-tokens",
-         (PropertyReader.collection, "token-", Noise)),
-        ("noise-related-tokens",
-         (PropertyReader.collection, "token-", Noise))
+        ("error_allowed",
+         (PropertyReader.label, errorKind, High)),
+        ("answer_type",
+         (PropertyReader.collection, typeKind, High)),
+        ("instrumental_tokens",
+         (PropertyReader.collection, tokenKind, Medium)),
+        ("instrumental_types",
+         (PropertyReader.collection, typeKind, Medium)),
+        ("instrumental_patterns",
+         (PropertyReader.collection, patternKind, Medium)),
+        ("instrumental_facts",
+         (PropertyReader.collection, factKind, Medium)),
+        ("instrumental_tactics",
+         (PropertyReader.collection, tacticKind, Medium)),
+        ("relevant_tokens",
+         (PropertyReader.collection, tokenKind, Low)),
+        ("relevant_related_tokens",
+         (PropertyReader.collection, tokenKind, Low)),
+        ("num_tokens",
+         (PropertyReader.number, numTokensKind, Zero)),
+        ("num_distinct_tokens",
+         (PropertyReader.number, numDistinctTokensKind, Zero)),
+        ("noise_tokens",
+         (PropertyReader.collection, tokenKind, Noise)),
+        ("noise_related_tokens",
+         (PropertyReader.collection, tokenKind, Noise))
     ];
     val QandRSProperties = [
     ];
