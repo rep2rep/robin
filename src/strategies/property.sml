@@ -25,6 +25,7 @@ sig
 
     val toString : property -> string;
     val fromKindValuePair : kind * value -> property;
+    val toKindValuePair : property -> kind * value;
     val fromString : string -> property;
 end;
 
@@ -47,11 +48,12 @@ datatype property = Simple of (kind * value)
 
 exception ParseError;
 
-fun kvOf (Simple kv) = kv
-  | kvOf (Typed (kv,_)) = kv
-  | kvOf (Attr (kv,_)) = kv;
-fun kindOf p = #1 (kvOf p);
-fun valueOf p = #2 (kvOf p);
+fun toKindValuePair (Simple kv) = kv
+  | toKindValuePair (Typed (kv,_)) = kv
+  | toKindValuePair (Attr (kv,_)) = kv;
+
+fun kindOf p = #1 (toKindValuePair p);
+fun valueOf p = #2 (toKindValuePair p);
 
 fun typeOf (Typed (_,t)) = t
   | typeOf _ = raise Match;
@@ -59,7 +61,7 @@ fun typeOf (Typed (_,t)) = t
 fun attributesOf (Attr (_,a)) = a
   | attributesOf _ = raise Match;
 
-fun compareKV ((k,v),(k',v')) =
+fun compareKindValuePair ((k,v),(k',v')) =
     let val c = String.compare (k,k')
     in if c = EQUAL
        then case (v,v') of (Boolean b, Boolean b') => if b then if b' then EQUAL else GREATER else if b' then LESS else EQUAL
@@ -75,18 +77,18 @@ fun compareKV ((k,v),(k',v')) =
 (*A lexicographic order for the property type. The name takes precedence, then
   the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
   Useful for putting it into a dictionary; not for much else*)
-fun compare (Simple p, Simple p') = compareKV (p, p')
-  | compare (Typed (p,t), Typed (p',t')) = let val c = compareKV (p, p')
+fun compare (Simple p, Simple p') = compareKindValuePair (p, p')
+  | compare (Typed (p,t), Typed (p',t')) = let val c = compareKindValuePair (p, p')
                                            in if c = EQUAL
                                               then Type.compare (t,t')
                                               else c
                                            end
-  | compare (Attr (p,a), Attr (p',a')) = let val c = compareKV (p, p')
+  | compare (Attr (p,a), Attr (p',a')) = let val c = compareKindValuePair (p, p')
                                            in if c = EQUAL
                                               then List.collate String.compare (a,a')
                                               else c
                                            end
-  | compare (p,p') = let val c = compareKV (kvOf p, kvOf p')
+  | compare (p,p') = let val c = compareKindValuePair (toKindValuePair p, toKindValuePair p')
                      in if c = EQUAL
                         then case (p,p') of (Simple _, _) => LESS
                                           | (_, Simple _) => GREATER
@@ -99,8 +101,8 @@ fun compare (Simple p, Simple p') = compareKV (p, p')
 (*propertyMatch is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information, and type-matching when
   there is type information *)
-fun match (Simple kv, p) = (kv = kvOf p)
-  | match (p, Simple kv) = (kv = kvOf p)
+fun match (Simple kv, p) = (kv = toKindValuePair p)
+  | match (p, Simple kv) = (kv = toKindValuePair p)
   | match (Typed (kv,t), Typed (kv',t')) = (kv = kv' andalso Type.match t t')
   | match (Attr (kv,_), Attr (kv',_)) = (kv = kv')
   | match _ = false
@@ -114,8 +116,6 @@ fun toString (Simple (k,v)) = k ^ "-" ^ stringOfValue v
   | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfValue v  ^ " : " ^ (Type.toString t)
   | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
 
-
-(*as-is, fromKindValuePair is an ugly function. *)
 fun fromKindValuePair (k,vRaw) =
     if stringOfKind k = "pattern" then Simple (k,vRaw) else
       let val sv = stringOfValue vRaw
