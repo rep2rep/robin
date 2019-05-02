@@ -182,7 +182,7 @@ fun loadQuestionTable filename = let
                                     NONE => defaultImportance
                                   | SOME i => i;
             fun makeProp v = QProperty.fromPair
-                                 (Property.fromKVPair ( keypre, v),
+                                 (Property.fromKindValuePair ( keypre, v),
                                   importance);
         in
             qset' (map makeProp (valparser args))
@@ -202,7 +202,7 @@ fun loadRepresentationTable filename = let
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
                                         | NONE => ((fn s => [Property.Label s]), Property.pKindOfString (key ));
-            fun makeProp v = Property.fromKVPair ( keypre, v);
+            fun makeProp v = Property.fromKindValuePair ( keypre, v);
         in
             set' (map makeProp (valparser args))
         end;

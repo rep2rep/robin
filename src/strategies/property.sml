@@ -109,9 +109,14 @@ fun match (Simple kv, p) = (kv = kvOf p)
   | match (Attr (kv,_), Attr (kv',_)) = (kv = kv')
   | match _ = false
 
+(*
 fun toString (Simple (k,v)) = k ^ "[" ^ stringOfpValue v ^ "]"
   | toString (Typed ((k,v),t)) = k ^ "[" ^ stringOfpValue v  ^ " : " ^ (Type.toString t) ^ "]"
   | toString (Attr ((k,v),a)) = k ^ "[" ^ stringOfpValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}"  ^ "]";
+  *)
+fun toString (Simple (k,v)) = k ^ "-" ^ stringOfpValue v
+  | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfpValue v  ^ " : " ^ (Type.toString t)
+  | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfpValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
 
 
 (*as-is, fromKVPair is an ugly function. *)
@@ -162,7 +167,7 @@ sig
 
     val compare : property * property -> order;
     val toString : property -> string;
-  (*  val fromString : string -> property;*)
+    val fromString : string -> property;
     val toPair : property -> (Property.property * Importance.importance);
     val fromPair : (Property.property * Importance.importance) -> property;
     val withoutImportance : property -> Property.property;
@@ -177,7 +182,7 @@ exception ParseError;
 
 val compare = cmpJoin Property.compare Importance.compare;
 fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
-(*fun fromString s =
+fun fromString s =
     let
         val splitter = fn c => c = #"(" orelse  c = #")" orelse c = #",";
     in
@@ -186,7 +191,7 @@ fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString 
                            SOME b' => (Property.fromString a, b')
                          | NONE => raise ParseError)
           | _ => raise ParseError
-    end;*)
+    end;
 fun toPair (s, i) = (s, i);
 fun fromPair (s, i) = (s, i);
 fun withoutImportance (s, _) = s;
