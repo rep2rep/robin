@@ -82,13 +82,7 @@ fun collectMatches ps p =
                 fun a x = if (PropertySet.isMatchedIn x ps) then ([x], []) else ([], []);
                 fun n (x, y) = (y, x);
                 fun c ((x, y), (x', y')) = (x@x', y@y');
-                fun d ((x, y), (x', y')) =
-                    let
-                        val option1 = removeAll y x;
-                        val option2 = removeAll y' x';
-                    in
-                        if List.null option1 then (x', y') else (x, y)
-                    end;
+                fun d ((x, y), (x', y')) = (x@x', y@y');
             in
                 F.fold a n c d t
             end;
