@@ -318,8 +318,7 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
     val errorAllowed = let
         fun isErrorAllowedProperty qp =
             let
-                val (p, _) = QProperty.toPair qp;
-                val k = Property.kindOf p;
+                val k = Property.kindOf (QProperty.withoutImportance qp);
                 val errorAllowedKind = Property.kindOfString "error_allowed";
             in
                 k = errorAllowedKind
