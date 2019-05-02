@@ -8,7 +8,7 @@ signature PROPERTY =
 sig
     exception ParseError;
 
-    type kind;
+    eqtype kind;
     datatype value = Label of string | Number of int | Boolean of bool;
     type property;
 
