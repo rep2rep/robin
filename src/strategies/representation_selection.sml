@@ -155,11 +155,10 @@ fun propInfluence (q, r, s) =
                                  (Correspondence.match qProps rProps)
                                  (!correspondingTable');
         val identityPairs = PropertySet.map
-                                (fn p => Correspondence.identity p)
+                                Correspondence.identity
                                 (PropertySet.collectLeftMatches qProps rProps);
         val identityPairs' = List.filter (fn corr =>
                                              not(List.exists
-                                                     (*(Correspondence.sameProperties corr)*)
                                                      (Correspondence.matchingProperties corr)
                                                             propertyPairs'))
                                                 identityPairs;
