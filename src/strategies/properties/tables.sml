@@ -3,9 +3,9 @@ import "util.set";
 import "util.dictionary";
 import "util.csv";
 
-import "strategies.property";
-import "strategies.property_importance";
-import "strategies.property_correspondence";
+import "strategies.properties.property";
+import "strategies.properties.importance";
+import "strategies.properties.correspondence";
 
 signature PROPERTYTABLES =
 sig

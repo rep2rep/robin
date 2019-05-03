@@ -3,11 +3,11 @@ import "util.set";
 import "util.dictionary";
 import "util.csv";
 
-import "strategies.property";
-import "strategies.property_tables";
-import "strategies.property_readers"; (* Must come after strategies.property_tables *)
-import "strategies.property_importance";
-import "strategies.property_correspondence";
+import "strategies.properties.property";
+import "strategies.properties.tables";
+import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
+import "strategies.properties.importance";
+import "strategies.properties.correspondence";
 
 structure RepresentationSelection =
 struct
@@ -23,21 +23,18 @@ val propertyTableQ' = ref (FileDict.empty ());
 fun init (repTables, corrTables, qTables) = let
     val _ = Logging.write "\n-- Load the representation tables\n";
     val propertyTableRep =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadRepresentationTable t)) repTables)
+        FileDict.unionAll
+            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                           PropertyTables.loadRepresentationTable t)) repTables)
         handle FileDict.KeyError => (Logging.error "An RS table has been duplicated"; raise FileDict.KeyError);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
-        foldr (fn (a, b) => a @ b)
-              []
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadCorrespondenceTable t)) corrTables);
+        List.concat
+            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                           PropertyTables.loadCorrespondenceTable t)) corrTables);
     val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
+        FileDict.unionAll
               (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                              PropertyTables.loadQuestionTable t)) qTables);
     fun dedupCorrespondences [] = []
@@ -60,7 +57,7 @@ fun init (repTables, corrTables, qTables) = let
               )
               else z::(removeCorr y zs);
       in
-          x::(removeCorr x xs)
+          x::(dedupCorrespondences (removeCorr x xs))
       end;
 in
     propertyTableRep' := propertyTableRep;
@@ -128,8 +125,8 @@ fun propInfluence (q, r, s) =
             case importance of
                 Importance.Noise => 0.0
               | Importance.Zero => 0.0
-              | Importance.Low => 0.33 * strength
-              | Importance.Medium => 0.67 * strength
+              | Importance.Low => 0.2 * strength
+              | Importance.Medium => 0.6 * strength
               | Importance.High => strength;
         val propertyPairs' = List.filter
                                  (Correspondence.match qProps rProps)

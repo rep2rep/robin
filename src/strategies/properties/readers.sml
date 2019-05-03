@@ -14,8 +14,8 @@ we would generate the properties
     op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
 *)
 
-import "strategies.property_importance";
-import "strategies.property_tables";
+import "strategies.properties.importance";
+import "strategies.properties.tables";
 
 structure PropertyReader =
 struct
