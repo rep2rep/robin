@@ -332,8 +332,7 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
     in
         findError sourceProperties
     end;
-    val unionAll = List.foldr (fn (a, b) => QPropertySet.union a b) (QPropertySet.empty ());
-    val newProperties = unionAll (filtermap translateProperty matches);
+    val newProperties = QPropertySet.unionAll (filtermap translateProperty matches);
     val _ = case errorAllowed of
                 SOME ea => QPropertySet.insert newProperties ea
               | NONE => ();
