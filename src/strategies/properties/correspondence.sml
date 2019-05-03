@@ -2,8 +2,8 @@ import "util.set";
 import "util.dictionary";
 import "util.formula";
 
-import "strategies.property";
-import "strategies.property_importance";
+import "strategies.properties.property";
+import "strategies.properties.importance";
 
 signature CORRESPONDENCE =
 sig

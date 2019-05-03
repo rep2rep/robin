@@ -2,7 +2,7 @@ import "util.set";
 import "util.type";
 import "util.dictionary";
 
-import "strategies.property_importance";
+import "strategies.properties.importance";
 
 signature PROPERTY =
 sig

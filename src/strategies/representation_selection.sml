@@ -3,11 +3,11 @@ import "util.set";
 import "util.dictionary";
 import "util.csv";
 
-import "strategies.property";
-import "strategies.property_tables";
-import "strategies.property_readers"; (* Must come after strategies.property_tables *)
-import "strategies.property_importance";
-import "strategies.property_correspondence";
+import "strategies.properties.property";
+import "strategies.properties.tables";
+import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
+import "strategies.properties.importance";
+import "strategies.properties.correspondence";
 
 structure RepresentationSelection =
 struct
