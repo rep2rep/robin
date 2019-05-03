@@ -30,6 +30,9 @@ sig
     val intersection : t set -> t set -> t set;
     val difference : t set -> t set -> t set;
 
+    val unionAll : t set list -> t set;
+    val intersectionAll : t set list -> t set;
+
     val map : (t -> 'a) -> t set -> 'a list;
     val endomap : (t -> t) -> t set -> t set;
     val filter : (t -> bool) -> t set -> t set;
@@ -103,6 +106,9 @@ fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
     in
         fromList result
     end;
+
+fun unionAll xs = D.unionAllWith (fn (_, _, _) => ()) xs;
+fun intersectionAll xs = D.intersectionAllWith (fn (_, _, _) => ()) xs;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun endomap f xs = fromList (map f xs);

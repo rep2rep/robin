@@ -32,14 +32,13 @@ fun init (repTables, corrTables, qTables) = let
     val _ = Logging.write "\n-- Load the representation tables\n";
     fun rsTableToDict (rs, props) = TableDict.fromPairList [((rs, rs), props)];
     val propertyTableRep =
-        foldr (fn (a, b) => TableDict.union a b)
-              (TableDict.empty ())
+        TableDict.unionAll
               (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                              rsTableToDict (PropertyTables.loadRepresentationTable t)))
                    repTables)
         handle TableDict.KeyError => (Logging.error "An RS table has been duplicated"; raise TableDict.KeyError);
-
     val _ = Logging.write "\n-- Load the correspondence tables\n";
+
     fun dedupCorrespondences [] = []
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
@@ -63,20 +62,18 @@ fun init (repTables, corrTables, qTables) = let
           x::(removeCorr x xs)
       end;
     val correspondingTable = dedupCorrespondences (
-            foldr (fn (a, b) => a @ b)
-                  []
-                  (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                                 PropertyTables.loadCorrespondenceTable t))
-                       corrTables));
+            List.concat
+                (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                               PropertyTables.loadCorrespondenceTable t))
+                     corrTables));
 
     val _ = Logging.write "\n-- Load the question tables\n";
     fun qTableToDict pair = TableDict.fromPairList [pair];
     val propertyTableQ =
-        foldr (fn (a, b) => TableDict.union a b)
-              (TableDict.empty ())
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             qTableToDict (PropertyTables.loadQuestionTable t)))
-                   qTables);
+        TableDict.unionAll
+            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                           qTableToDict (PropertyTables.loadQuestionTable t)))
+                 qTables);
 
 in
     propertyTableRep' := propertyTableRep;

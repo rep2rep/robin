@@ -212,7 +212,6 @@ fun isMatchedIn p ps = not (isEmpty (filterMatches p ps));
 fun collectLeftMatches ps ps' =
     let
         val x = map (fn p => filterMatches p ps) ps';
-        val unionAll = List.foldr (fn (a, b) => union a b) (empty ())
     in
         unionAll x
     end;
