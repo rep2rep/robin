@@ -57,7 +57,7 @@ fun init (repTables, corrTables, qTables) = let
               )
               else z::(removeCorr y zs);
       in
-          x::(removeCorr x xs)
+          x::(dedupCorrespondences (removeCorr x xs))
       end;
 in
     propertyTableRep' := propertyTableRep;
