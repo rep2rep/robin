@@ -107,8 +107,8 @@ fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
         fromList result
     end;
 
-fun unionAll xs = List.foldr (fn (a, b) => union a b) (empty ()) xs;
-fun intersectionAll xs = List.foldr (fn (a, b) => intersection a b) (empty ()) xs;
+fun unionAll xs = D.unionAllWith (fn (_, _, _) => ()) xs;
+fun intersectionAll xs = D.intersectionAllWith (fn (_, _, _) => ()) xs;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun endomap f xs = fromList (map f xs);
