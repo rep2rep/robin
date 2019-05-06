@@ -3,11 +3,11 @@ import "util.set";
 import "util.dictionary";
 import "util.csv";
 
-import "strategies.property";
-import "strategies.property_tables";
-import "strategies.property_readers"; (* Must come after strategies.property_tables *)
-import "strategies.property_importance";
-import "strategies.property_correspondence";
+import "strategies.properties.property";
+import "strategies.properties.tables";
+import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
+import "strategies.properties.importance";
+import "strategies.properties.correspondence";
 
 structure RepresentationSelection =
 struct
@@ -59,7 +59,7 @@ fun init (repTables, corrTables, qTables) = let
               )
               else z::(removeCorr y zs);
       in
-          x::(removeCorr x xs)
+          x::(dedupCorrespondences (removeCorr x xs))
       end;
     val correspondingTable = dedupCorrespondences (
             List.concat
@@ -145,8 +145,8 @@ fun propInfluence (q, r, s) =
             case importance of
                 Importance.Noise => 0.0
               | Importance.Zero => 0.0
-              | Importance.Low => 0.33 * strength
-              | Importance.Medium => 0.67 * strength
+              | Importance.Low => 0.2 * strength
+              | Importance.Medium => 0.6 * strength
               | Importance.High => strength;
         val propertyPairs' = List.filter
                                  (Correspondence.match qProps rProps)
