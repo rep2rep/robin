@@ -37,7 +37,7 @@ sig
 
     val openOut : string -> outstream;
     val closeOut : outstream -> unit;
-    val outputCell : outstream -> string -> bool -> unit;
+    val outputCell : outstream -> string -> unit;
     val outputRow : outstream -> string list -> unit;
     val output : outstream -> string list list -> unit;
     val flushOut : outstream -> unit;
@@ -169,9 +169,51 @@ fun closeOut ostr = TextIO.closeOut ostr;
 fun flushOut ostr = TextIO.flushOut ostr;
 
 (* TODO: Implement output *)
-fun outputCell ostr value isEndOfLine = ();
-fun outputRow ostr values = ();
-fun output ostr values = ();
+fun outputCell ostr value =
+    let
+        fun containsQuotes s = String.isSubstring "\"" s;
+        fun containsNewlines s = any (map (fn nl => String.isSubstring (String.implode nl) s)
+                                          newlines);
+        fun containsDelimiters s = any (map (fn d => String.isSubstring (String.str d) s)
+                                            delimiters);
+
+        fun outputQuotedCell () =
+            let
+                fun doubleUp c [] = []
+                  | doubleUp c (x::xs) = if x = c then (x::x::(doubleUp c xs))
+                                         else (x::(doubleUp c xs));
+                fun doubleQuotes s = String.implode
+                                         (doubleUp #"\""
+                                                   (String.explode s));
+                val _ = TextIO.output1(ostr, #"\"");
+                val _ = TextIO.output(ostr, doubleQuotes value);
+                val _ = TextIO.output1(ostr, #"\"");
+            in () end;
+        fun outputUnquotedCell () = TextIO.output(ostr, value);
+        val needsQuotes = (containsQuotes value) orelse
+                          (containsNewlines value) orelse
+                          (containsDelimiters value);
+        val _ = if needsQuotes
+                then outputQuotedCell()
+                else outputUnquotedCell();
+    in () end;
+fun outputRow ostr values =
+    let
+        fun zipWithIsLast [] ans = List.rev ans
+          | zipWithIsLast [x] ans = List.rev ((x, true)::ans)
+          | zipWithIsLast (x::xs) ans = zipWithIsLast xs ((x, false)::ans)
+        val _ = map
+                    (fn (v, last) => (
+                         outputCell ostr v;
+                         if last then ()
+                         else TextIO.output1(ostr, (List.hd delimiters))))
+                    (zipWithIsLast values []);
+        val _ = TextIO.output(ostr, (String.implode (List.hd newlines)));
+    in () end;
+fun output ostr values =
+    let
+        val _ = map (outputRow ostr) values
+    in () end;
 
 end;
 
