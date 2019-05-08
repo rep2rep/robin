@@ -17,7 +17,6 @@ sig
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
-    val filtermap : ('a -> 'b option) -> 'a list -> 'b list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
     val all : bool list -> bool;
     val any : bool list -> bool;
@@ -107,16 +106,6 @@ fun enumerateFrom start list =
     end;
 
 fun enumerate xs = enumerateFrom 0 xs;
-
-fun filtermap f xs =
-    let
-        fun filtermap' f [] ans = List.rev ans
-          | filtermap' f (x::xs) ans = case (f x) of
-                                           SOME y => filtermap' f xs (y::ans)
-                                         | NONE => filtermap' f xs ans;
-    in
-        filtermap' f xs []
-    end;
 
 fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
 
