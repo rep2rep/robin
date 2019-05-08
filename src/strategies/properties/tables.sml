@@ -22,6 +22,7 @@ sig
     val loadRepresentationTable : string -> representationtable;
 
     val computePseudoQuestionTable: questiontable -> representationtable -> correspondencetable -> questiontable;
+    val questionTableToCSV: questiontable -> string -> unit;
 
     val setQGenerator : (string * qgenerator) -> unit;
     val setQGenerators : (string * qgenerator) list -> unit;
@@ -339,6 +340,18 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
 end;
+
+fun questionTableToCSV ((qname, qrs), qproperties) filename =
+    let
+        fun qPropertyKind qp = Property.kindOf (QProperty.withoutImportance qp);
+        fun getAllOfKind kind qps = QPropertySet.filter
+                                        (fn qp => kind = (qPropertyKind qp))
+                                        qps;
+        val csvFile = CSVLiberal.openOut filename;
+        val _ = CSVLiberal.outputRow csvFile [qname, qrs];
+        val _ = (CSVLiberal.flushOut csvFile; CSVLiberal.closeOut csvFile);
+    in () end;
+
 end;
 
 end;
