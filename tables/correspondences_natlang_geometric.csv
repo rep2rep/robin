@@ -1,0 +1,18 @@
+type-number,type-segment OR type-region,0.75
+type-occurrence OR type-class,type-segment OR type-region,1
+token-none OR token-empty, token-$dot OR token-$segment,1
+token-zero, token-$dot,1
+token-universe OR token-all,type-region,1
+token-plus,tactic-join,0.25
+token-minus,tactic-delete,0.25
+token-times,tactic-area,0.25
+token-divided_by,tactic-compare_sizes,0.75
+token-union OR token-or,tactic-join,1
+token-intersection OR token-and,tactic-distinguish,1
+token-probability,tactic-area OR tactic-compare_sizes,1
+token-given OR token-if,tactic-focus_on_region,1
+token-if AND (NOT token-given),tactic-focus_on_region,-0.25
+token-equals,tactic-observe,1
+fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
+fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$area_additivity,1
+fact-$non_negative_probability,fact-non-negative-area,1

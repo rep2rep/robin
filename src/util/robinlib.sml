@@ -17,6 +17,7 @@ sig
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
+    val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
     val all : bool list -> bool;
     val any : bool list -> bool;
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
@@ -97,6 +98,8 @@ fun enumerateFrom _ [] = []
 
 fun enumerate xs = enumerateFrom 0 xs;
 
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+
 fun all [] = true
   | all (b::bs) = b andalso (all bs);
 
@@ -121,7 +124,7 @@ fun listToString fmt items =
     let
         val stringItems = map fmt items;
         val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val joined = String.concat withCommas;
     in
         "[" ^ joined ^ "]"
     end;

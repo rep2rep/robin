@@ -1,0 +1,11 @@
+type-number OR type-ratio OR type-percentage OR type-fraction,type-outcome_segment,0.75
+type-possibilities OR type-occurrence OR type-class,type-trial_line OR type-outcome_segment,1
+token-none OR token-empty,token-empty_segment,0.5
+token-universe OR token-all,type-trial_line,1
+token-divided_by,tactic-measure_relative_length,0.25
+token-union OR token-or,tactic-draw_or,1
+token-intersection OR token-and,tactic-draw_and,1
+token-probability,tactic-measure_relative_length,1
+token-given OR token-if,tactic-draw_conditional,1
+token-if AND (NOT token-given),tactic-focus_on_region,-0.25
+token-equals,tactic-compare_sizes,0.5

@@ -3,11 +3,11 @@ import "util.set";
 import "util.dictionary";
 import "util.csv";
 
-import "strategies.property";
-import "strategies.property_tables";
-import "strategies.property_readers"; (* Must come after strategies.property_tables *)
-import "strategies.property_importance";
-import "strategies.property_correspondence";
+import "strategies.properties.property";
+import "strategies.properties.tables";
+import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
+import "strategies.properties.importance";
+import "strategies.properties.correspondence";
 
 structure RepresentationSelection =
 struct
@@ -23,27 +23,25 @@ val propertyTableQ' = ref (FileDict.empty ());
 fun init (repTables, corrTables, qTables) = let
     val _ = Logging.write "\n-- Load the representation tables\n";
     val propertyTableRep =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadRepresentationTable t)) repTables);
+        FileDict.unionAll
+            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                           PropertyTables.loadRepresentationTable t)) repTables)
+        handle FileDict.KeyError => (Logging.error "An RS table has been duplicated"; raise FileDict.KeyError);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable =
-        foldr (fn (a, b) => a @ b)
-              []
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             PropertyTables.loadCorrespondenceTable t)) corrTables);
+        List.concat
+            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
+                           PropertyTables.loadCorrespondenceTable t)) corrTables);
     val _ = Logging.write "\n-- Load the question tables\n";
     val propertyTableQ =
-        foldr (fn (a, b) => FileDict.union a b)
-              (FileDict.empty ())
+        FileDict.unionAll
               (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                              PropertyTables.loadQuestionTable t)) qTables);
     fun dedupCorrespondences [] = []
       | dedupCorrespondences (x::xs) = let
           fun removeCorr y [] = []
             | removeCorr y (z::zs) =
-              if Correspondence.sameProperties y z
+              if Correspondence.matchingProperties y z
               then (
                   if Correspondence.equal y z then
                       zs
@@ -59,7 +57,7 @@ fun init (repTables, corrTables, qTables) = let
               )
               else z::(removeCorr y zs);
       in
-          x::(removeCorr x xs)
+          x::(dedupCorrespondences (removeCorr x xs))
       end;
 in
     propertyTableRep' := propertyTableRep;
@@ -95,18 +93,31 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
+        val qProps = withoutImportance qProps';
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
         fun liftImportance c =
             let
+                fun collateImportances propPairs =
+                    let
+                        val uniqueProperties = PropertySet.fromList (map (fn (p, i) => p) propPairs);
+                        fun collectImportances p' [] ans = ans
+                          | collectImportances p' ((p,i)::ps) ans =
+                            if (Property.compare (p', p) = EQUAL) then collectImportances p' ps (i::ans)
+                            else collectImportances p' ps ans;
+                    in
+                        PropertySet.map (fn p => (p, collectImportances p propPairs [])) uniqueProperties
+                    end;
                 val importanceLookup = (PropertyDictionary.fromPairList o
+                                        collateImportances o
                                         (map QProperty.toPair) o
                                         QPropertySet.toList) qProps';
                 val importanceMax = max Importance.compare;
                 val getImportance = PropertyDictionary.get importanceLookup;
-                val ((qp, _), _, _) = c;
-                val i = importanceMax (PropertySet.map getImportance qp);
+                val flatten = flatmap (fn x => x);
+                val qp = Correspondence.leftMatches qProps c;
+                val i = importanceMax (flatten (PropertySet.map getImportance qp));
             in
                 (c, i)
             end;
@@ -117,18 +128,16 @@ fun propInfluence (q, r, s) =
               | Importance.Low => 0.2 * strength
               | Importance.Medium => 0.6 * strength
               | Importance.High => strength;
-        val qProps = withoutImportance qProps';
         val propertyPairs' = List.filter
                                  (Correspondence.match qProps rProps)
                                  (!correspondingTable');
         val identityPairs = PropertySet.map
-                                (fn p => ((PropertySet.fromList [p], PropertySet.empty ()),
-                                          (PropertySet.fromList [p], PropertySet.empty ()),
-                                          1.0))
-                                (PropertySet.intersection qProps rProps);
+                                (fn p => Correspondence.identity p)
+                                (PropertySet.collectLeftMatches qProps rProps);
         val identityPairs' = List.filter (fn corr =>
                                              not(List.exists
-                                                     (Correspondence.sameProperties corr)
+                                                     (*(Correspondence.sameProperties corr)*)
+                                                     (Correspondence.matchingProperties corr)
                                                             propertyPairs'))
                                                 identityPairs;
         val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');

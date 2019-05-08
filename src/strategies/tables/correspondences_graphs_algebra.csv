@@ -1,4 +1,0 @@
-type-vertex OR type-edge,type-integer,0.9
-tactic-edge_add OR tactic-vertex_add,op-+,0.9
-tactic-edge_remove OR tactic-vertex_remove,op--,0.9
-tactic-edge_count OR tactic-vertex_count,rel-=,0.9

@@ -1,0 +1,15 @@
+intsum,
+error_allowed,0
+answer_type,integer
+instrumental_types,"vertex,edge,graph"
+instrumental_tokens,"$vertex,$edge"
+instrumental_patterns,"$complete_graph"
+instrumental_facts,"$count_invariant"
+instrumental_tactics,"$constructive_omega_rule"
+relevant_tokens,""
+relevant_related_tokens,""
+num_tokens,15
+num_distinct_tokens,2
+num_statements,0
+noise_tokens,""
+noise_related_tokens,""

@@ -1,0 +1,8 @@
+type-vertex,type-vertex OR type-node,1
+type-edge,type-edge,1
+token-point,token-point,1
+token-line,token-line,1
+pattern-$complete_graph,token-complete,0.8
+tactic-edge_add OR tactic-vertex_add,token-add OR token-plus,0.8
+tactic-edge_remove OR tactic-vertex_remove,token-remove OR token-minus,0.8
+tactic-edge_count OR tactic-vertex_count,token-count OR token-amount,0.8

@@ -1,0 +1,5 @@
+type-class OR type-occurrence,type-cell,0.75
+token-union,token-SUM,0.25
+token-intersection,token-PRODUCT,0.25
+token-probability,tactic-get_value OR tactic-compare_values,0.5
+token-universe,token-last_row AND token-last_column,1

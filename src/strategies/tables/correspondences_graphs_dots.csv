@@ -1,5 +1,0 @@
-token-point OR token-line,token-dot,0.9
-type-edge OR type-vertex,type-unit,0.9
-tactic-vertex_count OR tactic-edge_count,tactic-count_equal OR tactic-count_less OR tactic-count_more,1
-tactic-edge_remove OR tactic-vertex_remove,tactic-cut_vertical OR tactic-cut_horizontal,0.7
-tactic-edge_add OR tactic-edge_remove,tactic-stack_vertical OR tactic-stack_horizontal,0.7

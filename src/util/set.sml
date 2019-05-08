@@ -30,6 +30,9 @@ sig
     val intersection : t set -> t set -> t set;
     val difference : t set -> t set -> t set;
 
+    val unionAll : t set list -> t set;
+    val intersectionAll : t set list -> t set;
+
     val map : (t -> 'a) -> t set -> 'a list;
     val endomap : (t -> t) -> t set -> t set;
     val filter : (t -> bool) -> t set -> t set;
@@ -64,6 +67,7 @@ type t = O.t;
 structure D = Dictionary(struct
                           type k = t;
                           val compare = O.compare;
+                          val fmt = O.fmt;
                           end);
 type 'a set = ('a, unit) D.dict;
 
@@ -72,11 +76,16 @@ fun fromList xs = D.fromPairList (map (fn x => (x, ())) xs);
 fun toList xs = map (fn (x,_) => x) (D.toPairList xs);
 fun toString items =
     let
+        val printThreshold = 100;
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
         val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val tooLong = (D.size items) > printThreshold;
+        val mostItems = if tooLong
+                        then (List.take (withCommas, 2 * printThreshold))
+                        else withCommas;
+        val joined = String.concat mostItems;
     in
-        "{" ^ joined ^ "}"
+        "{" ^ joined ^ (if tooLong then "..." else "") ^ "}"
     end;
 
 
@@ -97,6 +106,9 @@ fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
     in
         fromList result
     end;
+
+fun unionAll xs = D.unionAllWith (fn (_, _, _) => ()) xs;
+fun intersectionAll xs = D.intersectionAllWith (fn (_, _, _) => ()) xs;
 
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun endomap f xs = fromList (map f xs);

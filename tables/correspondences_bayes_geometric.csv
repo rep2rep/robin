@@ -1,0 +1,16 @@
+type-event,type-segment OR type-region,1
+token-\emptyset, token-$dot OR token-$segment,1
+token-0, token-$dot,0.5
+token-\Omega,type-region,0.5
+token-+,tactic-join,0.25
+token--,tactic-delete,0.25
+token-*,tactic-area,0.25
+token-\div,tactic-compare_sizes,0.5
+token-\cup,tactic-join,1
+token-\cap,tactic-distinguish,1
+token-\Pr,tactic-area OR tactic-compare_sizes,1
+token-|,tactic-compare_sizes,0.5
+token-=,type-region,1
+fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
+fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$area_additivity,1
+fact-$non_negative_probability,fact-$non_negative_area,1
