@@ -189,7 +189,7 @@ fun loadQuestionTable filename = let
                                     NONE => defaultImportance
                                   | SOME i => i;
             fun makeProp v = QProperty.fromPair
-                                 (Property.fromKindValuePair ( keypre, v),
+                                 (Property.fromKindValuePair (keypre, v),
                                   importance);
         in
             qset' (map makeProp (valparser args))
@@ -346,12 +346,60 @@ end;
 
 fun questionTableToCSV ((qname, qrs), qproperties) filename =
     let
-        fun qPropertyKind qp = Property.kindOf (QProperty.withoutImportance qp);
-        fun getAllOfKind kind qps = QPropertySet.filter
-                                        (fn qp => kind = (qPropertyKind qp))
-                                        qps;
+        val propertyKinds = map (fn (s, (r, k, i)) => (k, i, s))
+                                (GenDict.items (!qPropertyKeyMap));
+
+        fun qPropertyToTriple qp =
+            let
+                fun valueString (Property.Label s) = s
+                  | valueString (Property.Number i) = Int.toString i
+                  | valueString (Property.Boolean b) = if b then "TRUE" else "FALSE";
+                val (p, importance) = QProperty.toPair qp;
+                val (kind, rawValue) = Property.toKindValuePair p;
+                val value = valueString rawValue;
+            in
+                (kind, value, importance)
+            end;
+        fun getLabel (k, i) =
+            let
+                fun notRelated (_, _, x) = not (String.isSubstring "_related_" x);
+                fun findName [] = (Logging.error("Cannot find "
+                                                 ^ (Property.stringOfKind k)
+                                                 ^ ", "
+                                                 ^ (Importance.toString i)
+                                                 ^ "\n");
+                                   raise Match)
+                  | findName ((k', i', s)::xs) =
+                    if k' = k andalso i' = i then s
+                    else findName xs;
+            in
+                findName (List.filter notRelated propertyKinds)
+            end;
+        fun groupByFirst xs =
+            let
+                fun collectLike (a, bs) [] ans = List.rev ((a, List.rev bs)::ans)
+                  | collectLike (a, bs) ((x, y)::xs) ans =
+                    if a = x
+                    then collectLike (a, y::bs) xs ans
+                    else collectLike (x, [y]) xs ((a, List.rev bs)::ans);
+                val sorted = mergesort
+                                 (fn ((a, b), (x, y)) => String.compare(a, x))
+                                 xs;
+            in
+                case sorted of
+                    [] => []
+                  | ((a, b)::xs) => collectLike (a, [b]) xs []
+            end; (*TODO*)
+        fun makeCell xs = map
+                              (fn (a, b) =>
+                                  [a, String.concat (intersperse ", " b)])
+                              xs;
+        val triples = QPropertySet.map qPropertyToTriple qproperties;
+        val pairs = map (fn (k, v, i) => (getLabel (k, i), v)) triples;
+        val cellData = (makeCell o groupByFirst) pairs;
         val csvFile = CSVLiberal.openOut filename;
         val _ = CSVLiberal.outputRow csvFile [qname, qrs];
+        val _ = CSVLiberal.output csvFile cellData;
         val _ = (CSVLiberal.flushOut csvFile; CSVLiberal.closeOut csvFile);
     in () end;
 
