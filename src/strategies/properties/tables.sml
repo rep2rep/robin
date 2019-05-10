@@ -389,7 +389,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                 case sorted of
                     [] => []
                   | ((a, b)::xs) => collectLike (a, [b]) xs []
-            end; (*TODO*)
+            end;
         fun makeCell xs = map
                               (fn (a, b) =>
                                   [a, String.concat (intersperse ", " b)])
