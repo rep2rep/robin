@@ -183,8 +183,13 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => raise TableError ("Unknown property key: "
-                                             ^ key);
+                  | NONE => (
+                      Logging.error("Warning: "
+                                    ^ "Unknown property key: "
+                                    ^ key ^ "\n");
+                      ((fn s => [Property.Label s]),
+                       Property.kindOfString key,
+                       Importance.Low));
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
@@ -216,9 +221,14 @@ fun loadRepresentationTable filename = let
                                     handle GenDict.KeyError => NONE;
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
-                                        | NONE => raise TableError(
-                                                     "Unknown property key: "
-                                                     ^ key)
+                                        | NONE => (
+                                            Logging.error(
+                                                "Warning: "
+                                                ^ "Unknown property key: "
+                                                ^ key ^ "\n");
+                                            ((fn s => [Property.Label s]),
+                                            Property.kindOfString key)
+                                        )
             fun makeProp v = Property.fromKindValuePair ( keypre, v);
         in
             set' (map makeProp (valparser args))
