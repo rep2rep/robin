@@ -1,5 +1,3 @@
-import "strategies.property_analysis";
-
 signature COGNITIVE_PROPERTIES =
 sig
   val sigmoid : real -> real -> real -> real -> real;
@@ -79,6 +77,28 @@ fun inferenceTypeCost qT uP =
 
 fun relationArity qT =  ;
 fun relationArityCost qT uP =
+    let val C = 2.0 ;
+        val W =  ;
+        fun userTh table profile =  ;
+        val T = userTh qT uP;
+    in sigmoid C W T x
+    end;
+
+(* (relevant+) squared divided by all tokens, times the average
+value for the symbol attributes of types*)
+fun registrationSymbol qT = ;
+fun registartionSymbolCost qT uP =
+    let val C = 2.0 ;
+        val W =  ;
+        fun userTh table profile =  ;
+        val T = userTh qT uP;
+    in sigmoid C W T x
+    end;
+
+(* instrumental patterns divided by all patterns, times the average
+value for the expression attributes of types*)
+fun registrationExpression qT = ;
+fun registartionExpressionCost qT uP =
     let val C = 2.0 ;
         val W =  ;
         fun userTh table profile =  ;
