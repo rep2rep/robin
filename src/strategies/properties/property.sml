@@ -70,9 +70,9 @@ fun BooleanOf p =
     case valueOf p of Boolean b => b
                     | _ => (print "Not a Boolean";raise Match);
 
-fun typeOf (_,x,_) = case x of SOME t => t | NONE => raise Match;
+fun typeOf (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
 
-fun attributesOf (_,_,a) = a;
+fun attributesOf (_,_,_,a) = a;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = String.compare (k,k')
@@ -107,61 +107,21 @@ fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
         else c
     end;
 
-  (*)
-fun compare (Simple p, Simple p') = compareKindValuePair (p, p')
-  | compare (Typed (p,t), Typed (p',t')) = let val c = compareKindValuePair (p, p')
-                                           in if c = EQUAL
-                                              then Type.compare (t,t')
-                                              else c
-                                           end
-  | compare (Attr (p,a), Attr (p',a')) = let val c = compareKindValuePair (p, p')
-                                           in if c = EQUAL
-                                              then List.collate String.compare (a,a')
-                                              else c
-                                           end
-  | compare (p,p') = let val c = compareKindValuePair (toKindValuePair p, toKindValuePair p')
-                     in if c = EQUAL
-                        then case (p,p') of (Simple _, _) => LESS
-                                          | (_, Simple _) => GREATER
-                                          | (Typed _, _) => LESS
-                                          | (_, Typed _) => GREATER
-                                          | _ => raise Match
-                        else c
-                     end  ;
-*)
-(*propertyMatch is meant to be used for finding whether a correspondence holds
+
+(*match is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information, and type-matching when
   there is type information *)
-
 fun match (p,p') =
     let val M = (Type.match (typeOf p) (typeOf p') handle _ => true)
-    in M andalso (toKindValuePair p) = (toKindValuePair p')
+    in M andalso ((toKindValuePair p) = (toKindValuePair p'))
     end
-  (*
-fun match (Simple kv, p) = (kv = toKindValuePair p)
-  | match (p, Simple kv) = (kv = toKindValuePair p)
-  | match (Typed (kv,t), Typed (kv',t')) = (kv = kv' andalso Type.match t t')
-  | match (Attr (kv,_), Attr (kv',_)) = (kv = kv')
-  | match _ = false
-  *)
-
-(*
-fun toString (Simple (k,v)) = k ^ "[" ^ stringOfValue v ^ "]"
-  | toString (Typed ((k,v),t)) = k ^ "[" ^ stringOfValue v  ^ " : " ^ (Type.toString t) ^ "]"
-  | toString (Attr ((k,v),a)) = k ^ "[" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}"  ^ "]";
-  *)
 
 fun toString (k,v,xt,ats) =
     let val sv = stringOfValue v
         val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
-        val sats = case ats of [] => "" | SOME aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
+        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
     in k ^ "-" ^ sv ^ st ^ sats
     end
-(*
-fun toString (Simple (k,v)) = k ^ "-" ^ stringOfValue v
-  | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfValue v  ^ " : " ^ (Type.toString t)
-  | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
-*)
 
 (* quick function to get the contents of curly brackets. Assumes no nested brackets. *)
 fun getUntilCharacter c (h::t) = if h = c then [] else h::(getUntilCharacter c t)
@@ -176,15 +136,6 @@ fun breakUntilCharacter _ [] = ([],[])
       else let val (x,y) = breakUntilCharacter c t
            in (h::x,y)
            end;
-(*
-fun findType s =
-   let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then ff (skipUntilCharacter #"}" L)
-                           else if c = #":" then getUntilCharacter #":" (c'::L)
-                           else ff (c'::L)
-         | ff _ = []
-   in String.implode (ff (String.explode s))
-   end;
-   *)
 
 fun findAttributes s =
     let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then breakUntilCharacter #"}" L
@@ -206,32 +157,10 @@ fun findType s =
     end;
 
 fun fromKindValuePair (k,vRaw) =
-    let val (atts,rest) = findAttributes vRaw
+    let val (atts,rest) = findAttributes (stringOfValue vRaw)
         val (xt,v) = if k = "pattern" then (NONE,rest) else findType rest
-    in (k,v,xt,atts)
+    in (k,Label v,xt,atts)
     end;
-
-fun fromKindValuePair (k,vRaw) =
-    if stringOfKind k = "pattern" then Simple (k,vRaw) else
-      let val sv = stringOfValue vRaw
-      in
-        case map stringTrim (String.tokens (fn c => c = #":") sv) of
-           [v,s] =>
-              if String.substring (s,0,1) = "{" then
-                  if s = "{}" then Attr ((k,Label v),[])
-                  else let
-                            fun dropEnds [] = []
-                              | dropEnds [x] = []
-                              | dropEnds [x, y] = []
-                              | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
-                            val s' = String.implode (dropEnds (String.explode s));
-                        in
-                          Attr ((k,Label v),map stringTrim (String.tokens (fn c => c = #";") s'))
-                        end
-              else Typed ((k,Label v), Type.fromString s)
-         | [_] => Simple (k,vRaw)
-         | _ => raise Match
-      end;
 
 fun breakStringUntil c s =
   let
