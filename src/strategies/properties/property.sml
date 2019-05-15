@@ -38,6 +38,7 @@ struct
 
 type kind = string;
 datatype value = Label of string | Number of int | Boolean of bool;
+type attribute = string;
 
 fun kindOfString s = s;
 fun stringOfKind s = s;
@@ -48,15 +49,11 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE";
 
-datatype property = Simple of (kind * value)
-                  | Typed of ((kind * value) * Type.T)
-                  | Attr of ((kind * value) * string list);
+type property = (kind * value * (Type.T option) * attribute list);
 
 exception ParseError;
 
-fun toKindValuePair (Simple kv) = kv
-  | toKindValuePair (Typed (kv,_)) = kv
-  | toKindValuePair (Attr (kv,_)) = kv;
+fun toKindValuePair (k,v,_,_) = (k,v)
 
 fun kindOf p = #1 (toKindValuePair p);
 fun valueOf p = #2 (toKindValuePair p);
@@ -73,11 +70,9 @@ fun BooleanOf p =
     case valueOf p of Boolean b => b
                     | _ => (print "Not a Boolean";raise Match);
 
-fun typeOf (Typed (_,t)) = t
-  | typeOf _ = raise Match;
+fun typeOf (_,x,_) = case x of SOME t => t | NONE => raise Match;
 
-fun attributesOf (Attr (_,a)) = a
-  | attributesOf _ = raise Match;
+fun attributesOf (_,_,a) = a;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = String.compare (k,k')
@@ -92,15 +87,27 @@ fun compareKindValuePair ((k,v),(k',v')) =
        else c
     end;
 
-fun typeOf (Typed (_,t)) = t
-  | typeOf _ = raise Match;
-
-fun attributesOf (Attr (_,a)) = a
-  | attributesOf _ = raise Match;
-
 (*A lexicographic order for the property type. The name takes precedence, then
   the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
   Useful for putting it into a dictionary; not for much else*)
+fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
+    let
+        val c = compareKindValuePair ((k,v),(k',v'))
+    in
+        if c = EQUAL
+        then case (xt,xt') of
+                (NONE,NONE) =>  List.collate String.compare (ats,ats')
+              | (NONE, SOME _) => LESS
+              | (SOME t, SOME t') => let val c' = Type.compare (t,t')
+                                     in if c' = EQUAL
+                                        then List.collate String.compare (ats,ats')
+                                        else c'
+                                     end
+              | (SOME _, NONE) => GREATER
+        else c
+    end;
+
+  (*)
 fun compare (Simple p, Simple p') = compareKindValuePair (p, p')
   | compare (Typed (p,t), Typed (p',t')) = let val c = compareKindValuePair (p, p')
                                            in if c = EQUAL
@@ -121,24 +128,88 @@ fun compare (Simple p, Simple p') = compareKindValuePair (p, p')
                                           | _ => raise Match
                         else c
                      end  ;
-
+*)
 (*propertyMatch is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information, and type-matching when
   there is type information *)
+
+fun match (p,p') =
+    let val M = (Type.match (typeOf p) (typeOf p') handle _ => true)
+    in M andalso (toKindValuePair p) = (toKindValuePair p')
+    end
+  (*
 fun match (Simple kv, p) = (kv = toKindValuePair p)
   | match (p, Simple kv) = (kv = toKindValuePair p)
   | match (Typed (kv,t), Typed (kv',t')) = (kv = kv' andalso Type.match t t')
   | match (Attr (kv,_), Attr (kv',_)) = (kv = kv')
   | match _ = false
+  *)
 
 (*
 fun toString (Simple (k,v)) = k ^ "[" ^ stringOfValue v ^ "]"
   | toString (Typed ((k,v),t)) = k ^ "[" ^ stringOfValue v  ^ " : " ^ (Type.toString t) ^ "]"
   | toString (Attr ((k,v),a)) = k ^ "[" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}"  ^ "]";
   *)
+
+fun toString (k,v,xt,ats) =
+    let val sv = stringOfValue v
+        val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
+        val sats = case ats of [] => "" | SOME aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
+    in k ^ "-" ^ sv ^ st ^ sats
+    end
+(*
 fun toString (Simple (k,v)) = k ^ "-" ^ stringOfValue v
   | toString (Typed ((k,v),t)) = k ^ "-" ^ stringOfValue v  ^ " : " ^ (Type.toString t)
   | toString (Attr ((k,v),a)) = k ^ "-" ^ stringOfValue v  ^ " : {" ^ (String.concat (intersperse "; " a)) ^ "}" ;
+*)
+
+(* quick function to get the contents of curly brackets. Assumes no nested brackets. *)
+fun getUntilCharacter c (h::t) = if h = c then [] else h::(getUntilCharacter c t)
+  | getUntilCharacter _ [] = [];
+
+fun skipUntilCharacter c (h::t) = if h = c then t else (skipUntilCharacter c t)
+  | skipUntilCharacter _ [] = [];
+
+fun breakUntilCharacter _ [] = ([],[])
+  | breakUntilCharacter c (h::t) =
+      if h = c then ([],t)
+      else let val (x,y) = breakUntilCharacter c t
+           in (h::x,y)
+           end;
+(*
+fun findType s =
+   let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then ff (skipUntilCharacter #"}" L)
+                           else if c = #":" then getUntilCharacter #":" (c'::L)
+                           else ff (c'::L)
+         | ff _ = []
+   in String.implode (ff (String.explode s))
+   end;
+   *)
+
+fun findAttributes s =
+    let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then breakUntilCharacter #"}" L
+                           else let val (x,y) = ff (c'::L)
+                                in (x,c::y)
+                                end
+          | ff L = ([],L)
+        val (atts',rest) = ff (String.explode s)
+        val atts = map stringTrim (String.tokens (fn c => c = #";") (String.implode atts'))
+    in (atts, String.implode rest)
+    end;
+
+(* assumes  we're not dealing with a pattern. It's easier this way *)
+fun findType s =
+    let val (_,s') = findAttributes s
+        val (v,typ') = breakUntilCharacter #":" (String.explode s')
+        val typ = case typ' of [] => NONE | ts => SOME (Type.fromString (String.implode ts))
+    in (typ, String.implode v)
+    end;
+
+fun fromKindValuePair (k,vRaw) =
+    let val (atts,rest) = findAttributes vRaw
+        val (xt,v) = if k = "pattern" then (NONE,rest) else findType rest
+    in (k,v,xt,atts)
+    end;
 
 fun fromKindValuePair (k,vRaw) =
     if stringOfKind k = "pattern" then Simple (k,vRaw) else
