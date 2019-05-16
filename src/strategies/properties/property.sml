@@ -11,6 +11,7 @@ sig
     type kind;
     datatype value = Label of string | Number of int | Boolean of bool;
     type property;
+    type attribute;
 
     val stringOfKind : kind -> string;
     val kindOfString : string -> kind;
@@ -18,11 +19,13 @@ sig
     val sameKind : kind * kind -> bool;
     val kindOf : property -> kind;
     val valueOf : property -> value;
-    val LabelOf : property -> string;
-    val NumberOf : property -> int;
-    val BooleanOf : property -> bool;
+
+      val LabelOf : property -> string;
+      val NumberOf : property -> int;
+      val BooleanOf : property -> bool;
+
     val typeOf : property -> Type.T;
-    val attributesOf : property -> string list;
+    val attributesOf : property -> attribute list;
 
     val compare : property * property -> order;
     val match : property * property -> bool;
