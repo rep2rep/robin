@@ -58,8 +58,8 @@ exception ParseError;
 
 fun toKindValuePair (k,v,_,_) = (k,v)
 
-fun kindOf p = #1 (toKindValuePair p);
-fun valueOf p = #2 (toKindValuePair p);
+fun kindOf (k,_,_,_) = k;
+fun valueOf (_,v,_,_) = v;
 
 fun LabelOf p =
     case valueOf p of Label s => s
@@ -99,7 +99,7 @@ fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
     in
         if c = EQUAL
         then case (xt,xt') of
-                (NONE,NONE) =>  List.collate String.compare (ats,ats')
+                (NONE, NONE) =>  List.collate String.compare (ats,ats')
               | (NONE, SOME _) => LESS
               | (SOME t, SOME t') => let val c' = Type.compare (t,t')
                                      in if c' = EQUAL
@@ -126,12 +126,6 @@ fun toString (k,v,xt,ats) =
     in k ^ "-" ^ sv ^ st ^ sats
     end
 
-(* quick function to get the contents of curly brackets. Assumes no nested brackets. *)
-fun getUntilCharacter c (h::t) = if h = c then [] else h::(getUntilCharacter c t)
-  | getUntilCharacter _ [] = [];
-
-fun skipUntilCharacter c (h::t) = if h = c then t else (skipUntilCharacter c t)
-  | skipUntilCharacter _ [] = [];
 
 fun breakUntilCharacter _ [] = ([],[])
   | breakUntilCharacter c (h::t) =
@@ -166,12 +160,8 @@ fun fromKindValuePair (k,vRaw) =
     end;
 
 fun breakStringUntil c s =
-  let
-      fun breakUntilChar c [] a = (rev a,[])
-        | breakUntilChar c (h::t) a = if h = c then (rev a,t) else breakUntilChar c t (h::a);
-      val (x,y) = (breakUntilChar c (String.explode s) [])
-  in
-    (String.implode x, String.implode y)
+  let val (x,y) = breakUntilCharacter c (String.explode s)
+  in (String.implode x, String.implode y)
   end;
 
 fun fromString s =
