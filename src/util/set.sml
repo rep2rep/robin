@@ -45,6 +45,8 @@ sig
     val isEmpty : t set -> bool;
     val contains : t set -> t -> bool;
     val subset : t set -> t set -> bool;
+
+    val getFirst : t set -> t;
 end;
 
 
@@ -127,5 +129,7 @@ fun contains xs x =
 fun subset xs ys =
     let val contained = map (fn x => contains ys x) xs;
     in all contained end;
+
+fun getFirst xs = #1 (D.getFirst xs);
 
 end;
