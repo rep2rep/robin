@@ -50,10 +50,7 @@ fun main () =
         val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
         val _ = RepSelect.init(rsFiles, corrFiles,
                                ["tables/Q_table_"
-                                ^ (qName)
-                                ^ "_"
-                                ^ (qRep)
-                                ^ ".csv"]);
+                                ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations (qName, qRep) numAlternatives;
     in
         Logging.write ("RECOMMEND: " ^
