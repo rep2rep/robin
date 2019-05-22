@@ -4,21 +4,17 @@ import "util.dictionary";
 import "util.parser";
 
 import "strategies.properties.importance";
+import "strategies.properties.kind";
 
 signature PROPERTY =
 sig
     exception ParseError;
 
-    type kind;
     datatype value = Label of string | Number of int | Boolean of bool;
     type property;
     type attribute;
 
-    val stringOfKind : kind -> string;
-    val kindOfString : string -> kind;
-
-    val sameKind : kind * kind -> bool;
-    val kindOf : property -> kind;
+    val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
 
     val LabelOf : property -> string;
@@ -32,28 +28,22 @@ sig
     val match : property * property -> bool;
 
     val toString : property -> string;
-    val fromKindValuePair : kind * value -> property;
-    val toKindValuePair : property -> kind * value;
+    val fromKindValuePair : Kind.kind * value -> property;
+    val toKindValuePair : property -> Kind.kind * value;
     val fromString : string -> property;
 end;
 
 structure Property :> PROPERTY =
 struct
 
-type kind = string;
 datatype value = Label of string | Number of int | Boolean of bool;
 type attribute = string;
-
-fun kindOfString s = s;
-fun stringOfKind s = s;
-
-fun sameKind (k,k') = (k = k');
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE";
 
-type property = (kind * value * (Type.T option) * attribute list);
+type property = (Kind.kind * value * (Type.T option) * attribute list);
 
 exception ParseError;
 
@@ -79,7 +69,7 @@ fun typeOf (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
 fun attributesOf (_,_,_,a) = a;
 
 fun compareKindValuePair ((k,v),(k',v')) =
-    let val c = String.compare (k,k')
+    let val c = Kind.compare (k,k')
     in if c = EQUAL
        then case (v,v') of (Boolean b, Boolean b') => if b then if b' then EQUAL else GREATER else if b' then LESS else EQUAL
                          | (Boolean _, _) => LESS
@@ -124,7 +114,7 @@ fun toString (k,v,xt,ats) =
     let val sv = stringOfValue v
         val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
         val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
-    in k ^ "-" ^ sv ^ st ^ sats
+    in (Kind.toString k) ^ "-" ^ sv ^ st ^ sats
     end
 
 
@@ -157,7 +147,7 @@ fun findType s =
 fun fromKindValuePair (k,vRaw) =
     let
         val (atts,rest) = findAttributes (stringOfValue vRaw);
-        val (xt,v) = if k = "pattern" then (NONE,rest) else findType rest;
+        val (xt,v) = if k = Kind.Pattern then (NONE,rest) else findType rest;
     in (k,Label v,xt,atts)
     end;
 
@@ -170,8 +160,8 @@ fun fromString s =
     let val (ks,_,vs) = Parser.breakOn "-" s;
     in
         if vs = ""
-        then fromKindValuePair (kindOfString s, Boolean true)
-        else fromKindValuePair (kindOfString ks, Label vs)
+        then fromKindValuePair (Kind.fromString s, Boolean true)
+        else fromKindValuePair (Kind.fromString ks, Label vs)
     end;
 
 end;
@@ -188,6 +178,8 @@ sig
     val toPair : property -> (Property.property * Importance.importance);
     val fromPair : (Property.property * Importance.importance) -> property;
     val withoutImportance : property -> Property.property;
+    val kindOf : property -> Kind.kind;
+    val importanceOf : property -> Importance.importance;
 end;
 
 
@@ -208,6 +200,8 @@ fun fromString s =
 fun toPair (s, i) = (s, i);
 fun fromPair (s, i) = (s, i);
 fun withoutImportance (s, _) = s;
+fun kindOf (s, _) = Property.kindOf s;
+fun importanceOf (_, i) = i;
 
 end;
 
@@ -234,7 +228,7 @@ fun collectLeftMatches ps ps' =
     end;
 
 fun collectOfKind ps k =
-    let fun isOfKind p = Property.sameKind (Property.kindOf p, Property.kindOfString k);
+    let fun isOfKind p = Property.kindOf p = k;
     in filter isOfKind ps
     end;
 
@@ -257,9 +251,8 @@ structure QS = Set(struct
 open QS;
 
 fun collectOfKind ps k =
-    let fun isOfKind p = Property.sameKind
-                            (Property.kindOf (#1 (QProperty.toPair p)),
-                             Property.kindOfString k);
+    let
+        fun isOfKind p = (QProperty.kindOf p) = k;
     in filter isOfKind ps
     end;
 

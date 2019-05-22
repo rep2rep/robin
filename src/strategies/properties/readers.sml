@@ -1,9 +1,12 @@
 import "util.parser";
 import "strategies.properties.importance";
-import "strategies.properties.tables";
+import "strategies.properties.property";
+import "strategies.properties.kind";
 
 signature PROPERTYREADER =
 sig
+
+    exception ReadError of string * string;
 
     type reader;
 
@@ -18,6 +21,8 @@ end;
 structure PropertyReader : PROPERTYREADER =
 struct
 
+exception ReadError of string * string;
+
 type reader = string -> Property.value list;
 
 fun boolean str =
@@ -27,7 +32,10 @@ fun boolean str =
 fun number str =
     case Int.fromString str of
         SOME n => [Property.Number n]
-      | NONE => if str = "\\infty" then [Property.Number ~1] else raise PropertyTables.TableError ("Unable to read number from " ^ str);
+      | NONE => case str of
+                    "\\infty" => [Property.Number ~1]
+                  | "na" => [Property.Number ~2]
+                  | _ => raise ReadError ("number", str);
 
 fun label str = [Property.Label str];
 
@@ -38,23 +46,14 @@ fun collection str = listOf (fn s => [s]) str;
 fun dimension str =
     let
         fun parseDimProps s = if s = "{}" then []
-                              else let
-                                  fun dropEnds [] = []
-                                    | dropEnds [x] = []
-                                    | dropEnds [x, y] = []
-                                    | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
-                                  val s' = String.implode (dropEnds (String.explode s));
-                              in
-                                  Parser.splitStrip ";" s'
-                              end;
+                              else Parser.splitStrip ";" (Parser.removeBraces s);
         fun createPairs dimval =
             let
                 val parts = Parser.splitStrip ":" dimval;
             in
                 case parts of
                     [x, y] => (x, parseDimProps y)
-                  | _ => raise PropertyTables.TableError
-                               ("Unable to read dimensions from " ^ dimval)
+                  | _ => raise ReadError ("dimensions ", dimval)
             end;
         val dimensions = collection str;
         val dimensionsWithValues = map createPairs dimensions;
@@ -72,91 +71,111 @@ fun dimension str =
 end;
 
 
-let
+local
     open Importance;
     open PropertyReader;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
-    val tokenKind = Property.kindOfString "token";
-    val typeKind = Property.kindOfString "type";
-    val factKind = Property.kindOfString "fact";
-    val tacticKind = Property.kindOfString "tactic";
-    val patternKind = Property.kindOfString "pattern";
-    val modeKind = Property.kindOfString "mode";
-    val importKind = Property.kindOfString "import";
-    val gComplexityKind = Property.kindOfString "grammatical_complexity";
-    val rigorousKind = Property.kindOfString "rigorous";
-    val iComplexityKind = Property.kindOfString "inferential_complexity";
-    val samKind = Property.kindOfString "standard_accessibility_manipulation";
-    val kmsKind = Property.kindOfString "knowledge_manipulation_system";
-    val eemKind = Property.kindOfString "editable_external_memory";
-    val errorKind = Property.kindOfString "error_allowed";
-    val dimensionUseKind = Property.kindOfString "dimension_use";
-    val gDimensionalityKind = Property.kindOfString "grammatical_dimensionality";
-    val gGranularityKind = Property.kindOfString "grammatical_granularity";
-    val branchingFactorKind = Property.kindOfString "mean_branching_factor";
-    val prDistinctKind = Property.kindOfString "pr_distinct_state_change";
-    val prValidKind = Property.kindOfString "pr_valid_state_change";
-    val numTokensKind = Property.kindOfString "num_tokens";
-    val numDistinctTokensKind = Property.kindOfString "num_distinct_tokens";
-
     val RSProperties = [
-        ("mode", (listOf label, modeKind)),
-        ("grammar_imports", (listOf label, importKind)),
-        ("grammatical_complexity", (label, gComplexityKind)),
-        ("rigorous", (boolean, rigorousKind)),
-        ("knowledge_manipulation_system", (boolean, kmsKind)),
-        ("facts", (listOf label, factKind)),
-        ("fact_imports", (listOf label, importKind)),
-        ("tactics", (listOf label, tacticKind)),
-        ("inferential_complexity", (number, iComplexityKind)),
-        ("standard_accessibility_manipulations", (listOf label, samKind)),
-        ("editable_external_memory", (boolean, eemKind)),
-        ("physical_dimension_use", (dimension, dimensionUseKind)),
-        ("grammatical_dimensionality", (number, gDimensionalityKind)),
-        ("grammatical_granularity", (label, gGranularityKind)),
-        ("mean_branching_factor", (number, branchingFactorKind)),
-        ("pr_distinct_state_change", (label, prDistinctKind)),
-        ("pr_valid_state_change", (label, prValidKind)),
-        ("types", (listOf label, typeKind)),
-        ("tokens", (listOf label, tokenKind)),
-        ("operators", (listOf label, tokenKind)),
-        ("relations", (listOf label, tokenKind)),
-        ("patterns", (listOf label, patternKind))
+        ("mode",
+         (listOf label, Kind.Mode)),
+        ("grammar_imports",
+         (listOf label, Kind.Import)),
+        ("grammatical_complexity",
+         (label, Kind.GrammaticalComplexity)),
+        ("rigorous",
+         (boolean, Kind.Rigorous)),
+        ("logical_order",
+         (number, Kind.LogicalOrder)),
+        ("knowledge_manipulation_system",
+         (boolean, Kind.KnowledgeManipulationSystem)),
+        ("quantifiers",
+         (listOf label, Kind.Quantifier)),
+        ("facts",
+         (listOf label, Kind.Fact)),
+        ("fact_imports",
+         (listOf label, Kind.Import)),
+        ("tactics",
+         (listOf label, Kind.Tactic)),
+        ("accessible_tactics",
+         (boolean, Kind.AccessibleTactics)),
+        ("accessible_facts",
+         (boolean, Kind.AccessibleFacts)),
+        ("inferential_complexity",
+         (number, Kind.InferentialComplexity)),
+        ("standard_accessibility_manipulations",
+         (listOf label, Kind.StandardAccessibilityManipulations)),
+        ("accessible_grammatical_constructors",
+         (listOf label, Kind.AccessibleGrammaticalConstructors)),
+        ("editable_external_memory",
+         (boolean, Kind.EditableExternalMemory)),
+        ("physical_dimension_use",
+         (dimension, Kind.DimensionUse)),
+        ("grammatical_dimensionality",
+         (number, Kind.GrammaticalDimensionality)),
+        ("grammatical_granularity",
+         (label, Kind.GrammaticalGranularity)),
+        ("mean_branching_factor",
+         (number, Kind.BranchingFactor)),
+        ("mean_solution_depth",
+         (number, Kind.SolutionDepth)),
+        ("limit_construction_size",
+         (boolean, Kind.LimitConstructionSize)),
+        ("pr_distinct_state_change",
+         (label, Kind.PrDistinctStateChange)),
+        ("pr_valid_state_change",
+         (label, Kind.PrValidStateChange)),
+        ("parse_generate_structures",
+         (label, Kind.ParseGenerateStructures)),
+        ("parse_generate_mapping",
+         (label, Kind.ParseGenerateMapping)),
+        ("types",
+         (listOf label, Kind.Type)),
+        ("tokens",
+         (listOf label, Kind.Token)),
+        ("operators",
+         (listOf label, Kind.Token)),
+        ("relations",
+         (listOf label, Kind.Token)),
+        ("patterns",
+         (listOf label, Kind.Pattern))
     ];
     val QProperties = [
         ("error_allowed",
-         (label, errorKind, High)),
+         (label, Kind.ErrorAllowed, High)),
         ("answer_type",
-         (listOf label, typeKind, High)),
+         (listOf label, Kind.Type, High)),
         ("instrumental_tokens",
-         (listOf label, tokenKind, Medium)),
+         (listOf label, Kind.Token, Medium)),
         ("instrumental_types",
-         (listOf label, typeKind, Medium)),
+         (listOf label, Kind.Type, Medium)),
         ("instrumental_patterns",
-         (listOf label, patternKind, Medium)),
+         (listOf label, Kind.Pattern, Medium)),
         ("instrumental_facts",
-         (listOf label, factKind, Medium)),
+         (listOf label, Kind.Fact, Medium)),
         ("instrumental_tactics",
-         (listOf label, tacticKind, Medium)),
+         (listOf label, Kind.Tactic, Medium)),
         ("relevant_tokens",
-         (listOf label, tokenKind, Low)),
+         (listOf label, Kind.Token, Low)),
         ("relevant_related_tokens",
-         (listOf label, tokenKind, Low)),
+         (listOf label, Kind.Token, Low)),
         ("num_tokens",
-         (number, numTokensKind, Zero)),
+         (number, Kind.NumTokens, Zero)),
         ("num_distinct_tokens",
-         (number, numDistinctTokensKind, Zero)),
+         (number, Kind.NumDistinctTokens, Zero)),
+        ("num_statements",
+         (number, Kind.NumStatements, Zero)),
         ("noise_tokens",
-         (listOf label, tokenKind, Noise)),
+         (listOf label, Kind.Token, Noise)),
         ("noise_related_tokens",
-         (listOf label, tokenKind, Noise))
+         (listOf label, Kind.Token, Noise))
     ];
     val QandRSProperties = [
     ];
 in
-    PropertyTables.setQGenerators
-        (QProperties @ QandRSProperties);
-    PropertyTables.setRSGenerators
-        (RSProperties @ (stripImportance QandRSProperties))
+    fun registerPropertyReaders setQGenerators setRSGenerators =
+        (setQGenerators
+             (QProperties @ QandRSProperties);
+         setRSGenerators
+             (RSProperties @ (stripImportance QandRSProperties)))
 end;

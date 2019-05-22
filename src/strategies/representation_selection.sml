@@ -16,6 +16,10 @@ structure FileDict = PropertyTables.FileDict;
 
 (* Read in some data *)
 
+val _ = registerPropertyReaders
+            PropertyTables.setQGenerators
+            PropertyTables.setRSGenerators;
+
 val propertyTableRep' = ref (FileDict.empty ());
 val correspondingTable' = ref [];
 val propertyTableQ' = ref (FileDict.empty ());

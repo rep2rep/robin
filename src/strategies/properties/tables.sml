@@ -6,6 +6,7 @@ import "util.csv";
 import "strategies.properties.property";
 import "strategies.properties.importance";
 import "strategies.properties.correspondence";
+import "strategies.properties.readers";
 
 signature PROPERTYTABLES =
 sig
@@ -13,8 +14,8 @@ sig
 
     structure FileDict : DICTIONARY;
 
-    type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
-    type rsgenerator = (string -> Property.value list) * Property.kind;
+    type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
+    type rsgenerator = (string -> Property.value list) * Kind.kind;
 
     val loadCorrespondenceTable : string -> Correspondence.correspondence list;
     val loadQuestionTable : string -> (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
@@ -61,8 +62,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
-type rsgenerator = (string -> Property.value list) * Property.kind;
+type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
+type rsgenerator = (string -> Property.value list) * Kind.kind;
 
 fun readCorrespondence q r s =
     let
@@ -173,16 +174,18 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [Property.Label s]),Property.kindOfString (key ), Importance.Low);
+                  | NONE => ((fn s => [Property.Label s]), (Kind.fromString key), Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
             fun makeProp v = QProperty.fromPair
-                                 (Property.fromKindValuePair ( keypre, v),
+                                 (Property.fromKindValuePair (keypre, v),
                                   importance);
         in
             qset' (map makeProp (valparser args))
-        end;
+        end
+        handle Kind.KindError =>
+               raise TableError ("Unable to determine kind of " ^ key);
 in
     filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
 end;
@@ -197,11 +200,13 @@ fun loadRepresentationTable filename = let
                                     handle GenDict.KeyError => NONE;
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
-                                        | NONE => ((fn s => [Property.Label s]), Property.kindOfString (key ));
+                                        | NONE => raise TableError ("Unknown property kind: " ^ key);
             fun makeProp v = Property.fromKindValuePair ( keypre, v);
         in
             set' (map makeProp (valparser args))
-        end;
+        end
+        handle PropertyReader.ReadError (r, v) =>
+               raise TableError ("Unable to read " ^ r ^ ": " ^ v);
 in
     filedict' (loadQorRSPropertiesFromFile sets parseRow genProps filename)
 end;
