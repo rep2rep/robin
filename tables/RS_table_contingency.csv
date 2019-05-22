@@ -12,10 +12,10 @@ fact_imports,NONE
 tactics,"add_value, add_formula, get_value, compare_values"
 inferential_complexity,2
 standard_accessibility_manipulations,"add_row, add_column, copy, paste"
-accessible_fact,FALSE
+accessible_facts,FALSE
 accessible_tactics,FALSE
 accessible_grammatical_constructors,TRUE
-editable-external-memory,TRUE
+editable_external_memory,TRUE
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological}, colour:{}"
 grammatical_dimensionality,2
 grammatical_granularity,discrete
