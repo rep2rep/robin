@@ -147,6 +147,8 @@ fun fromString s =
         val read = F.fromString Property.fromString;
     in
         (read leftString, read rightString, realFromString valString)
-    end;
+    end
+    handle F.ParseError => raise ParseError
+         | Kind.KindError => raise ParseError;
 
 end;
