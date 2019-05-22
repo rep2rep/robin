@@ -64,17 +64,13 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
 type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
 type rsgenerator = (string -> Property.value list) * Property.kind;
 
-datatype CorrTree = Prop of string
-                  | Neg of CorrTree
-                  | Conj of CorrTree * CorrTree
-                  | Disj of CorrTree * CorrTree;
-
-
 fun readCorrespondence q r s =
     let
         val rowString = q ^ "," ^ r ^ "," ^ s;
     in
         [Correspondence.fromString rowString]
+        handle Correspondence.ParseError =>
+               raise TableError ("Failed to parse row: " ^ rowString ^ "\n")
     end;
 
 fun loadCorrespondenceTable filename =
@@ -87,7 +83,7 @@ fun loadCorrespondenceTable filename =
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
     in
-        List.foldr (fn (r, xs) => (makeRow r) @ xs) [] csvData
+        flatmap makeRow csvData
     end
     handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))

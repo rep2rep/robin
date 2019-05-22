@@ -1,6 +1,7 @@
 import "util.set";
 import "util.type";
 import "util.dictionary";
+import "util.parser";
 
 import "strategies.properties.importance";
 
@@ -20,9 +21,9 @@ sig
     val kindOf : property -> kind;
     val valueOf : property -> value;
 
-      val LabelOf : property -> string;
-      val NumberOf : property -> int;
-      val BooleanOf : property -> bool;
+    val LabelOf : property -> string;
+    val NumberOf : property -> int;
+    val BooleanOf : property -> bool;
 
     val typeOf : property -> Type.T;
     val attributesOf : property -> attribute list;
@@ -141,21 +142,22 @@ fun findAttributes s =
                                 end
           | ff L = ([],L)
         val (atts',rest) = ff (String.explode s)
-        val atts = map stringTrim (String.tokens (fn c => c = #";") (String.implode atts'))
+        val atts = Parser.splitStrip ";" (String.implode atts')
     in (atts, String.implode rest)
     end;
 
 (* assumes  we're not dealing with a pattern. It's easier this way *)
 fun findType s =
-    let val (_,s') = findAttributes s
-        val (v,typ') = breakUntilCharacter #":" (String.explode s')
-        val typ = case typ' of [] => NONE | ts => SOME (Type.fromString (String.implode ts))
-    in (typ, String.implode v)
+    let val (_,s') = findAttributes s;
+        val (v,_,typ') = Parser.breakOn ":" s';
+        val typ = case typ' of "" => NONE | ts => SOME (Type.fromString ts)
+    in (typ, v)
     end;
 
 fun fromKindValuePair (k,vRaw) =
-    let val (atts,rest) = findAttributes (stringOfValue vRaw)
-        val (xt,v) = if k = "pattern" then (NONE,rest) else findType rest
+    let
+        val (atts,rest) = findAttributes (stringOfValue vRaw);
+        val (xt,v) = if k = "pattern" then (NONE,rest) else findType rest;
     in (k,Label v,xt,atts)
     end;
 
@@ -165,10 +167,12 @@ fun breakStringUntil c s =
   end;
 
 fun fromString s =
-  let val (ks,vs) = breakStringUntil #"-" s
-  in if vs = "" then fromKindValuePair (kindOfString s, Boolean true)
-     else fromKindValuePair (kindOfString ks, Label vs)
-  end;
+    let val (ks,_,vs) = Parser.breakOn "-" s;
+    in
+        if vs = ""
+        then fromKindValuePair (kindOfString s, Boolean true)
+        else fromKindValuePair (kindOfString ks, Label vs)
+    end;
 
 end;
 
@@ -196,15 +200,11 @@ exception ParseError;
 val compare = cmpJoin Property.compare Importance.compare;
 fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
 fun fromString s =
-    let
-        val splitter = fn c => c = #"(" orelse  c = #")" orelse c = #",";
-    in
-        case String.tokens splitter s of
-            [a, b] => (case Importance.fromString b of
-                           SOME b' => (Property.fromString a, b')
-                         | NONE => raise ParseError)
-          | _ => raise ParseError
-    end;
+    case Parser.splitStrip "," (Parser.removeParens s) of
+        [a, b] =>(case Importance.fromString b of
+                      SOME b' => (Property.fromString a, b')
+                    | NONE => raise ParseError)
+      | _ => raise ParseError;
 fun toPair (s, i) = (s, i);
 fun fromPair (s, i) = (s, i);
 fun withoutImportance (s, _) = s;

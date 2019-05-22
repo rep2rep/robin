@@ -14,6 +14,7 @@ we would generate the properties
     op-+, op--, op-*, op-\sqrt, sentential, logic-power-2
 *)
 
+import "util.parser";
 import "strategies.properties.importance";
 import "strategies.properties.tables";
 
@@ -32,10 +33,10 @@ fun number str =
 fun label str = [Property.Label str];
 
 fun collection str = if str = "NONE" then []
-                     else map (Property.Label o stringTrim) (String.tokens (fn c => c = #",") str);
+                     else map Property.Label (Parser.splitStrip "," str);
 
 fun collection' str = if str = "NONE" then []
-                    else map (stringTrim) (String.tokens (fn c => c = #",") str);
+                    else Parser.splitStrip "," str;
 fun dimension str =
     let
         fun parseDimProps s = if s = "{}" then []
@@ -46,11 +47,11 @@ fun dimension str =
                                     | dropEnds (x::xs) = List.rev (List.tl (List.rev xs));
                                   val s' = String.implode (dropEnds (String.explode s));
                               in
-                                  map stringTrim (String.tokens (fn c => c = #";") s')
+                                  Parser.splitStrip ";" s'
                               end;
         fun createPairs dimval =
             let
-                val parts = map stringTrim (String.tokens (fn c => c = #":") dimval);
+                val parts = Parser.splitStrip ":" dimval;
             in
                 case parts of
                     [x, y] => (x, parseDimProps y)
