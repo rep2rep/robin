@@ -13,6 +13,7 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
+    val remove : ''a -> ''a list -> ''a list;
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
@@ -66,6 +67,7 @@ fun import filename =
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
     ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
 
+fun remove needle haystack = List.filter (fn x => x = needle) haystack;
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
