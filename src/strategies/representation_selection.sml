@@ -117,13 +117,6 @@ fun propInfluence (q, r, s) =
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
-        fun modulate strength importance =
-            case importance of
-                Importance.Noise => 0.0
-              | Importance.Zero => 0.0
-              | Importance.Low => 0.2 * strength
-              | Importance.Medium => 0.6 * strength
-              | Importance.High => strength;
         fun liftImportance c = (c,
                                 max (Importance.compare)
                                     (Correspondence.liftImportances qProps' c))
@@ -148,17 +141,26 @@ fun propInfluence (q, r, s) =
                 map liftImportance correspondences
             end;
         val strength = Correspondence.strength;
-        val sort = mergesort (revCmp (fn ((_, i), (_, i')) => Importance.compare (i, i')));
+        val sort = mergesort
+                       (revCmp (fn ((_, i), (_, i')) =>
+                                   Importance.compare (i, i')));
         val mix = fn ((c, i), s) =>
-                     (Logging.write ("CORRESPONDENCE " ^
-                           (Correspondence.toString c) ^
-                           ", IMPORTANCE " ^
-                           (Importance.toString i) ^
-                           "\n");
-                      Logging.write ("VAL s = " ^
-                                     (Real.toString ((modulate (strength c) i) + s)) ^
-                                     "\n");
-                      ((modulate (strength c) i) + s));
+                     let
+                         val s' = s + (Importance.modulate i (strength c));
+                         val cs = Correspondence.toString c;
+                         val is = Importance.toString i;
+                         val ss = Real.toString s';
+                         val _ = Logging.write ("CORRESPONDENCE "
+                                                ^ cs
+                                                ^ ", IMPORTANCE "
+                                                ^ is
+                                                ^ "\n");
+                         val _ = Logging.write ("VAL s = "
+                                                ^ ss
+                                                ^ "\n");
+                     in
+                         s'
+                     end;
         val s' = List.foldl mix s (sort propertyPairs);
     in
         Logging.write ("\n");
