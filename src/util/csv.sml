@@ -9,6 +9,8 @@ more customisation to be added in future.
 
 *)
 
+import "util.parser";
+
 signature CSVConfig =
 sig
     val delimiters : char list;

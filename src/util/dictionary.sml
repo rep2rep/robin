@@ -48,7 +48,7 @@ sig
     val equal: (k, 'v) dict * (k, 'v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 
-    val getFirst : (k, 'v) dict -> (k * 'v)
+    val getFirst : (k, 'v) dict -> (k * 'v);
 end;
 
 

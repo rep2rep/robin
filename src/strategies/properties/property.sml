@@ -268,4 +268,13 @@ fun collectOfImportance ps i =
     in filter isOfImportance ps
     end;
 
+fun filterMatches p qs =
+    let
+        fun qmatch v = Property.match (p, QProperty.withoutImportance v);
+    in
+        filter qmatch qs
+    end;
+
+fun isMatchedIn p qs = not (isEmpty (filterMatches p qs));
+
 end;

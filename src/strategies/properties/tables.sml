@@ -259,42 +259,6 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
                                       (GenDict.values (!qPropertyKeyMap))));
     fun dropImportance props =
         PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
-    fun liftImportance c =
-        let
-            fun collateImportances props =
-                let
-                    val uniqueProperties = dropImportance props;
-                    fun collectImportances p' qps =
-                        let
-                            fun filterSome' [] ans = List.rev ans
-                              | filterSome' ((SOME x)::xs) ans = filterSome' xs (x::ans)
-                              | filterSome' (NONE::xs) ans = filterSome' xs ans;
-                            fun filterSome xs = filterSome' xs [];
-                            fun someImportance qp =
-                                let
-                                    val (p, i) = QProperty.toPair qp;
-                                in
-                                    if (Property.compare (p', p) = EQUAL)
-                                    then SOME i else NONE
-                                end;
-                        in
-                            filterSome (QPropertySet.map someImportance qps)
-                        end;
-                in
-                    PropertyDictionary.fromPairList (
-                        PropertySet.map
-                            (fn p => (p, collectImportances p props))
-                            uniqueProperties)
-                end;
-            val importanceLookup = collateImportances sourceProperties;
-            val getImportance = PropertyDictionary.get importanceLookup;
-            val flatten = flatmap (fn x => x);
-            val qp = Correspondence.leftMatches
-                         (dropImportance sourceProperties)
-                         c;
-        in
-            map (fn i => (c, i)) (flatten (PropertySet.map getImportance qp))
-        end;
     val sourceProps = dropImportance sourceProperties;
     val matches' = List.filter
                        (Correspondence.match
@@ -312,7 +276,12 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
                                          (Correspondence.matchingProperties corr)
                                          matches'))
                              identityPairs;
-    val matches = flatmap liftImportance (matches' @ identityPairs');
+    val matches = flatmap
+                      (fn c =>
+                          map (fn i => (c, i))
+                              (Correspondence.liftImportances
+                                   sourceProperties c))
+                      (matches' @ identityPairs');
     fun translateProperty (correspondence, importance) =
         let
             val strength = Correspondence.strength correspondence;
