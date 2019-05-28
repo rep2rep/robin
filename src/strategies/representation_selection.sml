@@ -117,30 +117,6 @@ fun propInfluence (q, r, s) =
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
-        fun liftImportance c =
-            let
-                fun collateImportances propPairs =
-                    let
-                        val uniqueProperties = PropertySet.fromList (map (fn (p, i) => p) propPairs);
-                        fun collectImportances p' [] ans = ans
-                          | collectImportances p' ((p,i)::ps) ans =
-                            if (Property.compare (p', p) = EQUAL) then collectImportances p' ps (i::ans)
-                            else collectImportances p' ps ans;
-                    in
-                        PropertySet.map (fn p => (p, collectImportances p propPairs [])) uniqueProperties
-                    end;
-                val importanceLookup = (PropertyDictionary.fromPairList o
-                                        collateImportances o
-                                        (map QProperty.toPair) o
-                                        QPropertySet.toList) qProps';
-                val importanceMax = max Importance.compare;
-                val getImportance = PropertyDictionary.get importanceLookup;
-                val flatten = flatmap (fn x => x);
-                val qp = Correspondence.leftMatches qProps c;
-                val i = importanceMax (flatten (PropertySet.map getImportance qp));
-            in
-                (c, i)
-            end;
         fun modulate strength importance =
             case importance of
                 Importance.Noise => 0.0
@@ -148,19 +124,31 @@ fun propInfluence (q, r, s) =
               | Importance.Low => 0.2 * strength
               | Importance.Medium => 0.6 * strength
               | Importance.High => strength;
-        val propertyPairs' = List.filter
-                                 (Correspondence.match qProps rProps)
-                                 (!correspondingTable');
-        val identityPairs = PropertySet.map
-                                Correspondence.identity
-                                (PropertySet.collectLeftMatches qProps rProps);
-        val identityPairs' = List.filter (fn corr =>
-                                             not(List.exists
-                                                     (Correspondence.matchingProperties corr)
-                                                            propertyPairs'))
-                                                identityPairs;
-        val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');
+        fun liftImportance c = (c,
+                                max (Importance.compare)
+                                    (Correspondence.liftImportances qProps' c))
+        val propertyPairs =
+            let
+                fun alreadyCorresponding correspondences corr =
+                    List.exists (Correspondence.matchingProperties corr)
+                                correspondences;
+                val baseCorrs = List.filter
+                                    (Correspondence.match qProps rProps)
+                                    (!correspondingTable');
+                val allIdentities =
+                    PropertySet.map
+                        Correspondence.identity
+                        (PropertySet.collectLeftMatches qProps rProps);
+                val identityCorrs =
+                    List.filter (fn corr =>
+                                    not(alreadyCorresponding baseCorrs corr))
+                                allIdentities;
+                val correspondences = identityCorrs @ baseCorrs;
+            in
+                map liftImportance correspondences
+            end;
         val strength = Correspondence.strength;
+        val sort = mergesort (revCmp (fn ((_, i), (_, i')) => Importance.compare (i, i')));
         val mix = fn ((c, i), s) =>
                      (Logging.write ("CORRESPONDENCE " ^
                            (Correspondence.toString c) ^
@@ -171,7 +159,7 @@ fun propInfluence (q, r, s) =
                                      (Real.toString ((modulate (strength c) i) + s)) ^
                                      "\n");
                       ((modulate (strength c) i) + s));
-        val s' = List.foldl mix s propertyPairs;
+        val s' = List.foldl mix s (sort propertyPairs);
     in
         Logging.write ("\n");
         Logging.write ("RETURN (" ^ (#1 q) ^ ":" ^ (#2 q) ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
