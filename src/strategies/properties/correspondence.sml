@@ -1,6 +1,7 @@
 import "util.set";
 import "util.dictionary";
 import "util.formula";
+import "util.parser";
 
 import "strategies.properties.property";
 import "strategies.properties.importance";
@@ -160,24 +161,7 @@ fun toString (q, r, s) =
 
 fun fromString s =
     let
-        fun removeParens s =
-            let
-                fun charIs c = fn x => x = c
-                fun flipAndDropIf p [] = raise Match
-                  | flipAndDropIf p xs = case List.rev xs of
-                                             (y::ys) => if p y then ys
-                                                        else raise Match
-                                           | [] => [];
-                val chars = String.explode s;
-                val dropped = flipAndDropIf
-                                  (charIs #"(") (flipAndDropIf
-                                                     (charIs #")") chars)
-                              handle Match => chars;
-                val s' = String.implode dropped;
-            in
-                s'
-            end;
-        val parts = String.tokens (fn c => c = #",") (removeParens s);
+        val parts = Parser.splitStrip "," (Parser.removeParens s);
         val (leftString, rightString, valString) =
             case parts of
                 [l, r, v] => (l, r, v)
@@ -190,6 +174,8 @@ fun fromString s =
         val read = F.fromString Property.fromString;
     in
         (read leftString, read rightString, realFromString valString)
-    end;
+    end
+    handle F.ParseError => raise ParseError
+         | Kind.KindError => raise ParseError;
 
 end;

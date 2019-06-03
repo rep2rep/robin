@@ -23,6 +23,10 @@ structure TableDict = Dictionary(struct
 
 (* Read in some data *)
 
+val _ = registerPropertyReaders
+            PropertyTables.setQGenerators
+            PropertyTables.setRSGenerators;
+
 val propertyTableRep' = ref (TableDict.empty ());
 val correspondingTable' = ref [];
 val propertyTableQ' = ref (TableDict.empty ());

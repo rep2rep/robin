@@ -9,8 +9,6 @@ import "strategies.representation_selection";
 *)
 Logging.enable ();
 
-exception ArgumentError of int;
-
 structure RepSelect = RepresentationSelection;
 
 fun filesMatchingPrefix dir prefix =
