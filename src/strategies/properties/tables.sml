@@ -4,6 +4,7 @@ import "util.dictionary";
 import "util.csv";
 
 import "strategies.properties.property";
+import "strategies.properties.kind";
 import "strategies.properties.importance";
 import "strategies.properties.correspondence";
 import "strategies.properties.readers";
@@ -12,8 +13,8 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    type qgenerator = (string -> Property.value list) * Property.kind * Importance.importance;
-    type rsgenerator = (string -> Property.value list) * Property.kind;
+    type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
+    type rsgenerator = (string -> Property.value list) * Kind.kind;
     type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
     type representationtable = string * PropertySet.t PropertySet.set;
     type correspondencetable = Correspondence.correspondence list;
@@ -186,7 +187,7 @@ fun loadQuestionTable filename = let
                                     ^ "Unknown property key: "
                                     ^ key ^ "\n");
                       ((fn s => [Property.Label s]),
-                       Property.kindOfString key,
+                       Kind.fromString key,
                        Importance.Low));
             val importance = case overrideImportance of
                                     NONE => defaultImportance
@@ -227,7 +228,7 @@ fun loadRepresentationTable filename = let
                                                 ^ "Unknown property key: "
                                                 ^ key ^ "\n");
                                             ((fn s => [Property.Label s]),
-                                            Property.kindOfString key)
+                                            Kind.fromString key)
                                         )
             fun makeProp v = Property.fromKindValuePair ( keypre, v);
         in
@@ -240,19 +241,17 @@ in
 end;
 
 local structure KindSet = Set(struct
-                               type t = Property.kind;
-                               fun compare (k, k') =
-                                   String.compare(Property.stringOfKind k,
-                                                  Property.stringOfKind k');
-                               val fmt = Property.stringOfKind;
+                               type t = Kind.kind;
+                               val compare = Kind.compare;
+                               val fmt = Kind.toString;
                                end) in
 fun computePseudoQuestionTable qTable targetRSTable corrTable = let
     val ((qName, qRS), sourceProperties) = qTable;
     val (targetRSName, targetRSProperties) = targetRSTable;
-    val badKinds = (KindSet.fromList o (map Property.kindOfString)) [
-                       "error_allowed",
-                       "num_tokens",
-                       "num_distinct_tokens"
+    val badKinds = KindSet.fromList [
+                       Kind.ErrorAllowed,
+                       Kind.NumTokens,
+                       Kind.NumDistinctTokens
                    ];
     val propertyKinds = KindSet.fromList
                             (List.filter
@@ -304,7 +303,7 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
         fun isErrorAllowedProperty qp =
             let
                 val k = Property.kindOf (QProperty.withoutImportance qp);
-                val errorAllowedKind = Property.kindOfString "error_allowed";
+                val errorAllowedKind = Kind.ErrorAllowed;
             in
                 k = errorAllowedKind
             end;
@@ -345,7 +344,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
             let
                 fun notRelated (_, _, x) = not (String.isSubstring "_related_" x);
                 fun findName [] = (Logging.error("Cannot find "
-                                                 ^ (Property.stringOfKind k)
+                                                 ^ (Kind.toString k)
                                                  ^ ", "
                                                  ^ (Importance.toString i)
                                                  ^ "\n");
