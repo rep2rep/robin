@@ -248,6 +248,9 @@ fun fromString builder s =
 
     in
         ((map builder) o normalise o parse o tokenize) s
-    end;
+    end
+    handle Parser.ParseError => (Logging.error
+                                     ("Failed to parse formula \"" ^ s ^ "\"\n");
+                                 raise ParseError);
 
 end;

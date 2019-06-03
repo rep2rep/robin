@@ -125,7 +125,7 @@ fun getArgBool args x =
 
 fun readQuestion qrs =
     let val separator = ":"
-    in case (Parser.splitStringOn separator qrs) of
+    in case (Parser.splitOn separator qrs) of
            [q, rs] => (q, rs)
          | _ => raise ArgumentError qrs
     end;
@@ -144,9 +144,9 @@ fun configFromCommandLine rawArgs =
         val args = readCommandLineArguments argspec rawArgs;
         val (q, rs) = readQuestion (getArgument args "question:rs");
         val limit = readLimit (getArgument args "suggestion limit");
-        val rss = flatmap (Parser.splitStringOn ",")
+        val rss = flatmap (Parser.splitStrip ",")
                           (getArguments args "potential RSs");
-        val corrFiles = flatmap (Parser.splitStringOn ",")
+        val corrFiles = flatmap (Parser.splitStrip ",")
                                 (getArguments args "correspondence files");
     in
         ((q, rs), limit, rss, corrFiles)

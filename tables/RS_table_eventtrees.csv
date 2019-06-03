@@ -11,7 +11,7 @@ fact_imports,""
 tactics,"add_variable_children, reroot, calculate_node_pr, compare_values"
 inferential_complexity,1
 standard_accessibility_manipulations,"undo"
-accessible_fact,FALSE
+accessible_facts,FALSE
 accessible_tactics,TRUE
 accessible_grammatical_constructors,FALSE
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"

@@ -14,7 +14,16 @@ sig
     val try : (''a, 'b) parser -> ''a list -> bool;
     val run : (''a, 'b) parser -> ''a list -> 'b;
 
-    val splitStringOn : string -> string -> string list;
+    val stripSpaces : string -> string;
+    val splitOn : string -> string -> string list;
+    val splitStrip : string -> string -> string list;
+    val breakOn : string -> string -> (string * string * string);
+    val removeDelimiters : (string * string) -> string -> string;
+    val removeParens : string -> string;
+    val removeBraces : string -> string;
+    val removeSquareBrackets : string -> string;
+    val removeDoubleQuotes : string -> string;
+    val removeSingleQuotes : string -> string;
 
 end;
 
@@ -69,8 +78,15 @@ fun repeat p = fn xs =>
 fun try p xs = ((run p xs); true)
                handle ParseError => false;
 
-fun splitStringOn sep s =
-    let
+fun splitOn sep s =
+    if (String.size sep) = 1
+    then let
+        val char = List.hd (String.explode sep);
+        val match = fn c => c = char;
+    in
+        String.tokens match s
+    end
+    else let
         val chars = String.explode s;
         val sepChars = String.explode sep;
         fun startsWithSep' [] r = (true, r)
@@ -97,6 +113,61 @@ fun splitStringOn sep s =
     in
         group [] [] (String.explode s)
     end;
+
+fun stripSpaces str =
+    let
+        val chars = String.explode str;
+        val remainingChars = List.rev
+                                 (dropWhile
+                                      Char.isSpace
+                                      (List.rev
+                                           (dropWhile
+                                                Char.isSpace
+                                                chars)));
+    in
+        String.implode remainingChars
+    end;
+
+fun splitStrip sep s = map stripSpaces (splitOn sep s);
+
+fun breakOn sep s =
+    let
+        val sepChars = String.explode sep;
+        val sChars = String.explode s;
+        fun fwJoin cs = String.implode cs;
+        fun bwJoin cs = String.implode (List.rev cs);
+        fun break front [] after _ = (bwJoin front, sep, fwJoin after)
+          | break front (c::cs) [] _ = (s, "", "")
+          | break front (x::xs) (c::cs) accum =
+            if x = c then break front xs cs (x::accum)
+            else break (c::(accum@front)) sepChars cs [];
+    in
+        break [] sepChars sChars []
+    end;
+
+fun removeDelimiters (left, right) s =
+    let
+        val leftChars = String.explode left;
+        val rightChars = List.rev (String.explode right);
+        val sChars = String.explode s;
+        fun dropMatching [] s _ = SOME (List.rev s)
+          | dropMatching x [] dropped = NONE
+          | dropMatching (x::xs) (c::cs) dropped =
+            if x = c then dropMatching xs cs (c::dropped)
+            else NONE;
+    in
+        case dropMatching leftChars sChars [] of
+            NONE => s
+          | SOME chars => case dropMatching rightChars chars [] of
+                              NONE => s
+                            | SOME chars' => String.implode chars'
+    end;
+
+val removeParens = removeDelimiters ("(", ")");
+val removeBraces = removeDelimiters ("{", "}");
+val removeSquareBrackets = removeDelimiters ("[", "]");
+val removeDoubleQuotes = removeDelimiters ("\"", "\"");
+val removeSingleQuotes = removeDelimiters ("'", "'");
 
 end;
 
