@@ -138,7 +138,7 @@ fun fromString str =
           | collectUntil b (c::cs) xs =
             if (b c) then (String.implode (List.rev xs), c::cs)
             else collectUntil b cs (c::xs);
-        fun isInvalid c = not (Char.isAlpha c);
+        fun isInvalid c = not (Char.isAlpha c orelse c = #"_");
         fun typeTokens [] out = List.rev out
           | typeTokens (c::cs) out =
             if c = #"'" then let val (tok, cs') = collectUntil (isInvalid) cs []
