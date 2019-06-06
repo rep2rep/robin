@@ -1,22 +1,13 @@
 graphs,
-mode,"graph"
+mode,"connection"
 types,"vertex, edge, vertex_set, edge_set, graph, integer, label"
 tokens,"$point,$line"
 patterns,"$complete, $bipartite, $bipartite_complete, $empty, $acyclic"
-grammar_imports,"latin_alphabet"
+token_imports,"latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
 facts,"$count_invariant"
 fact_imports,NONE
 tactics,"edge_add,edge_remove,edge_count,vertex_add,vertex_remove,vertex_count,join_graphs,remove_graph,constructive_omega_rule"
 inferential_complexity,0
-accessible_facts,TRUE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
-grammatical_dimensionality,2
-grammatical_granularity,discrete
-mean_branching_factor,\infty
-pr_distinct_state_change,high
-pr_valid_state_change,high
-mean_solution_depth,5

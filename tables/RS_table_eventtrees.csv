@@ -1,23 +1,13 @@
 event_trees,
-mode,"graph"
-types,"real, event_tree, event_node, conjunction_edge"
-tokens,"$conjunction_edge, 0,1,2,3,4,5,6,7,8,9"
+mode,"connection"
+types,"real, abc_string, tree, node, edge"
+tokens,"$conjunction_edge"
 patterns,"$subgraph, $branch"
-grammar_imports,"base_10_real_numerals, latin_alphabet"
+token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
 facts,""
 fact_imports,""
 tactics,"add_variable_children, reroot, calculate_node_pr, compare_values"
 inferential_complexity,1
-standard_accessibility_manipulations,"undo"
-accessible_facts,FALSE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,FALSE
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"
-grammatical_dimensionality,2
-grammatical_granularity,discrete
-mean_branching_factor,\infty
-pr_distinct_state_change,0.5
-pr_valid_state_change,1
-mean_solution_depth,10

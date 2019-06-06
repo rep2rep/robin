@@ -79,7 +79,7 @@ local
     val RSProperties = [
         ("mode",
          (listOf label, Kind.Mode)),
-        ("grammar_imports",
+        ("token_imports",
          (listOf label, Kind.Import)),
         ("grammatical_complexity",
          (label, Kind.GrammaticalComplexity)),

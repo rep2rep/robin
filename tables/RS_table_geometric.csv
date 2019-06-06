@@ -1,8 +1,8 @@
 geometric,
-mode,"geometric"
+mode,"proportional"
 types,"point,segment,line,polygon,region,real,label"
 tokens,"$dot,$line,$segment"
-grammar_imports,"latin_alphabet"
+token_imports,"latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
 knowledge_manipulation_system,FALSE
@@ -10,14 +10,4 @@ facts,"$scale_independence_of_ratio,$area_additivity,$non_negative_area"
 fact_imports,NONE
 tactics,"draw_point,draw_line,draw_segment,draw_polygon,delete,distinguish,join,distance,area,change_label,compare_sizes,focus_on_region,observe"
 inferential_complexity,1
-standard_accessibility_manipulations,change_label
-accessible_facts,FALSE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;dense;metric;topological}, colour:{}"
-grammatical_dimensionality,2
-grammatical_granularity,dense
-mean_branching_factor,\infty
-pr_distinct_state_change,0.5
-pr_valid_state_change,0.9
-mean_solution_depth,10
