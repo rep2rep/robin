@@ -1,7 +1,7 @@
 geometric,
 mode,"proportional"
 types,"point,segment,line,polygon,region,real,label"
-tokens,"$dot,$line,$segment"
+tokens,"$point : point, $segment : segment"
 token_imports,"latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE

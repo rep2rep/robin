@@ -1,7 +1,7 @@
 graphs,
 mode,"connection"
-types,"vertex, edge, vertex_set, edge_set, graph, integer, label"
-tokens,"$point,$line"
+types,"vertex, vertex * vertex -> graph, graph, integer, abc_string"
+tokens,"$vertex : vertex , $edge : vertex * vertex -> graph"
 patterns,"$complete, $bipartite, $bipartite_complete, $empty, $acyclic"
 token_imports,"latin_alphabet"
 grammatical_complexity,type-3

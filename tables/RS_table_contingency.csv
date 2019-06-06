@@ -1,8 +1,8 @@
 contingency,
 mode,"sentential,grid"
 types,"string,real,cell,column,row"
-tokens,"$cell,0,1,2,3,4,5,6,7,8,9,+,-,*,/,=,SUM,PRODUCT"
-patterns,"$ordered_row,$ordered_column,$equal_values"
+tokens,"$cell : cell, + : real * real -> real, - : real * real -> real,* : real * real -> real,/ : real * real -> real,= : real * real -> bool, SUM : cell_set -> real, PRODUCT: cell_set -> real"
+patterns,"$ordered_row, $ordered_column, $equal_values, $column, $row"
 token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
