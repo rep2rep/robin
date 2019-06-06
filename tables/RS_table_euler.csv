@@ -11,7 +11,7 @@ fact_imports,NONE
 tactics,"add_contour,remove_contour,add_shaded_zone,remove_shaded_zone,remove_shading_from_zone,observe_inclusion,observe_intersection,observe_union"
 inferential_complexity,4
 standard_accessibility_manipulations,""
-accessible_fact,FALSE
+accessible_facts,FALSE
 accessible_tactics,TRUE
 accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;dense;topological}, Y:{grammatical;dense;topological;inferential}, colour:{}"
