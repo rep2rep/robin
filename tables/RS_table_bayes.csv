@@ -10,7 +10,7 @@ facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $u
 fact_imports,"real-number-arithmetic,finite-set-algebra"
 tactics,"rewrite:fact * term * state -> state, lemma: formula * state -> state, calc : state * term -> state"
 inferential_complexity,2
-accessible_fact,TRUE
+accessible_facts,TRUE
 accessible_tactics,TRUE
 accessible_grammatical_constructors,FALSE
 physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential}, colour:{}"

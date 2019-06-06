@@ -8,6 +8,8 @@ To provide more generality, we allow you to specify the tokens
 that you use for negation, conjunction, and disjunction.
 *)
 
+import "util.parser";
+
 signature FORMULA =
 sig
 
@@ -184,87 +186,71 @@ fun fromString builder s =
                                    (cluster [[]] (String.explode string))))
             end;
 
-        fun toCloseParen xs =
+        fun parseAtom () =
             let
-                fun toCloseParen' [] _ _ = raise ParseError
-                  | toCloseParen' (")"::cs) vs 0 = (List.rev vs, cs)
-                  | toCloseParen' (")"::cs) vs n =  toCloseParen' cs (")"::vs) (n-1)
-                  | toCloseParen' ("("::cs) vs n = toCloseParen' cs ("("::vs) (n+1)
-                  | toCloseParen' (c::cs) vs n = toCloseParen' cs (c::vs) n;
+                fun atom c = if c = "(" then NONE
+                             else if c = ")" then NONE
+                             else if c = Format.conj then NONE
+                             else if c = Format.disj then NONE
+                             else if c = Format.neg then NONE
+                             else SOME (Atom c);
             in
-                toCloseParen' xs [] 0
+                Parser.accept atom
+            end
+        and parseNeg () =
+            let
+                val readNegSign = Parser.expect Format.neg (Atom "NULL");
+                val readNegArg = parseCForm ();
+            in
+                (readNegSign)
+                    >>> (readNegArg)
+                    >=> (fn b => Parser.produce (Neg b))
+            end
+        and parseConj () =
+            let
+                val readConjSign = Parser.expect Format.conj (Atom "NULL");
+                val readLeftArg = parseBForm ();
+                val readRightArg = parseAForm ();
+            in
+                (readLeftArg)
+                    >=> (fn l => (readConjSign
+                                      >>> (readRightArg)
+                                      >=> (fn r => Parser.produce (Conj (l, r)))))
+            end
+        and parseDisj () =
+            let
+                val readDisjSign = Parser.expect Format.disj (Atom "NULL");
+                val readLeftArg = parseAForm ();
+                val readRightArg = parseFormula ();
+            in
+                (readLeftArg)
+                    >=> (fn l => (readDisjSign
+                                      >>> (readRightArg)
+                                      >=> (fn r => Parser.produce (Disj (l, r)))))
+            end
+        and parseFormula () = Parser.either (parseDisj) (parseAForm)
+        and parseAForm () = Parser.either (parseConj) (parseBForm)
+        and parseBForm () = Parser.either (parseNeg) (parseCForm)
+        and parseCForm () =
+            let
+                val openParen = Parser.expect "(" (Atom "NULL");
+                val closeParen = Parser.expect ")" (Atom "NULL");
+                val parseSubFormula =
+                    (openParen)
+                        >>> (parseFormula ())
+                        >=> (fn f => (closeParen
+                                          >>> (Parser.produce f)));
+            in
+                Parser.either (parseAtom) (fn () => parseSubFormula)
             end;
 
-        fun expect s [] = raise ParseError
-          | expect s (x::xs) = if x = s
-                               then (s, xs)
-                               else raise ParseError;
+        fun parse tokens = Parser.run (parseFormula ()) tokens;
 
-        fun parseAtom [] = raise ParseError
-          | parseAtom (x::xs) = if x = "("
-                                    then raise ParseError
-                                else if x = ")"
-                                    then raise ParseError
-                                else if x = Format.conj
-                                    then raise ParseError
-                                else if x = Format.disj
-                                    then raise ParseError
-                                else if x = Format.neg
-                                    then raise ParseError
-                                else (Atom x, xs)
-        and parseNeg [] = raise ParseError
-          | parseNeg xs =
-            let
-                val (neg, resta) = expect Format.neg xs;
-                val (atom, restb) = parseCForm resta;
-            in
-                (Neg atom, restb)
-            end
-        and parseConj [] = raise ParseError
-          | parseConj xs =
-            let
-                val (left, resta) = parseBForm xs;
-                val (andtok, restb) = expect Format.conj resta;
-                val (right, restc) = parseAForm restb;
-            in
-                (Conj (left, right), restc)
-            end
-        and parseDisj [] = raise ParseError
-          | parseDisj xs =
-            let
-                val (left, resta) = parseAForm xs;
-                val (ortok, restb) = expect Format.disj resta;
-                val (right, restc) = parseFormula restb;
-            in
-                (Disj (left, right), restc)
-            end
-        and parseFormula xs = parseDisj xs
-                              handle ParseError => parseAForm xs
-        and parseAForm xs = parseConj xs
-                            handle ParseError => parseBForm xs
-        and parseBForm xs = parseNeg xs
-                            handle ParseError => parseCForm xs
-        and parseCForm xs = parseAtom xs
-                            handle ParseError =>
-                                   let
-                                       val (lparn, resta) = expect "(" xs;
-                                       val (toks, restb) = toCloseParen resta;
-                                       val (formula, restc) = parseFormula toks;
-                                   in
-                                       case restc of
-                                           [] => (formula, restb)
-                                         | _ => raise ParseError
-                                   end;
-
-        fun parse tokens =
-            let
-                val (tree, tokens) = parseFormula tokens;
-            in
-                if (List.null tokens) then tree
-                else raise ParseError
-            end;
     in
         ((map builder) o normalise o parse o tokenize) s
-    end;
+    end
+    handle Parser.ParseError => (Logging.error
+                                     ("Failed to parse formula \"" ^ s ^ "\"\n");
+                                 raise ParseError);
 
 end;

@@ -13,7 +13,7 @@ rigorous,TRUE
 fact_imports,NONE
 tactics,"rewrite,lemma,calc,induction"
 inferential_complexity,2
-accessible_fact,TRUE
+accessible_facts,TRUE
 accessible_tactics,TRUE
 accessible_grammatical_constructors,FALSE
 physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
