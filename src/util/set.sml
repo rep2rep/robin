@@ -38,6 +38,7 @@ sig
     val filter : (t -> bool) -> t set -> t set;
     val foldl : (t * 'a -> 'a) -> 'a -> t set -> 'a;
     val foldr: (t * 'a -> 'a) -> 'a -> t set -> 'a;
+    val find : (t -> bool) -> t set -> t option;
 
     val size : t set -> int;
 
@@ -117,6 +118,7 @@ fun endomap f xs = fromList (map f xs);
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
 fun foldl f s xs = D.foldl (fn ((k, v), x) => f(k, x)) s xs;
 fun foldr f s xs = D.foldr (fn ((k, v), x) => f (k, x)) s xs;
+fun find p xs = Option.map #1 (D.find (fn (k, v) => p k) xs);
 
 fun size xs = D.size xs;
 
