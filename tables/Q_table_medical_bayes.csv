@@ -10,6 +10,5 @@ relevant_tokens,"0.98, 0.97, 0.01,d:event,t:event"
 relevant_related_tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
 num_tokens,20
 num_distinct_tokens,14
-num_statements,4
 noise_tokens,""
 noise_related_tokens,""
