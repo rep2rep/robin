@@ -8,7 +8,7 @@ sig
     val outputArity : T -> int;
     val inputArity : T -> int;
     val order : T -> int;
-    val match : T -> T -> bool;
+    val match : T * T -> bool;
     val compare : T * T -> order;
     val toString : T -> string;
     val toDebugString : T -> string;
@@ -80,14 +80,14 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
-fun match (Ground s) (Ground s') = (s = s')
+fun match (Ground s, Ground s') = (s = s')
 (*  | match (Var x) (Var y) = true*)
-  | match (Var x) t = true (*not (occurs x t)*)
-  | match t (Var x) = true (*not (occurs x t)*)
-  | match (Pair(s,t)) (Pair(s',t')) = (match s s') andalso (match t t')
-  | match (Function(s,t)) (Function(s',t')) = (match s s') andalso (match t t')
-  | match (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (match t t')
-  | match _ _ = false;
+  | match (Var x, t) = true (*not (occurs x t)*)
+  | match (t, Var x) = true (*not (occurs x t)*)
+  | match (Pair(s,t), Pair(s',t')) = (match (s, s')) andalso (match (t, t'))
+  | match (Function(s,t), Function(s',t')) = (match (s, s')) andalso (match (t, t'))
+  | match (Constructor(s,t), Constructor(s',t')) = (s = s') andalso (match (t, t'))
+  | match (_, _) = false;
 
 (*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
