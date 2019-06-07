@@ -250,6 +250,9 @@ structure QS = Set(struct
                     end);
 open QS;
 
+fun withoutImportances ps =
+    PropertySet.fromList (map (QProperty.withoutImportance) ps)
+
 fun collectOfKind ps k =
     let
         fun isOfKind p = (QProperty.kindOf p) = k;

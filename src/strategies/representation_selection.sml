@@ -91,8 +91,6 @@ fun propertiesRS rep =
            (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise TableDict.KeyError);
 
-fun withoutImportance props = PropertySet.fromList (QPropertySet.map (QProperty.withoutImportance) props);
-
 fun propertiesQ q =
     TableDict.get (!propertyTableQ') q
     handle TableDict.KeyError =>
@@ -117,40 +115,40 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps' = propertiesQ q;
-        val qProps = withoutImportance qProps';
+        val qProps = QPropertySet.withoutImportances qProps';
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
-        fun liftImportance c = (c,
-                                max (Importance.compare)
-                                    (Correspondence.liftImportances qProps' c))
-        val propertyPairs =
-            let
+        val matches =
+            let fun liftImportance c =
+                    (c, max (Importance.compare)
+                            (Correspondence.liftImportances qProps' c));
                 fun alreadyCorresponding correspondences corr =
                     List.exists (Correspondence.matchingProperties corr)
                                 correspondences;
-                val baseCorrs = List.filter
-                                    (Correspondence.match qProps rProps)
-                                    (!correspondingTable');
-                val allIdentities =
-                    PropertySet.map
-                        Correspondence.identity
-                        (PropertySet.collectLeftMatches qProps rProps);
+                val baseCorrs = List.filter (Correspondence.match qProps rProps)
+                                            (!correspondingTable');
+                val allIdentities = PropertySet.map
+                                        Correspondence.identity
+                                        (PropertySet.collectLeftMatches qProps
+                                                                        rProps);
                 val identityCorrs =
                     List.filter (fn corr =>
-                                    not(alreadyCorresponding baseCorrs corr))
+                                    not (alreadyCorresponding baseCorrs corr))
                                 allIdentities;
                 val correspondences = identityCorrs @ baseCorrs;
-            in
-                map liftImportance correspondences
-            end;
+            in map liftImportance correspondences end;
+
+        val modulate = Importance.modulate;
         val strength = Correspondence.strength;
+        (* Sort correspondences from most to least important *)
         val sort = mergesort
                        (revCmp (fn ((_, i), (_, i')) =>
                                    Importance.compare (i, i')));
         val mix = fn ((c, i), s) =>
                      let
-                         val s' = s + (Importance.modulate i (strength c));
+                         val s' = s + (modulate i (strength c));
+                         (* Logging information *)
                          val cs = Correspondence.toString c;
                          val is = Importance.toString i;
                          val ss = Real.toString s';
@@ -165,10 +163,13 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.foldl mix s (sort propertyPairs);
+        val s' = List.foldl mix s (sort matches);
     in
         Logging.write ("\n");
-        Logging.write ("RETURN (" ^ (#1 q) ^ ":" ^ (#2 q) ^ ", " ^ r ^ ", " ^ (Real.toString s') ^ ")\n");
+        Logging.write ("RETURN ("
+                       ^ (#1 q) ^ ":" ^ (#2 q)
+                       ^ ", " ^ r ^ ", "
+                       ^ (Real.toString s') ^ ")\n");
         Logging.dedent ();
         Logging.write ("END propInfluence\n\n");
         (q, r, s')
@@ -221,11 +222,8 @@ fun topKRepresentations question k =
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs
                             else List.take (xs, k);
-
-        val result = topK
-                         (sort
-                              (getValid
-                                   (map dropQuestion influencedRepresentations)));
+        val result = (topK o sort o getValid o map dropQuestion)
+                         influencedRepresentations;
     in
         Logging.write ("\n");
         Logging.write ("RETURN " ^
