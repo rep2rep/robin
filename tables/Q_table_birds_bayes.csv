@@ -10,6 +10,5 @@ relevant_tokens,"1, \div, 4, b, f, \Omega, 2, 3, |"
 relevant_related_tokens,"*, +, -, \cup, 0, assume, calculate"
 num_tokens,30
 num_distinct_tokens,12
-num_statements,4
 noise_tokens,""
 noise_related_tokens,""

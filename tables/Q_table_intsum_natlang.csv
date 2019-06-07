@@ -8,7 +8,6 @@ instrumental_facts,"$+-commutative, $+-associative"
 instrumental_tactics,"induction"
 relevant_tokens,"1,2,divided_by,minus,times,odd"
 relevant_related_tokens,"series,0,plus,squared"
-num_statements,1
 num_tokens,12
 num_distinct_tokens,9
 noise_tokens,""

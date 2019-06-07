@@ -10,6 +10,5 @@ relevant_tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half,
 relevant_related_tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"
 num_tokens,67
 num_distinct_tokens,31
-num_statements,5
 noise_tokens,"feathers"
 noise_related_tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,carnal,being,fauna"

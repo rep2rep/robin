@@ -10,6 +10,5 @@ relevant_tokens,"n:integer, i:integer, +, \div"
 relevant_related_tokens,"-,^,\sqrt,0"
 num_tokens,14
 num_distinct_tokens,9
-num_statements,1
 noise_tokens,""
 noise_related_tokens,""

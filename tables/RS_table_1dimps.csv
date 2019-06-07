@@ -1,22 +1,13 @@
 P-space_diagrams,
-mode,geometric
-logical_order,0
-types,"trial_line,outcome_segment,probability_segment,real,label"
-tokens,"$trial_line,$outcome_segment,$probability_segment"
-patterns,"$overlap,$empty_segment"
-grammar_imports,"base_10_real_numerals, latin_alphabet"
+mode,"proportional"
+tokens,"$trial_line : trial_line, $mark : trial_line -> trial_line"
+types,"trial_line, trial_line -> trial_line, real, abc_string"
+patterns,"$outcome_segment, $contained, $intersecting, $intersection, $union, $disjoint, $empty, $same_size"
+token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$scale_independence_of_ratio,$length_additivity,$non_negative_length"
+facts,"$scale_independence_of_ratio, $length_additivity, $non_negative_length, $length_of_empty"
 fact_imports,NONE
-tactics,"draw_trial_line,draw_outcome_segment,draw_and,draw_or,draw_conditional,measure_length,compare_lengths"
+tactics,"draw_trial_line, draw_mark, measure_length, measure_relative_length"
 inferential_complexity,1
-standard_accessibility_manipulations,""
-accessible_facts,FALSE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;inferential}, colour:{}"
-mean_branching_factor,4
-pr_distinct_state_change,1
-pr_valid_state_change,1
-mean_solution_depth,na
