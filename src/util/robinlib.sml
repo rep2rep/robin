@@ -108,7 +108,7 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
 
 fun all [] = true
   | all (b::bs) = b andalso (all bs);
