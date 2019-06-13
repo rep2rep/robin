@@ -199,3 +199,5 @@ fun revCmp c = fn p => case (c p) of
                          | EQUAL => EQUAL
                          | GREATER => LESS;
 end;
+
+open RobinLib;

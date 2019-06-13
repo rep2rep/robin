@@ -310,7 +310,8 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
             let
                 fun valueString (Property.Label s) = s
                   | valueString (Property.Number i) = Int.toString i
-                  | valueString (Property.Boolean b) = if b then "TRUE" else "FALSE";
+                  | valueString (Property.Boolean b) = if b then "TRUE" else "FALSE"
+                  | valueString (Property.Type t) = Type.toString t;
                 val (p, importance) = QProperty.toPair qp;
                 val (kind, rawValue) = Property.toKindValuePair p;
                 val value = valueString rawValue;
