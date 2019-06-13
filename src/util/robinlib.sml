@@ -13,6 +13,7 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
+    val remove : ''a -> ''a list -> ''a list;
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
     val intersperse : 'a -> 'a list -> 'a list;
     val enumerate : 'a list -> (int * 'a) list;
@@ -26,7 +27,6 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
-    val stringTrim : string -> string;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val flip : ('a * 'b) -> ('b * 'a);
     val cmpJoin : ('a * 'a -> order) -> ('b * 'b -> order) -> (('a * 'b) * ('a * 'b)) -> order;
@@ -64,6 +64,7 @@ fun import filename =
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
     ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
 
+fun remove needle haystack = List.filter (fn x => x = needle) haystack;
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
@@ -87,14 +88,21 @@ fun mergesort cmp [] = []
     in result
     end;
 
+fun intersperse s [] = []
+  | intersperse s (y::ys) =
+    let fun intersperse' [] ans = List.rev ans
+          | intersperse' (x::xs) ans = intersperse' xs (x::s::ans)
+    in
+        intersperse' ys [y]
+    end;
 
-fun intersperse _ [] = []
-  | intersperse _ [x] = [x]
-  | intersperse y (x::xs) = x::y::(intersperse y xs);
-
-
-fun enumerateFrom _ [] = []
-  | enumerateFrom i (x::xs) = (i, x)::(enumerateFrom (i+1) xs);
+fun enumerateFrom start list =
+    let
+        fun enumerateFrom' _ [] ans = List.rev ans
+          | enumerateFrom' i (x::xs) ans = enumerateFrom' (i+1) xs ((i, x)::ans)
+    in
+        enumerateFrom' start list []
+    end;
 
 fun enumerate xs = enumerateFrom 0 xs;
 
@@ -107,18 +115,27 @@ fun any [] = false
   | any (b::bs) = b orelse (any bs);
 
 fun max _ [] = raise List.Empty
-  | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER then a else b) x xs
+  | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
+                                               then a
+                                               else b)
+                                 x xs;
 
 fun min _ [] = raise List.Empty
-  | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS then a else b) x xs
+  | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS
+                                               then a
+                                               else b)
+                                 x xs;
 
 fun dropWhile pred [] = []
-  | dropWhile pred (x::xs) = if (pred x) then dropWhile pred xs
-                             else x::(dropWhile pred xs);
+  | dropWhile pred (x::xs) = if pred x then (dropWhile pred xs)
+                             else x::xs;
 
-fun takeWhile pred [] = []
-  | takeWhile pred (x::xs) = if (pred x) then x::(takeWhile pred xs)
-                             else (takeWhile pred xs);
+fun takeWhile pred list =
+    let fun takeWhile' [] ans = List.rev ans
+          | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
+                                      else List.rev ans;
+    in takeWhile' list []
+    end;
 
 fun listToString fmt items =
     let
@@ -135,20 +152,6 @@ fun lookaheadN (istr, count) =
         val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
     in
         lookahead
-    end;
-
-fun stringTrim str =
-    let
-        val chars = String.explode str;
-        val remainingChars = List.rev
-                                 (dropWhile
-                                      Char.isSpace
-                                      (List.rev
-                                           (dropWhile
-                                                Char.isSpace
-                                                chars)));
-    in
-        String.implode remainingChars
     end;
 
 fun spread f (a, b) = (f a, f b);

@@ -10,6 +10,5 @@ relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical
 relevant_related_tokens,"not,times,divided_by,plus,minus,equals,union,intersection, zero, empty, universe"
 num_tokens,64
 num_distinct_tokens,30
-num_statements,3
 noise_tokens,""
 noise_related_tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"

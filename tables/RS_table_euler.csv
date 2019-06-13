@@ -1,23 +1,13 @@
 euler,
-mode,"spatial_containment"
-types,"diagram,contour,zone,label"
-tokens,"$contour,$shading"
-grammar_imports,latin_alphabet
+mode,"containment"
+types,"diagram, contour, zone, abc_string"
+tokens,"$contour : contour, $shade : zone -> zone"
+token_imports,latin_alphabet
 grammatical_complexity,type-3
 rigorous,TRUE
 facts,"$containment_transitive"
-patterns,"$disjoint,$contained"
+patterns,"$zone, $disjoint, $contained, $intersection, $union"
 fact_imports,NONE
-tactics,"add_contour,remove_contour,add_shaded_zone,remove_shaded_zone,remove_shading_from_zone,observe_inclusion,observe_intersection,observe_union"
+tactics,"add_contour, remove_contour, add_shaded_zone, remove_shaded_zone, remove_shading_from_zone, observe_inclusion, observe_intersection, observe_union"
 inferential_complexity,4
-standard_accessibility_manipulations,""
-accessible_fact,FALSE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;dense;topological}, Y:{grammatical;dense;topological;inferential}, colour:{}"
-grammatical_dimensionality,2
-grammatical_granularity,dense
-mean_branching_factor,10
-pr_distinct_state_change,0.25
-pr_valid_state_change,1
-mean_solution_depth,10

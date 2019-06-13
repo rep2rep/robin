@@ -1,4 +1,5 @@
 import "util.logging";
+import "util.parser";
 
 signature TYPE =
 sig
@@ -7,7 +8,7 @@ sig
     val outputArity : T -> int;
     val inputArity : T -> int;
     val order : T -> int;
-    val match : T -> T -> bool;
+    val match : T * T -> bool;
     val compare : T * T -> order;
     val toString : T -> string;
     val toDebugString : T -> string;
@@ -79,14 +80,14 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
-fun match (Ground s) (Ground s') = (s = s')
+fun match (Ground s, Ground s') = (s = s')
 (*  | match (Var x) (Var y) = true*)
-  | match (Var x) t = true (*not (occurs x t)*)
-  | match t (Var x) = true (*not (occurs x t)*)
-  | match (Pair(s,t)) (Pair(s',t')) = (match s s') andalso (match t t')
-  | match (Function(s,t)) (Function(s',t')) = (match s s') andalso (match t t')
-  | match (Constructor(s,t)) (Constructor(s',t')) = (s = s') andalso (match t t')
-  | match _ _ = false;
+  | match (Var x, t) = true (*not (occurs x t)*)
+  | match (t, Var x) = true (*not (occurs x t)*)
+  | match (Pair(s,t), Pair(s',t')) = (match (s, s')) andalso (match (t, t'))
+  | match (Function(s,t), Function(s',t')) = (match (s, s')) andalso (match (t, t'))
+  | match (Constructor(s,t), Constructor(s',t')) = (s = s') andalso (match (t, t'))
+  | match (_, _) = false;
 
 (*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
@@ -137,7 +138,7 @@ fun fromString str =
           | collectUntil b (c::cs) xs =
             if (b c) then (String.implode (List.rev xs), c::cs)
             else collectUntil b cs (c::xs);
-        fun isInvalid c = not (Char.isAlpha c);
+        fun isInvalid c = not (Char.isAlpha c orelse c = #"_");
         fun typeTokens [] out = List.rev out
           | typeTokens (c::cs) out =
             if c = #"'" then let val (tok, cs') = collectUntil (isInvalid) cs []
@@ -151,87 +152,82 @@ fun fromString str =
             else let val (tok, cs') = collectUntil (isInvalid) (c::cs) []
                  in typeTokens cs' (tok::out) end;
 
-        fun expect s [] = raise ParseError
-          | expect s (x::xs) = if s = x then (Ground x, xs) else raise ParseError
+        fun parseGround () =
+            let
+                fun ground c = if c = "(" then NONE
+                               else if c = ")" then NONE
+                               else if c = "*" then NONE
+                               else if c = "->" then NONE
+                               else if String.isPrefix "'" c then NONE
+                               else SOME (Ground c);
+            in
+                Parser.accept ground
+            end
+        and parseVar () =
+            let
+                fun var c = if String.isPrefix "'" c
+                            then SOME (Var (String.extract (c, 1, NONE)))
+                            else NONE;
+            in
+                Parser.accept var
+            end
+        and parseConstructor () =
+            let
+                val parseInner = parseCType ();
+                val parseOuter = parseGround ();
+            in
+                (parseInner)
+                    >=> (fn c => (parseOuter
+                                      >=> (fn (Ground g) =>
+                                              Parser.produce (Constructor (g, c))
+                                          | _ => raise Parser.ParseError)))
+            end
+        and parsePair () =
+            let
+                val readLeft = parseBType ();
+                val readRight = parseAType ();
+                val readStar = Parser.expect "*" (Ground "NULL");
+            in
+                (readLeft)
+                    >=> (fn l => (readStar
+                                      >>> (readRight)
+                                      >=> (fn r => Parser.produce (Pair (l, r)))))
+            end
+        and parseFunction () =
+            let
+                val readLeft = parseAType ();
+                val readRight = parseType ();
+                val readArrow = Parser.expect "->" (Ground "NULL");
+            in
+                (readLeft)
+                    >=> (fn l => (readArrow
+                                      >>> (readRight)
+                                      >=> (fn r => Parser.produce (Function (l, r)))))
+            end
+        and parseAType () = Parser.either (parsePair) (parseBType)
+        and parseBType () = Parser.either (parseConstructor) (parseCType)
+        and parseCType () = Parser.either (parseVar) (parseDType)
+        and parseDType () =
+            let
+                val openParen = Parser.expect "(" (Ground "NULL");
+                val closeParen = Parser.expect ")" (Ground "NULL");
+                val parseSubType =
+                    (openParen)
+                        >>> (parseType ())
+                        >=> (fn t => (closeParen
+                                          >>> (Parser.produce t)));
+            in
+                Parser.either (parseGround) (fn () => parseSubType)
+            end
+        and parseType () = Parser.either (parseFunction) (parseAType);
 
-        fun toCloseParen [] _ = raise ParseError
-          | toCloseParen ("("::ys) xs =
-            let
-                val (innerToks, resta) = toCloseParen ys [];
-            in
-                toCloseParen resta (innerToks @ xs)
-            end
-          | toCloseParen (")"::ys) xs = (List.rev xs, ys)
-          | toCloseParen (c::cs) xs = toCloseParen cs (c::xs)
-        and readGround [] = raise ParseError
-          | readGround (x::xs) = if x = "(" then raise ParseError
-                                 else if x = ")" then raise ParseError
-                                 else if x = "*" then raise ParseError
-                                 else if x = "->" then raise ParseError
-                                 else if (String.isPrefix "'" x) then raise ParseError
-                                 else (Ground x, xs)
-        and readVar [] = raise ParseError
-          | readVar (x::xs) = if (String.isPrefix "'" x)
-                              then (Var (String.extract(x, 1, NONE)), xs)
-                              else raise ParseError
-        and readConstructor [] = raise ParseError
-          | readConstructor xs =
-            let
-                val (inner, resta) = readCType xs;
-                val (label, restb) = readGround resta;
-            in
-                case label of
-                    Ground l => (Constructor (l, inner), restb)
-                  | _ => raise ParseError
-            end
-        and readPair [] = raise ParseError
-          | readPair xs =
-            let
-                val (left, resta) = readBType xs;
-                val (star, restb) = expect "*" resta;
-                val (right, restc) = readAType restb; (* Pairs can nest right, so allow all Atypes (functions need parens) *)
-            in
-                (Pair (left, right), restc)
-            end
-        and readFun [] = raise ParseError
-          | readFun xs =
-            let
-                val (left, resta) = readAType xs;
-                val (arrow, restb) = expect "->" resta;
-                val (right, restc) = readType restb; (* Functions can nest right, so allow all types *)
-            in
-                (Function (left, right), restc)
-            end
-        and readAType [] = raise ParseError
-          | readAType xs = readPair xs
-                           handle ParseError => readBType xs
-        and readBType [] = raise ParseError
-          | readBType xs = readConstructor xs
-                           handle ParseError => readCType xs
-        and readCType [] = raise ParseError
-          | readCType xs = readVar xs
-                           handle ParseError => readGround xs
-                                                handle ParseError =>
-                                                       let
-                                                           val (lparen, resta) = expect "(" xs;
-                                                           val (inner, restb) = toCloseParen resta [];
-                                                           val (innerType, restc) = readType inner;
-                                                       in
-                                                           case restc of
-                                                               [] => (innerType, restb)
-                                                             | _ => raise ParseError
-                                                       end
-        and readType [] = raise ParseError
-          | readType xs = readFun xs
-                          handle ParseError => readAType xs;
+        fun parse tokens = Parser.run (parseType ()) tokens;
 
         val chars = String.explode str;
         val tokens = typeTokens chars [];
-        val (finalType, rest) = readType tokens;
+
     in
-        case rest of
-            [] => finalType
-          | _ => (Logging.error("Extra characters at end of type!"); raise ParseError)
+        parse tokens
     end;
 
   end;

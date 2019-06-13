@@ -1,23 +1,13 @@
 dots,
 mode,"grid"
 types,"unit,arrangement"
-tokens,$dot
+tokens,"$dot : dot"
 patterns,"$square,$rectangle,$diagonal,$ell,$triangle"
-grammar_imports,NONE
+token_imports,NONE
 grammatical_complexity,type-3
 facts,"$count_invariant"
 fact_imports,NONE
 rigorous,TRUE
-tactics,"stack_horizontal,stack_vertical,cut_horizontal,cut_vertical,cut_diagonal,cut_ell,cut_square,count_equal,count_more,count_less,constructive_omega_rule"
+tactics,"stack_horizontal, stack_vertical, cut_horizontal, cut_vertical, cut_diagonal, cut_ell, cut_square, count_equal, count_more, count_less, constructive_omega_rule"
 inferential_complexity,0
-standard_accessibility_manipulations,"add,stack,cut,count,undo"
-accessible_fact,TRUE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,TRUE
 physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
-grammatical_dimensionality,2
-grammatical_granularity,discrete
-mean_branching_factor,\infty
-pr_distinct_state_change,high
-pr_valid_state_change,high
-mean_solution_depth,5

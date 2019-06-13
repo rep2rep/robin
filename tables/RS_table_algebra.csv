@@ -1,25 +1,13 @@
 arithmetic_algebra,
 mode,"sentential"
-quantifiers,"\forall,\exists"
 types,"integer,real,formula,proof"
-tokens,"0,1,2,3,4,5,6,7,8,9"
-relations,"=,<,>,divides"
-operators,"+,-,*,\div,^,\sum, \vee, \neg"
+tokens,"= : integer * integer -> formula, < : integer * integer -> formula, > : integer * integer -> formula, divides : integer * integer -> formula , + : integer * integer -> integer, - : integer * integer -> integer, * : integer * integer -> integer, \div integer * integer -> integer, ^ integer * integer -> integer, \sum : set * (set -> integer) -> integer, \vee : formula * formula -> formula, \neg : formula -> formula"
 patterns,"_:integer=_:integer"
-grammar_imports,"base_10_real_numerals,latin_alphabet"
+token_imports,"base_10_real_numerals,latin_alphabet"
 grammatical_complexity,type-2
 facts,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
 rigorous,TRUE
 fact_imports,NONE
 tactics,"rewrite,lemma,calc,induction"
 inferential_complexity,2
-accessible_fact,TRUE
-accessible_tactics,TRUE
-accessible_grammatical_constructors,FALSE
 physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
-grammatical_dimensionality,1
-grammatical_granularity,discrete
-mean_branching_factor,\infty
-pr_distinct_state_change,0.004
-pr_valid_state_change,1
-mean_solution_depth,10

@@ -47,6 +47,8 @@ sig
 
     val equal: (k, 'v) dict * (k, 'v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
+
+    val getFirst : (k, 'v) dict -> (k * 'v)
 end;
 
 
@@ -421,5 +423,9 @@ fun equal (x, y) = equal' (!x, !y);
 
 fun isEmpty (ref LEAF) = true
   | isEmpty _ = false;
+
+fun getFirst' LEAF = raise KeyError
+  | getFirst' (BRANCH(x,_,_)) = x;
+fun getFirst t = (getFirst' (!t));
 
 end;
