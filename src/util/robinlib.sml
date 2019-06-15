@@ -180,7 +180,8 @@ fun listToString fmt items =
 fun lookaheadN (istr, count) =
     let
         val oldstream = TextIO.getInstream istr;
-        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
+        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count);
+        val _ = TextIO.setInstream (istr, oldstream);
     in
         lookahead
     end;
