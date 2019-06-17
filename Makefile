@@ -25,8 +25,8 @@ $(ROBIN_TMP): base.sml src/main.sml
 	done
 
 base.sml:
-	echo 'val BASE="$(CURDIR)/src/";' > base.sml
-	echo 'use "src/util/robinlib.sml"; open RobinLib;' >> base.sml
+	echo 'val BASE="./src/";' > base.sml
+	echo 'use "src/util/robinlib.sml";' >> base.sml
 
 .PHONY:clean
 clean:
@@ -35,4 +35,4 @@ clean:
 
 .PHONY:repl
 repl: base.sml
-	$(REPL) --use base.sml
+	$(REPL) --use $<

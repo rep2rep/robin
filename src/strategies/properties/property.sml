@@ -10,7 +10,7 @@ signature PROPERTY =
 sig
     exception ParseError;
 
-    datatype value = Label of string | Number of int | Boolean of bool;
+    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
     type property;
     type attribute;
 
@@ -20,8 +20,9 @@ sig
     val LabelOf : property -> string;
     val NumberOf : property -> int;
     val BooleanOf : property -> bool;
+    val TypeOf : property -> Type.T;
 
-    val typeOf : property -> Type.T;
+    val typeOfValue : property -> Type.T;
     val attributesOf : property -> attribute list;
 
     val compare : property * property -> order;
@@ -36,12 +37,13 @@ end;
 structure Property :> PROPERTY =
 struct
 
-datatype value = Label of string | Number of int | Boolean of bool;
+datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
 type attribute = string;
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
-  | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE";
+  | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE"
+  | stringOfValue (Type t) = Type.toString t;
 
 type property = (Kind.kind * value * (Type.T option) * attribute list);
 
@@ -64,7 +66,12 @@ fun BooleanOf p =
     case valueOf p of Boolean b => b
                     | _ => (print "Not a Boolean";raise Match);
 
-fun typeOf (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
+fun TypeOf p =
+    case valueOf p of Type t => t
+                    | _ => (print "Not a Type";raise Match);
+
+
+fun typeOfValue (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
 
 fun attributesOf (_,_,_,a) = a;
 
@@ -77,6 +84,9 @@ fun compareKindValuePair ((k,v),(k',v')) =
                          | (Label s, Label s') => String.compare (s,s')
                          | (Label _, _) => LESS
                          | (_, Label _) => GREATER
+                         | (Type t, Type t') => Type.compare (t,t')
+                         | (Type _, _) => LESS
+                         | (_, Type _) => GREATER
                          | (Number n, Number n') => Int.compare (n,n')
        else c
     end;
@@ -101,13 +111,15 @@ fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
         else c
     end;
 
+fun kindValuePairMatch (k,v) (k',v') =
+    (k = k') andalso (case (v,v') of (Type t, Type t') => Type.match (t,t') | _ => v = v')
 
 (*match is meant to be used for finding whether a correspondence holds
   without the need to have type or attribute information, and type-matching when
   there is type information *)
 fun match (p,p') =
-    let val M = (Type.match (typeOf p) (typeOf p') handle _ => true)
-    in M andalso ((toKindValuePair p) = (toKindValuePair p'))
+    let val M = (Type.match (typeOfValue p, typeOfValue p') handle _ => true)
+    in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
 
 fun toString (k,v,xt,ats) =
@@ -141,20 +153,19 @@ fun findType s =
     let val (_,s') = findAttributes s;
         val (v,_,typ') = Parser.breakOn ":" s';
         val typ = case typ' of "" => NONE | ts => SOME (Type.fromString ts)
-    in (typ, v)
+    in (typ, Label v)
     end;
 
-fun fromKindValuePair (k,vRaw) =
+fun fromKindValuePair (k,rawV) =
     let
-        val (atts,rest) = findAttributes (stringOfValue vRaw);
-        val (xt,v) = if k = Kind.Pattern then (NONE,rest) else findType rest;
-    in (k,Label v,xt,atts)
+        val vs = stringOfValue rawV
+        val (atts,rest) = findAttributes vs;
+        val (xt,v) = if vs = "" then (NONE, Boolean true) else
+                     if k = Kind.Pattern then (NONE, Label rest) else
+                     if k = Kind.Type then (NONE, Type (Type.fromString rest))
+                     else findType rest;
+    in (k,v,xt,atts)
     end;
-
-fun breakStringUntil c s =
-  let val (x,y) = breakUntilCharacter c (String.explode s)
-  in (String.implode x, String.implode y)
-  end;
 
 fun fromString s =
     let val (ks,_,vs) = Parser.breakOn "-" s;
@@ -250,6 +261,9 @@ structure QS = Set(struct
                     end);
 open QS;
 
+fun withoutImportances ps =
+    PropertySet.fromList (map (QProperty.withoutImportance) ps)
+
 fun collectOfKind ps k =
     let
         fun isOfKind p = (QProperty.kindOf p) = k;
@@ -260,5 +274,14 @@ fun collectOfImportance ps i =
     let fun isOfImportance p = (#2 (QProperty.toPair p) = i);
     in filter isOfImportance ps
     end;
+
+fun filterMatches p qs =
+    let
+        fun qmatch v = Property.match (p, QProperty.withoutImportance v);
+    in
+        filter qmatch qs
+    end;
+
+fun isMatchedIn p qs = not (isEmpty (filterMatches p qs));
 
 end;

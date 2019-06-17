@@ -1,4 +1,4 @@
-intsum,
+intsum,natlang
 error_allowed,0
 answer_type,proof
 instrumental_tokens,"prove,sum,equals"

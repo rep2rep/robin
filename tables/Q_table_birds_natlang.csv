@@ -1,4 +1,4 @@
-birds,
+birds,natlang
 error_allowed,0
 answer_type,ratio
 instrumental_tokens,"probability,and,not"

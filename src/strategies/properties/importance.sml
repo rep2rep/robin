@@ -4,6 +4,7 @@ sig
     datatype importance = Noise | Zero | Low | Medium | High;
 
     val compare : (importance * importance) -> order;
+    val modulate : importance -> real -> real;
     val fromString : string -> importance option;
     val toString : importance -> string;
 
@@ -23,6 +24,12 @@ fun compare (a, b) = let
 in
     Int.compare (ordify a, ordify b)
 end;
+
+fun modulate Noise x = 0.0
+  | modulate Zero x = 0.0
+  | modulate Low x = 0.2 * x
+  | modulate Medium x = 0.6 * x
+  | modulate High x = x;
 
 fun fromString "Noise" = SOME Noise
   | fromString "Zero" = SOME Zero

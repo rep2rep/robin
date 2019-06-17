@@ -1,4 +1,4 @@
-birds,
+birds,bayes
 error_allowed,0
 answer_type,real
 instrumental_tokens,"\Pr,\cap,\bar,="

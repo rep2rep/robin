@@ -1,4 +1,4 @@
-medical,
+medical,bayes
 error_allowed,0
 answer_type,real
 instrumental_tokens,"\Pr,="

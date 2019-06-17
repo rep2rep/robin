@@ -19,12 +19,15 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
+    val cartesianProduct : 'a list -> 'b list -> ('a * 'b) list;
     val all : bool list -> bool;
     val any : bool list -> bool;
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
+    val unfold : ('a -> ('b * 'a) option) -> 'a -> 'b list;
+    val replicate : int -> 'a -> 'a list;
     val listToString : ('a -> string) -> 'a list -> string;
     val lookaheadN : (TextIO.instream *  int) -> string;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
@@ -106,7 +109,18 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+
+fun cartesianProduct xs ys =
+    let
+        fun joinall ans x [] = ans
+          | joinall ans x (y::ys) = joinall ((x, y)::ans) x ys
+        fun cartprod ans [] _ = List.rev(ans)
+          | cartprod ans _ [] = List.rev(ans)
+          | cartprod ans (x::xs) ys = cartprod (joinall ans x ys) xs ys;
+    in
+        cartprod [] xs ys
+    end;
 
 fun all [] = true
   | all (b::bs) = b andalso (all bs);
@@ -137,6 +151,23 @@ fun takeWhile pred list =
     in takeWhile' list []
     end;
 
+fun unfold f seed =
+    let
+        fun unfold' f seed ans =
+            case f seed of
+                NONE => ans
+              | SOME (x, next) => (unfold' f next (x::ans));
+    in
+        List.rev (unfold' f seed [])
+    end;
+
+fun replicate n x =
+    let fun gen 0 = NONE
+          | gen n = SOME (x, n-1)
+    in
+        unfold gen n
+    end;
+
 fun listToString fmt items =
     let
         val stringItems = map fmt items;
@@ -149,7 +180,8 @@ fun listToString fmt items =
 fun lookaheadN (istr, count) =
     let
         val oldstream = TextIO.getInstream istr;
-        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count)
+        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count);
+        val _ = TextIO.setInstream (istr, oldstream);
     in
         lookahead
     end;
@@ -168,3 +200,5 @@ fun revCmp c = fn p => case (c p) of
                          | EQUAL => EQUAL
                          | GREATER => LESS;
 end;
+
+open RobinLib;
