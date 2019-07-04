@@ -64,7 +64,7 @@ fun import filename =
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
     ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
 
-fun remove needle haystack = List.filter (fn x => x = needle) haystack;
+fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
