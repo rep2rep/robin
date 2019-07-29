@@ -5,6 +5,7 @@ signature TYPE =
 sig
     exception ParseError;
     type T;
+    val getInOutTypes : T -> (T list * T list);
     val outputArity : T -> int;
     val inputArity : T -> int;
     val order : T -> int;
@@ -55,6 +56,15 @@ datatype T = Ground of string
            | Pair of T * T
            | Function of T * T
            | Constructor of string * T;
+
+fun pairToList (Pair (x,y)) = (pairToList x) @ (pairToList y)
+  | pairToList x = [x]
+
+fun getInOutTypes (Ground x) = ([], [Ground x])
+  | getInOutTypes (Var x) = ([], [Var x])
+  | getInOutTypes (Pair (x,y)) = ([], (pairToList x) @ (pairToList y))
+  | getInOutTypes (Function (x,y)) = let val (x',y') = getInOutTypes y; in ((pairToList x) @ x', y') end
+  | getInOutTypes (Constructor (s,x)) = ([], [Constructor (s,x)])
 
 fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
   | dimensionality _ =  1
@@ -230,4 +240,4 @@ fun fromString str =
         parse tokens
     end;
 
-  end;
+end;

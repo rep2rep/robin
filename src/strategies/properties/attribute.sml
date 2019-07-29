@@ -1,4 +1,3 @@
-import "util.logging";
 import "util.parser";
 import "util.multiset";
 import "util.type";
@@ -20,3 +19,9 @@ fun makeHoleList [] = []
       end;
 
 fun makeHoleMultiset L = Multiset.fromPairList (makeHoleList L);
+
+fun getHoles [] = []
+  | getHoles ((x,y)::L) =
+      if x = "holes"
+      then let Parser.splitStrip "." (Parser.removeSquareBrackets y)
+      else getHoles L
