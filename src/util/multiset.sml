@@ -1,7 +1,6 @@
 signature MULTISET =
 sig
   type ''a multiset;
-  val count : ''a multiset -> ''a -> int;
   val fromPairList : (''a * int) list -> ''a multiset;
   val fromList : ''a list -> ''a multiset;
 end;
