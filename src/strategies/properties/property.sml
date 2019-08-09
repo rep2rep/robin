@@ -2,9 +2,11 @@ import "util.set";
 import "util.type";
 import "util.dictionary";
 import "util.parser";
+import "util.multiset";
 
 import "strategies.properties.importance";
 import "strategies.properties.kind";
+import "strategies.properties.attribute";
 
 signature PROPERTY =
 sig
@@ -12,7 +14,6 @@ sig
 
     datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
     type property;
-    type attribute;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -22,8 +23,8 @@ sig
     val BooleanOf : property -> bool;
     val TypeOf : property -> Type.T;
 
-    val typeOfValue : property -> Type.T;
     val attributesOf : property -> attribute list;
+    val typeOfValue : property -> Type.T;
 
     val compare : property * property -> order;
     val match : property * property -> bool;
@@ -38,21 +39,20 @@ structure Property :> PROPERTY =
 struct
 
 datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
-type attribute = string;
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE"
   | stringOfValue (Type t) = Type.toString t;
 
-type property = (Kind.kind * value * (Type.T option) * attribute list);
+type property = (Kind.kind * value * Attribute.T list);
 
 exception ParseError;
 
-fun toKindValuePair (k,v,_,_) = (k,v)
+fun toKindValuePair (k,v,_) = (k,v)
 
-fun kindOf (k,_,_,_) = k;
-fun valueOf (_,v,_,_) = v;
+fun kindOf (k,_,_) = k;
+fun valueOf (_,v,_) = v;
 
 fun LabelOf p =
     case valueOf p of Label s => s
@@ -71,9 +71,12 @@ fun TypeOf p =
                     | _ => (print "Not a Type";raise Match);
 
 
-fun typeOfValue (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
+fun attributesOf (_,_,A) = A;
 
-fun attributesOf (_,_,_,a) = a;
+fun typeFromAttributes [] = raise Match
+  | typeFromAttributes (a::L) = (case a of OfType t => t | _ => typeFromAttributes L);
+
+fun typeOfValue (_,_,A) = typeFromAttributes A;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -122,10 +125,9 @@ fun match (p,p') =
     in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
 
-fun toString (k,v,xt,ats) =
+fun toString (k,v,ats) =
     let val sv = stringOfValue v
-        val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
-        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
+        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " (map Attribute.stringOf aL))) ^ "}";
     in (Kind.toString k) ^ "-" ^ sv ^ st ^ sats
     end
 
@@ -137,6 +139,7 @@ fun breakUntilCharacter _ [] = ([],[])
            in (h::x,y)
            end;
 
+(*
 fun findAttributes s =
     let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then breakUntilCharacter #"}" L
                            else let val (x,y) = ff (c'::L)
@@ -147,25 +150,26 @@ fun findAttributes s =
         val atts = Parser.splitStrip ";" (String.implode atts')
     in (atts, String.implode rest)
     end;
+*)
 
-(* assumes  we're not dealing with a pattern. It's easier this way *)
-fun findType s =
-    let val (_,s') = findAttributes s;
-        val (v,_,typ') = Parser.breakOn ":" s';
-        val typ = case typ' of "" => NONE | ts => SOME (Type.fromString ts)
-    in (typ, Label v)
-    end;
+fun findAttributes s =
+  let
+    val (v,_,As) = Parser.breakOn ":" s;
+    val A = readAttributes As (* takes {sdf,fsdfd==sdf,fdsdf,fte} and returns a list of attributes*)
+  in (v,A)
+  end
 
-fun fromKindValuePair (k,rawV) =
+
+fun fromKindValuePair (k, Boolean x) = (k, Boolean x, [])
+  | fromKindValuePair (k, Number x) = (k, Number x, [])
+  | fromKindValuePair (k, Label vs) =
     let
-        val vs = stringOfValue rawV
-        val (atts,rest) = findAttributes vs;
-        val (xt,v) = if vs = "" then (NONE, Boolean true) else
-                     if k = Kind.Pattern then (NONE, Label rest) else
-                     if k = Kind.Type then (NONE, Type (Type.fromString rest))
-                     else findType rest;
-    in (k,v,xt,atts)
-    end;
+        val (vr,A) = findAttributes vs;
+        val v = if k = Kind.Type then Type (Type.fromString vr)
+                else Label vr;
+    in (k,v,A)
+    end
+
 
 fun fromString s =
     let val (ks,_,vs) = Parser.breakOn "-" s;

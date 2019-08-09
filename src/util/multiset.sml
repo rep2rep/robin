@@ -1,14 +1,14 @@
 signature MULTISET =
 sig
-  type ''a multiset;
-  val fromPairList : (''a * int) list -> ''a multiset;
-  val fromList : ''a list -> ''a multiset;
+  type ''a T;
+  val fromPairList : (''a * int) list -> ''a T;
+  val fromList : ''a list -> ''a T;
 end;
 
 structure Multiset : MULTISET =
 struct
 
-type 'a multiset = ('a -> int);
+type 'a T = ('a -> int);
 
 fun fromPairList [] = (fn x => 0)
   | fromPairList ((a,n)::L) =
