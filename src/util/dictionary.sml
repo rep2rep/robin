@@ -25,6 +25,7 @@ sig
     val remove : (k, 'v) dict -> k -> unit;
 
     val get : (k, 'v) dict -> k -> 'v;
+    val update : (k, 'v) dict -> k -> ('v -> 'v) -> 'v;
 
     val keys : (k, 'v) dict -> k list;
     val values : (k, 'v) dict -> 'v list;
@@ -386,6 +387,18 @@ fun get t k =
     in
         v
     end;
+
+fun update t k f =
+    let
+        val t' = splayFor k (!t);
+        val (t'', v) = case (t') of
+                    BRANCH ((a, b), l, r) =>
+                    if K.compare(a, k) = EQUAL
+                    then let val v = f b in (BRANCH ((a, v), l, r), v) end
+                    else raise KeyError
+                  | _ => raise KeyError;
+        val _ = (t := t'');
+    in v end;
 
 fun keys t = map (fn (k, v) => k) (toPairList t);
 
