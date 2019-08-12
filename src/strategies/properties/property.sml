@@ -73,8 +73,8 @@ fun TypeOf p =
 
 fun attributesOf (_,_,A) = A;
 
-fun typeFromAttributes [] = raise Match
-  | typeFromAttributes (a::L) = (case a of OfType t => t | _ => typeFromAttributes L);
+fun typeFromAttributes [] = NONE
+  | typeFromAttributes (a::L) = (case a of OfType t => SOME t | _ => typeFromAttributes L);
 
 fun typeOfValue (_,_,A) = typeFromAttributes A;
 
@@ -97,9 +97,11 @@ fun compareKindValuePair ((k,v),(k',v')) =
 (*A lexicographic order for the property type. The name takes precedence, then
   the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
   Useful for putting it into a dictionary; not for much else*)
-fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
+fun compare ((k,v,ats),(k',v',ats')) =
     let
         val c = compareKindValuePair ((k,v),(k',v'))
+        val xt = typeFromAttributes ats
+        val xt' = typeFromAttributes ats'
     in
         if c = EQUAL
         then case (xt,xt') of
