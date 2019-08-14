@@ -107,10 +107,12 @@ fun remove xs x =
     handle CountReachedZero => D.remove xs x;
 fun removeAll xs x = D.remove xs x;
 
-fun union xs ys = D.unionWith (fn (_, i, j) => i + j) xs ys;
+fun sum xs ys = D.unionWith (fn (_, i, j) => i + j) xs ys;
+fun union xs ys = D.unionWith (fn (_, i, j) => Int.max(i, j)) xs ys;
 fun intersection xs ys = D.intersectionWith (fn (_, i, j) => Int.min (i, j)) xs ys;
 
-fun unionAll xs = D.unionAllWith (fn (_, i, j) => i + j) xs;
+fun sumAll xs = D.unionAllWith (fn (_, i, j) => i + j) xs;
+fun unionAll xs = D.unionAllWith (fn (_, i, j) => Int.max(i, j)) xs;
 fun intersectionAll xs = D.intersectionAllWith (fn (_, i, j) => Int.min (i, j)) xs;
 
 fun map f xs = List.map f (toList xs);
