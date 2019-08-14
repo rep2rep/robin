@@ -25,11 +25,11 @@ exception ReadError of string * string;
 
 type reader = string -> Property.value list;
 
-fun boolean str =
+fun booleanR str =
     if (String.implode (map Char.toLower (String.explode str))) = "true"
     then [Property.Boolean true] else [Property.Boolean false];
 
-fun number str =
+fun numberR str =
     case Int.fromString str of
         SOME n => [Property.Number n]
       | NONE => case str of
@@ -37,7 +37,9 @@ fun number str =
                   | "na" => [Property.Number ~2]
                   | _ => raise ReadError ("number", str);
 
-fun label str = [Property.Label str];
+fun typeR str = [Property.Type (Type.fromString str)];
+
+fun labelR str = [Property.Label str];
 
 fun listOf reader str = if str = "NONE" then []
                         else flatmap reader (Parser.splitStrip "," str);
@@ -96,7 +98,7 @@ local
         ("physical_dimension_use",
          (dimension, Kind.DimensionUse)),
         ("types",
-         (listOf label, Kind.Type)),
+         (listOf typeR, Kind.Type)),
         ("tokens",
          (listOf label, Kind.Token)),
         ("patterns",
@@ -106,11 +108,11 @@ local
         ("error_allowed",
          (label, Kind.ErrorAllowed, High)),
         ("answer_type",
-         (listOf label, Kind.Type, High)),
+         (listOf typeR, Kind.Type, High)),
         ("instrumental_tokens",
          (listOf label, Kind.Token, Medium)),
         ("instrumental_types",
-         (listOf label, Kind.Type, Medium)),
+         (listOf typeR, Kind.Type, Medium)),
         ("instrumental_patterns",
          (listOf label, Kind.Pattern, Medium)),
         ("instrumental_facts",

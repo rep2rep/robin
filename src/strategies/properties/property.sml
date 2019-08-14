@@ -12,7 +12,7 @@ signature PROPERTY =
 sig
     exception ParseError;
 
-    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
+    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
 
     val kindOf : property -> Kind.kind;
@@ -38,12 +38,13 @@ end;
 structure Property :> PROPERTY =
 struct
 
-datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
+datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE"
-  | stringOfValue (Type t) = Type.toString t;
+  | stringOfValue (Type t) = Type.toString t
+  | stringOfValue (Raw s) = "RAW: " ^ s;
 
 type property = (Kind.kind * value * Attribute.T list);
 
@@ -74,9 +75,11 @@ fun TypeOf p =
 fun attributesOf (_,_,A) = A;
 
 fun typeFromAttributes [] = NONE
-  | typeFromAttributes (a::L) = (case a of OfType t => SOME t | _ => typeFromAttributes L);
+  | typeFromAttributes (a::L) = case a of OfType t => SOME t
+                                               | _ => typeFromAttributes L;
 
-fun typeOfValue (_,_,A) = typeFromAttributes A;
+fun typeOfValue (_,_,A) = case typeFromAttributes A of NONE => (print "untyped"; raise Match)
+                                                     | SOME t => t;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -91,6 +94,9 @@ fun compareKindValuePair ((k,v),(k',v')) =
                          | (Type _, _) => LESS
                          | (_, Type _) => GREATER
                          | (Number n, Number n') => Int.compare (n,n')
+                         | (Number _, _) => LESS
+                         | (_, Number _) => GREATER
+                         | (Raw s, Raw s') => String.compare (s,s')
        else c
     end;
 
@@ -123,7 +129,7 @@ fun kindValuePairMatch (k,v) (k',v') =
   without the need to have type or attribute information, and type-matching when
   there is type information *)
 fun match (p,p') =
-    let val M = (Type.match (typeOfValue p, typeOfValue p') handle _ => true)
+    let val M = (Type.match (typeOfValue p, typeOfValue p') handle Match => true)
     in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
 
@@ -163,8 +169,10 @@ fun findAttributes s =
 
 
 fun fromKindValuePair (k, Boolean x) = (k, Boolean x, [])
-  | fromKindValuePair (k, Number x) = (k, Number x, [])
-  | fromKindValuePair (k, Label vs) =
+  | fromKindValuePair (k, Number n) = (k, Number n, [])
+  | fromKindValuePair (k, Type t) = (k, Type t, [])
+  | fromKindValuePair (k, Label s) = (k, Label s, [])
+  | fromKindValuePair (k, Raw vs) =
     let
         val (vr,A) = findAttributes vs;
         val v = if k = Kind.Type then Type (Type.fromString vr)
@@ -172,13 +180,18 @@ fun fromKindValuePair (k, Boolean x) = (k, Boolean x, [])
     in (k,v,A)
     end
 
-
+(* returns Raw values because there's no way of knowing how to read them without
+   the readers (unless we reimplemented readers in property.sml, which would be
+   bad design. This function is used only by correspondence-related functions,
+   which shouldn't care about attributes other than type)*)
 fun fromString s =
-    let val (ks,_,vs) = Parser.breakOn "-" s;
+    let val (ks,_,vs) = Parser.breakOn "-" s
+        val (v,A) = findAttributes vs
+        val k = Kind.fromString ks
     in
-        if vs = ""
-        then fromKindValuePair (Kind.fromString s, Boolean true)
-        else fromKindValuePair (Kind.fromString ks, Label vs)
+        if v = "" then fromKindValuePair (k, Boolean true, A)
+        else if k = Kind.Type then (k, Type (Type.fromString v), A)
+        else fromKindValuePair (k, Raw v, A)
     end;
 
 end;
