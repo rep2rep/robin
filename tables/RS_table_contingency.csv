@@ -1,7 +1,7 @@
 contingency,
 mode,"sentential,grid"
 types,"string,real,formula,cell,column,row"
-tokens,"$cell : cell, + : real * real -> real, - : real * real -> real, * : real * real -> real, / : real * real -> real, = : real * real -> bool, SUM : cell_set -> real, PRODUCT: cell_set -> real"
+tokens,"$cell : {type:= cell}, + : {type:= real * real -> real}, - : {type:= real * real -> real}, * : {type:= real * real -> real}, / : {type:= real * real -> real}, = : {type:= real * real -> bool}, SUM : {type:= cell set -> real}, PRODUCT: {type:= cell set -> real}"
 patterns,"$ordered_row : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $ordered_column : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $equal_values : {holes:=[real=>2]}, $column : {holes:=[cell=>sqrt(#t)]}, $row : {holes:=[cell=>sqrt(#t)]}"
 token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
