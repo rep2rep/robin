@@ -6,7 +6,7 @@ instrumental_tokens,"\sum,*,="
 instrumental_patterns,"$sum, $equality_chain"
 instrumental_facts,""
 instrumental_tactics,"induction"
-relevant_tokens,"n:{type:=integer}, i:{:=integer}, +, \div"
+relevant_tokens,"n:{type:=integer}, i:{type:=integer}, +, \div"
 relevant_related_tokens,"-,^,\sqrt,0"
 num_tokens,14
 num_distinct_tokens,9
