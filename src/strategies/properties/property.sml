@@ -144,7 +144,7 @@ fun findAttributes s =
     let
       val (v,_,As) = Parser.breakOn ":" s;
       val A = Attribute.read As (* takes {sdf; fsdfd:=sdf ; fdsdf:=[type1 =>2. type2 => 1] ;fte} and returns a list of attributes*)
-    in (v,A)
+    in (Parser.stripSpaces v, A)
     end
 
 fun fromKindValueAttributes (k,v,A) = (k,v,A)
