@@ -46,7 +46,8 @@ sig
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
-    val equal: (k, 'v) dict * (k, 'v) dict -> bool;
+    val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool;
+    val equal : (k, ''v) dict * (k, ''v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 
     val getFirst : (k, 'v) dict -> (k * 'v)
@@ -428,11 +429,30 @@ fun foldl f z t = List.foldl f z (toPairList t);
 
 fun foldr f z t = List.foldr f z (toPairList t);
 
-fun equal' (LEAF, LEAF) = true
-  | equal' (BRANCH((k, v), l, r), BRANCH((k', v'), l', r')) =
-    (K.compare (k, k') = EQUAL) andalso equal' (l, l') andalso equal' (r, r')
-  | equal' _ = false;
-fun equal (x, y) = equal' (!x, !y);
+fun equalKeys (x, y) =
+    let
+        val xl = keys x;
+        val yl = keys y;
+        fun cmpList [] [] = true
+          | cmpList (kx::xs) (ky::ys) =
+            K.compare(kx, ky) = EQUAL andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
+fun equal (x, y) =
+    let
+        val xl = toPairList x;
+        val yl = toPairList y;
+        fun cmpList [] [] = true
+          | cmpList ((kx, vx)::xs) ((ky, vy)::ys) =
+            K.compare(kx, ky) = EQUAL
+            andalso vx = vy
+            andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
 
 fun isEmpty (ref LEAF) = true
   | isEmpty _ = false;
