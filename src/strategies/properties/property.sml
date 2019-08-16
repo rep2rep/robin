@@ -75,8 +75,10 @@ fun TypeOf p =
 
 fun attributesOf (_,_,A) = A;
 
-fun typeOfValue (_,_,A) = case Attribute.getType A of NONE => (raise Match)
-                                                     | SOME t => t;
+fun typeFromAttributes [] = NONE
+  | typeFromAttributes (a::L) = SOME (Attribute.getType a) handle Match => typeFromAttributes L;
+
+fun typeOfValue (_,_,A) = typeFromAttributes A;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -103,8 +105,8 @@ then the value, and then its type.
 fun compare ((k,v,ats),(k',v',ats')) =
     let
         val c = compareKindValuePair ((k,v),(k',v'))
-        val xt = Attribute.getType ats
-        val xt' = Attribute.getType ats'
+        val xt = typeFromAttributes ats
+        val xt' = typeFromAttributes ats'
     in
         if c = EQUAL
         then case (xt,xt') of
