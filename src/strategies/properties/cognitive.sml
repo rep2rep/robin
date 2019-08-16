@@ -36,6 +36,17 @@ fun numberOfSymbolTypesCost qT uP =
     in sigmoid C W T x
     end;
 
+(* Cognitive property 4 *)
+fun numberOfPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT "pattern");
+fun numberOfPatternsCost qT uP =
+    let val C = 2.0 ;
+        val W = 2.0 ;
+        fun userTh table profile = 2.0 ;
+        val T = userTh qT uP;
+        val x = Real.fromInt (numberOfPatterns qT)
+    in sigmoid C W T x
+    end;
+
 (* Cognitive property 3 *)
 fun subRSvariety rT = PropertySet.size (PropertySet.collectOfKind rT "mode");
 fun subRSvarietyCost qT uP =
