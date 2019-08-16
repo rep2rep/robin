@@ -265,7 +265,9 @@ fun fromPairList xs =
                                        then dedup((y,b)::zs) (* Favour second *)
                                        else (x,a)::(dedup ((y,b)::zs))
     in
-        fromSortedPairList (dedup (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs))
+        fromSortedPairList (dedup (List.mergesort
+                                       (fn ((a, _), (b, _)) => K.compare (a, b))
+                                       xs))
     end;
 
 (*

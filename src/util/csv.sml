@@ -51,8 +51,8 @@ type instream = TextIO.instream;
 type outstream = TextIO.outstream;
 
 val delimiters = Config.delimiters;
-val newlines = mergesort (revCmp Int.compare o spread List.length)
-                         (map String.explode Config.newlines);
+val newlines = List.mergesort (Comparison.rev Int.compare o spread List.length)
+                              (map String.explode Config.newlines);
 val lookaheadDistance = List.foldr Int.max 0 (map List.length newlines);
 
 fun isDelimiter c = List.exists (fn x => x = c) delimiters;
@@ -68,7 +68,7 @@ fun closeIn istr = TextIO.closeIn istr;
 
 fun endOfStream istr = TextIO.endOfStream istr;
 fun endOfRow istr =
-    case (lookaheadN (istr, lookaheadDistance)) of
+    case (TextIO.lookaheadN (istr, lookaheadDistance)) of
         "" => true
       | c => isNewline (String.explode c);
 fun endOfCell istr =
@@ -84,7 +84,7 @@ fun skipDelimiter istr =
 
 fun inputCell istr = let
     fun escapedQuote istr = let
-        val next2 = String.explode (lookaheadN (istr, 2));
+        val next2 = String.explode (TextIO.lookaheadN (istr, 2));
         val (current, next) = case next2 of
                                   [] => (#"0", #"0")
                                 | [x] => (x, #"0")
@@ -127,7 +127,8 @@ fun inputRow istr = let
                  getAllCells [] istr;
 in
     if startsEmpty then let
-        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val newlineChars = String.explode (TextIO.lookaheadN (istr,
+                                                              lookaheadDistance));
         val matchedNewline = matchNewline newlineChars;
         val consumeDistance = case matchedNewline of
                                   NONE => 0
@@ -136,7 +137,8 @@ in
         (TextIO.inputN (istr, consumeDistance); [])
     end
     else let
-        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val newlineChars = String.explode (TextIO.lookaheadN (istr,
+                                                              lookaheadDistance));
         val matchedNewline = matchNewline newlineChars;
         val consumeDistance = case matchedNewline of
                                   NONE => 0
@@ -164,10 +166,14 @@ fun flushOut ostr = TextIO.flushOut ostr;
 fun outputCell ostr value =
     let
         fun containsQuotes s = String.isSubstring "\"" s;
-        fun containsNewlines s = any (map (fn nl => String.isSubstring (String.implode nl) s)
-                                          newlines);
-        fun containsDelimiters s = any (map (fn d => String.isSubstring (String.str d) s)
-                                            delimiters);
+        fun containsNewlines s = List.exists
+                                     (fn nl => String.isSubstring
+                                                   (String.implode nl) s)
+                                     newlines;
+        fun containsDelimiters s = List.exists
+                                       (fn d => String.isSubstring
+                                                    (String.str d) s)
+                                       delimiters;
 
         fun outputQuotedCell () =
             let

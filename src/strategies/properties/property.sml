@@ -125,7 +125,7 @@ fun match (p,p') =
 fun toString (k,v,xt,ats) =
     let val sv = stringOfValue v
         val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
-        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " aL)) ^ "}";
+        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (List.intersperse "; " aL)) ^ "}";
     in (Kind.toString k) ^ "-" ^ sv ^ st ^ sats
     end
 
@@ -200,7 +200,7 @@ struct
 type property = (Property.property * Importance.importance);
 exception ParseError;
 
-val compare = cmpJoin Property.compare Importance.compare;
+val compare = Comparison.join Property.compare Importance.compare;
 fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
 fun fromString s =
     case Parser.splitStrip "," (Parser.removeParens s) of
