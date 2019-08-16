@@ -26,20 +26,6 @@ exception ReadError of string * string;
 
 type reader = string -> (Property.value * Attribute.T list) list;
 
-(*
-fun findAttributes s =
-    let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then breakUntilCharacter #"}" L
-                           else let val (x,y) = ff (c'::L)
-                                in (x,c::y)
-                                end
-          | ff L = ([],L)
-        val (atts',rest) = ff (String.explode s)
-        val atts = Parser.splitStrip ";" (String.implode atts')
-    in (atts, String.implode rest)
-    end;
-*)
-
-
 fun booleanR str =
     if (String.implode (map Char.toLower (String.explode str))) = "true"
     then [(Property.Boolean true,[])] else [(Property.Boolean false,[])];

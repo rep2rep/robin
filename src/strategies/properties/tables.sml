@@ -174,7 +174,7 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.Low); (* I introduced empty attributes, but I don't know if this is right*)
+                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
