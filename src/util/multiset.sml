@@ -69,7 +69,7 @@ fun toCountPairs' ans [] = List.rev ans
     then toCountPairs' ((x, i+1)::xs) ys
     else toCountPairs' ((y, 1)::(x, i)::xs) ys
   | toCountPairs' [] (y::ys) = toCountPairs' [(y, 1)] ys;
-fun toCountPairs xs = toCountPairs' [] (mergesort O.compare xs);
+fun toCountPairs xs = toCountPairs' [] (List.mergesort O.compare xs);
 
 
 
@@ -87,12 +87,11 @@ fun toString items =
                                                (Int.toString i) ^
                                                ")"))
                                 items;
-        val withCommas = intersperse ", " stringItems;
         val tooLong = (D.size items) > printThreshold;
         val mostItems = if tooLong
-                        then (List.take (withCommas, 2 * printThreshold))
-                        else withCommas;
-        val joined = String.concat mostItems;
+                        then (List.take (stringItems, printThreshold))
+                        else stringItems;
+        val joined = String.concatWith ", " mostItems;
     in
         "{" ^ joined ^ (if tooLong then "..." else "") ^ "}"
     end;
