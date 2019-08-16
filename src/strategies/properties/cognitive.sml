@@ -11,12 +11,26 @@ struct
 fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
 
-(* Cognitive property 1 *)
+(* Cognitive property 1a *)
 fun numberOfSymbols qT =
     Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
           (QPropertySet.collectOfKind qT "num_tokens")) ;
 fun numberOfSymbolsCost qT uP =
+    let val C = 2.0 ;
+        val W = 20.0 ;
+        fun userTh table profile = 5.0 ;
+        val T = userTh qT uP;
+        val x = Real.fromInt (numberOfSymbols qT)
+    in sigmoid C W T x
+    end;
+
+(* Cognitive property 1b *)
+fun numberOfDistinctSymbols qT =
+    Property.NumberOf
+      ((#1 o QProperty.toPair o QPropertySet.getFirst)
+          (QPropertySet.collectOfKind qT "num_distinct_tokens")) ;
+fun numberOfDistinctSymbolsCost qT uP =
     let val C = 2.0 ;
         val W = 20.0 ;
         fun userTh table profile = 5.0 ;
@@ -36,7 +50,8 @@ fun numberOfSymbolTypesCost qT uP =
     in sigmoid C W T x
     end;
 
-(* Cognitive property 4 *)
+(* Cognitive property 3 *)
+(* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT "pattern");
 fun numberOfPatternsCost qT uP =
     let val C = 2.0 ;
@@ -47,7 +62,7 @@ fun numberOfPatternsCost qT uP =
     in sigmoid C W T x
     end;
 
-(* Cognitive property 3 *)
+(* Cognitive property 4 *)
 fun subRSvariety rT = PropertySet.size (PropertySet.collectOfKind rT "mode");
 fun subRSvarietyCost qT uP =
     let val C = 2.0 ;
@@ -56,6 +71,22 @@ fun subRSvarietyCost qT uP =
         val T = userTh qT uP;
         val rT = RSTableOfQ qT;
         val x = subRSvariety rT
+    in sigmoid C W T x
+    end;
+
+fun patternComplexity rT =
+    let fun mix b d a = b + d + a
+
+        val virtual_trees = map Pattern.
+    in
+    end;
+fun patternComplexityCost qT uP =
+    let val C = 2.0 ;
+        val W = 2.0 ;
+        fun userTh table profile = 2.0;
+        val T = userTh qT uP;
+        val rT = RSTableOfQ qT;
+        val x = patternComplexity rT
     in sigmoid C W T x
     end;
 
