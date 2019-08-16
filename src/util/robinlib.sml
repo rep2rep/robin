@@ -13,24 +13,8 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
-    val remove : ''a -> ''a list -> ''a list;
-    val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
-    val intersperse : 'a -> 'a list -> 'a list;
-    val enumerate : 'a list -> (int * 'a) list;
-    val enumerateFrom : int -> 'a list -> (int * 'a) list;
-    val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
-    val all : bool list -> bool;
-    val any : bool list -> bool;
-    val max : (('a * 'a) -> order) -> 'a list -> 'a;
-    val min : (('a * 'a) -> order) -> 'a list -> 'a;
-    val dropWhile : ('a -> bool) -> 'a list -> 'a list;
-    val takeWhile : ('a -> bool) -> 'a list -> 'a list;
-    val listToString : ('a -> string) -> 'a list -> string;
-    val lookaheadN : (TextIO.instream *  int) -> string;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val flip : ('a * 'b) -> ('b * 'a);
-    val cmpJoin : ('a * 'a -> order) -> ('b * 'b -> order) -> (('a * 'b) * ('a * 'b)) -> order;
-    val revCmp : ('a * 'a -> order) -> ('a * 'a) -> order;
 end;
 
 
@@ -63,6 +47,46 @@ fun import filename =
         IMPORTED_ := (List.hd (!IMPORTING_STACK_))::(!IMPORTED_);
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
     ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
+
+
+fun spread f (a, b) = (f a, f b);
+
+fun flip (a, b) = (b, a);
+
+end;
+
+
+
+
+signature LIST =
+sig
+    include LIST;
+
+    val remove : ''a -> ''a list -> ''a list;
+
+    val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
+
+    val intersperse : 'a -> 'a list -> 'a list;
+
+    val enumerate : 'a list -> (int * 'a) list;
+    val enumerateFrom : int -> 'a list -> (int * 'a) list;
+
+    val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
+
+    val toString : ('a -> string) -> 'a list -> string;
+
+    val max : (('a * 'a) -> order) -> 'a list -> 'a;
+    val min : (('a * 'a) -> order) -> 'a list -> 'a;
+
+    val takeWhile : ('a -> bool) -> 'a list -> 'a list;
+    val dropWhile : ('a -> bool) -> 'a list -> 'a list;
+
+end;
+
+structure List : LIST =
+struct
+
+open List;
 
 fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 
@@ -108,11 +132,7 @@ fun enumerate xs = enumerateFrom 0 xs;
 
 fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
 
-fun all [] = true
-  | all (b::bs) = b andalso (all bs);
-
-fun any [] = false
-  | any (b::bs) = b orelse (any bs);
+fun toString fmt items = "[" ^ String.concatWith ", " (map fmt items) ^ "]";
 
 fun max _ [] = raise List.Empty
   | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
@@ -137,35 +157,59 @@ fun takeWhile pred list =
     in takeWhile' list []
     end;
 
-fun listToString fmt items =
-    let
-        val stringItems = map fmt items;
-        val withCommas = intersperse ", " stringItems;
-        val joined = String.concat withCommas;
-    in
-        "[" ^ joined ^ "]"
-    end;
+end;
+
+
+
+
+signature COMPARISON =
+sig
+
+    val join : ('a * 'a -> order) -> ('b * 'b -> order) -> (('a * 'b) * ('a * 'b)) -> order;
+    val rev : ('a * 'a -> order) -> ('a * 'a) -> order;
+
+end;
+
+
+structure Comparison : COMPARISON =
+struct
+
+fun join c1 c2 = fn ((a, x), (b, y)) =>
+                    case (c1 (a, b)) of
+                        EQUAL => c2 (x, y)
+                      | cmp => cmp;
+
+fun rev c = fn p => case (c p) of
+                        LESS => GREATER
+                      | EQUAL => EQUAL
+                      | GREATER => LESS;
+
+end;
+
+
+
+
+signature TEXT_IO =
+sig
+
+    include TEXT_IO;
+
+    val lookaheadN : (instream *  int) -> string;
+
+end;
+
+structure TextIO :> TEXT_IO =
+struct
+
+open TextIO;
 
 fun lookaheadN (istr, count) =
     let
-        val oldstream = TextIO.getInstream istr;
-        val (lookahead, newstream) = TextIO.StreamIO.inputN(oldstream, count);
-        val _ = TextIO.setInstream (istr, oldstream);
+        val oldstream = getInstream istr;
+        val (lookahead, newstream) = StreamIO.inputN(oldstream, count);
+        val _ = setInstream (istr, oldstream);
     in
         lookahead
     end;
 
-fun spread f (a, b) = (f a, f b);
-
-fun flip (a, b) = (b, a);
-
-fun cmpJoin c1 c2 = fn ((a, x), (b, y)) =>
-                       case (c1 (a, b)) of
-                           EQUAL => c2 (x, y)
-                         | cmp => cmp;
-
-fun revCmp c = fn p => case (c p) of
-                           LESS => GREATER
-                         | EQUAL => EQUAL
-                         | GREATER => LESS;
 end;
