@@ -16,3 +16,4 @@ token-equals,tactic-observe,1
 fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
 fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$area_additivity,1
 fact-$non_negative_probability,fact-non-negative-area,1
+pattern-$class_ratio,pattern-$section,1

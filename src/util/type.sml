@@ -117,7 +117,7 @@ fun unify [] = []
     | _ => raise TUNIFY;
 
 (* I don't want to bother changing variables to absolutely guarantee that they are different,
-   but this should be enough for practical purposes. We can also assume '_x is an invalid type variable name *)
+   but this should be enough for practical purposes. We can also assume '_a is an invalid type variable name *)
 fun giveUnlikelyVarNames (Ground s) = Ground s
   | giveUnlikelyVarNames (Var a) = Var ("_" ^ a)
   | giveUnlikelyVarNames (Pair (s,t)) = Pair (giveUnlikelyVarNames s, giveUnlikelyVarNames t)

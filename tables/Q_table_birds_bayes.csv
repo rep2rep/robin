@@ -3,7 +3,7 @@ error_allowed,0
 answer_type,real
 instrumental_tokens,"\Pr,\cap,\bar,="
 instrumental_types,"real,event"
-instrumental_patterns,"\Pr(_:event|_:event) = _:real, \Pr(_:event \cap _:event) = _:real"
+instrumental_patterns,"$conditional_Pr, $joint_Pr, $simple_Pr"
 instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"rewrite,calc"
 relevant_tokens,"1, \div, 4, b, f, \Omega, 2, 3, |"

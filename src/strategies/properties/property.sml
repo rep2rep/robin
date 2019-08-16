@@ -5,14 +5,14 @@ import "util.parser";
 
 import "strategies.properties.importance";
 import "strategies.properties.kind";
+import "strategies.properties.attribute";
 
 signature PROPERTY =
 sig
     exception ParseError;
 
-    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
+    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
-    type attribute;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -22,37 +22,38 @@ sig
     val BooleanOf : property -> bool;
     val TypeOf : property -> Type.T;
 
+    val attributesOf : property -> Attribute.T list;
     val typeOfValue : property -> Type.T;
-    val attributesOf : property -> attribute list;
 
     val compare : property * property -> order;
     val match : property * property -> bool;
 
     val toString : property -> string;
-    val fromKindValuePair : Kind.kind * value -> property;
-    val toKindValuePair : property -> Kind.kind * value;
+    val fromKindValueAttributes : Kind.kind * value * (Attribute.T list) -> property;
+    val toKindValueAttributes : property -> Kind.kind * value * (Attribute.T list);
     val fromString : string -> property;
+    val findAttributes : string -> (string * Attribute.T list);
 end;
 
 structure Property :> PROPERTY =
 struct
 
-datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T;
-type attribute = string;
+datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
   | stringOfValue (Boolean b) = if b then "TRUE" else "FALSE"
-  | stringOfValue (Type t) = Type.toString t;
+  | stringOfValue (Type t) = Type.toString t
+  | stringOfValue (Raw s) = "RAW: " ^ s;
 
-type property = (Kind.kind * value * (Type.T option) * attribute list);
+type property = (Kind.kind * value * Attribute.T list);
 
 exception ParseError;
 
-fun toKindValuePair (k,v,_,_) = (k,v)
+fun toKindValuePair (k,v,_) = (k,v)
 
-fun kindOf (k,_,_,_) = k;
-fun valueOf (_,v,_,_) = v;
+fun kindOf (k,_,_) = k;
+fun valueOf (_,v,_) = v;
 
 fun LabelOf p =
     case valueOf p of Label s => s
@@ -71,9 +72,13 @@ fun TypeOf p =
                     | _ => (print "Not a Type";raise Match);
 
 
-fun typeOfValue (_,_,x,_) = case x of SOME t => t | NONE => raise Match;
+fun attributesOf (_,_,A) = A;
 
-fun attributesOf (_,_,_,a) = a;
+fun typeFromAttributes [] = NONE
+  | typeFromAttributes (a::L) = SOME (Attribute.getType a) handle Match => typeFromAttributes L;
+
+fun typeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
+                                                     | NONE => raise Match;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -88,25 +93,26 @@ fun compareKindValuePair ((k,v),(k',v')) =
                          | (Type _, _) => LESS
                          | (_, Type _) => GREATER
                          | (Number n, Number n') => Int.compare (n,n')
+                         | (Number _, _) => LESS
+                         | (_, Number _) => GREATER
+                         | (Raw s, Raw s') => String.compare (s,s')
        else c
     end;
 
-(*A lexicographic order for the property type. The name takes precedence, then
-  the KIND (Simple, Typed, Attr), and in the end the type or attribute list.
+(*A lexicographic order for the property type. The name (kind) takes precedence,
+then the value, and then its type.
   Useful for putting it into a dictionary; not for much else*)
-fun compare ((k,v,xt,ats),(k',v',xt',ats')) =
+fun compare ((k,v,ats),(k',v',ats')) =
     let
         val c = compareKindValuePair ((k,v),(k',v'))
+        val xt = typeFromAttributes ats
+        val xt' = typeFromAttributes ats'
     in
         if c = EQUAL
         then case (xt,xt') of
-                (NONE, NONE) =>  List.collate String.compare (ats,ats')
+                (NONE, NONE) => EQUAL
               | (NONE, SOME _) => LESS
-              | (SOME t, SOME t') => let val c' = Type.compare (t,t')
-                                     in if c' = EQUAL
-                                        then List.collate String.compare (ats,ats')
-                                        else c'
-                                     end
+              | (SOME t, SOME t') => Type.compare (t,t')
               | (SOME _, NONE) => GREATER
         else c
     end;
@@ -118,15 +124,14 @@ fun kindValuePairMatch (k,v) (k',v') =
   without the need to have type or attribute information, and type-matching when
   there is type information *)
 fun match (p,p') =
-    let val M = (Type.match (typeOfValue p, typeOfValue p') handle _ => true)
+    let val M = (Type.match (typeOfValue p, typeOfValue p') handle Match => true)
     in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
 
-fun toString (k,v,xt,ats) =
+fun toString (k,v,ats) =
     let val sv = stringOfValue v
-        val st = case xt of NONE => "" | SOME t => " : " ^ Type.toString t
-        val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (List.intersperse "; " aL)) ^ "}";
-    in (Kind.toString k) ^ "-" ^ sv ^ st ^ sats
+        val sats = case ats of [] => "" | aL => " : {" ^ (String.concatWith "; " (map Attribute.toString aL)) ^ "}";
+    in (Kind.toString k) ^ "-" ^ sv ^ sats
     end
 
 
@@ -137,42 +142,35 @@ fun breakUntilCharacter _ [] = ([],[])
            in (h::x,y)
            end;
 
+fun readAttributes s =
+    let val s' = (Parser.removeBraces o Parser.stripSpaces) s
+        val Astrs = Parser.splitStrip ";" s'
+        val A = map Attribute.fromString Astrs
+    in  A
+    end
+
 fun findAttributes s =
-    let fun ff (c::c'::L) = if (c,c') = (#":",#"{") then breakUntilCharacter #"}" L
-                           else let val (x,y) = ff (c'::L)
-                                in (x,c::y)
-                                end
-          | ff L = ([],L)
-        val (atts',rest) = ff (String.explode s)
-        val atts = Parser.splitStrip ";" (String.implode atts')
-    in (atts, String.implode rest)
-    end;
-
-(* assumes  we're not dealing with a pattern. It's easier this way *)
-fun findType s =
-    let val (_,s') = findAttributes s;
-        val (v,_,typ') = Parser.breakOn ":" s';
-        val typ = case typ' of "" => NONE | ts => SOME (Type.fromString ts)
-    in (typ, Label v)
-    end;
-
-fun fromKindValuePair (k,rawV) =
     let
-        val vs = stringOfValue rawV
-        val (atts,rest) = findAttributes vs;
-        val (xt,v) = if vs = "" then (NONE, Boolean true) else
-                     if k = Kind.Pattern then (NONE, Label rest) else
-                     if k = Kind.Type then (NONE, Type (Type.fromString rest))
-                     else findType rest;
-    in (k,v,xt,atts)
-    end;
+      val (v,_,As) = Parser.breakOn ":" s;
+      val A = readAttributes As (* takes {sdf; fsdfd:=sdf ; fdsdf:=[type1 =>2. type2 => 1] ;fte} and returns a list of attributes*)
+    in (Parser.stripSpaces v, A)
+    end
 
+fun fromKindValueAttributes (k,v,A) = (k,v,A)
+fun toKindValueAttributes (k,v,A) = (k,v,A)
+
+(* This function is used only by correspondence-related functions,
+   which shouldn't care about attributes other than type. Thus, the
+   only attribute carried on is the type *)
 fun fromString s =
-    let val (ks,_,vs) = Parser.breakOn "-" s;
+    let val (ks,_,vs) = Parser.breakOn "-" s
+        val (v,A) = findAttributes vs
+        val k = Kind.fromString ks
+        val T = ([Attribute.fromType (typeOfValue (k,v,A))] handle Match => [])
     in
-        if vs = ""
-        then fromKindValuePair (Kind.fromString s, Boolean true)
-        else fromKindValuePair (Kind.fromString ks, Label vs)
+        if vs = "" then (k, Boolean true, [])
+        else if k = Kind.Type then (k, Type (Type.fromString v), [])
+        else (k, Label v, T)
     end;
 
 end;
