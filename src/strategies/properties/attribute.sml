@@ -31,17 +31,7 @@ struct
              | Content of Type.T
              | Occurrences of int
              | Feature of string;
-(*
-  fun compare (IsOfType t, IsOfType t') = Type.compare (t,t')
-    | compare (IsOfType _, _) = LESS
-    | compare (_, IsOfType _) = GREATER
-    | compare (Holes L, Holes L') = M.compare
-    | compare (Holes _, _) =
-    | compare (_, Holes _) =
-    | compare (IsOfType t, IsOfType t') =
-    | compare (IsOfType _, _) =
-    | compare (_, IsOfType _) =
-    | compare (IsOfType t, IsOfType t') = *)
+
   fun fromType t = IsOfType t;
   fun fromHoles H = Holes H;
   fun fromTokens L = Tokens L;
@@ -112,12 +102,5 @@ struct
       in "holes := [" ^ (String.concat (intersperse ". " sL)) ^ "]"
       end;
 
-
-(*)
-  fun getHoles [] = []
-    | getHoles ((x,y)::L) =
-        if x = "holes"
-        then let Parser.splitStrip "." (Parser.removeSquareBrackets y)
-        else getHoles L*)
 
 end
