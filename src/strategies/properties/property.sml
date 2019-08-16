@@ -2,7 +2,6 @@ import "util.set";
 import "util.type";
 import "util.dictionary";
 import "util.parser";
-import "util.multiset";
 
 import "strategies.properties.importance";
 import "strategies.properties.kind";
@@ -75,8 +74,11 @@ fun TypeOf p =
 
 fun attributesOf (_,_,A) = A;
 
-fun typeOfValue (_,_,A) = case Attribute.getType A of NONE => (raise Match)
-                                                     | SOME t => t;
+fun typeFromAttributes [] = NONE
+  | typeFromAttributes (a::L) = SOME (Attribute.getType a) handle Match => typeFromAttributes L;
+
+fun typeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
+                                                     | NONE => raise Match;
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -103,8 +105,8 @@ then the value, and then its type.
 fun compare ((k,v,ats),(k',v',ats')) =
     let
         val c = compareKindValuePair ((k,v),(k',v'))
-        val xt = Attribute.getType ats
-        val xt' = Attribute.getType ats'
+        val xt = typeFromAttributes ats
+        val xt' = typeFromAttributes ats'
     in
         if c = EQUAL
         then case (xt,xt') of
@@ -140,27 +142,22 @@ fun breakUntilCharacter _ [] = ([],[])
            in (h::x,y)
            end;
 
+fun readAttributes s =
+    let val s' = (Parser.removeBraces o Parser.stripSpaces) s
+        val Astrs = Parser.splitStrip ";" s'
+        val A = map Attribute.fromString Astrs
+    in  A
+    end
+
 fun findAttributes s =
     let
       val (v,_,As) = Parser.breakOn ":" s;
-      val A = Attribute.read As (* takes {sdf; fsdfd:=sdf ; fdsdf:=[type1 =>2. type2 => 1] ;fte} and returns a list of attributes*)
+      val A = readAttributes As (* takes {sdf; fsdfd:=sdf ; fdsdf:=[type1 =>2. type2 => 1] ;fte} and returns a list of attributes*)
     in (Parser.stripSpaces v, A)
     end
 
 fun fromKindValueAttributes (k,v,A) = (k,v,A)
 fun toKindValueAttributes (k,v,A) = (k,v,A)
-(*
-fun fromKindValuePair (k, Boolean x) = (k, Boolean x, [])
-  | fromKindValuePair (k, Number n) = (k, Number n, [])
-  | fromKindValuePair (k, Type t) = (k, Type t, [])
-  | fromKindValuePair (k, Label s) = (k, Label s, [])
-  | fromKindValuePair (k, Raw vs) =
-    let
-        val (vr,A) = findAttributes vs;
-        val v = if k = Kind.Type then Type (Type.fromString vr)
-                else Label vr;
-    in (k,v,A)
-    end*)
 
 (* This function is used only by correspondence-related functions,
    which shouldn't care about attributes other than type. Thus, the
