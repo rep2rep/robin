@@ -3,7 +3,7 @@ error_allowed,0
 answer_type,ratio
 instrumental_tokens,"probability,and,not"
 instrumental_types,"ratio,class"
-instrumental_patterns,"_:ratio of _:class are _:class,probability of _:class and _:class"
+instrumental_patterns,"$class_ratio : {holes := [class=>2. ratio=>1]; tokens := [of. are]}, $probability_of_conjunction : {holes := [class=>2. ratio=>1]; tokens := [probability. of. and]}"
 instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"deduction, arithmetic_calculation"
 relevant_tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
