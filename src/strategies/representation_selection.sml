@@ -117,9 +117,9 @@ fun propInfluence (q, r, s) =
                                         collateImportances o
                                         (map QProperty.toPair) o
                                         QPropertySet.toList) qProps';
-                val importanceMax = max Importance.compare;
+                val importanceMax = List.max Importance.compare;
                 val getImportance = PropertyDictionary.get importanceLookup;
-                val flatten = flatmap (fn x => x);
+                val flatten = List.flatmap (fn x => x);
                 val qp = Correspondence.leftMatches qProps c;
                 val i = importanceMax (flatten (PropertySet.map getImportance qp));
             in
@@ -193,21 +193,21 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
         val representations = FileDict.keys (!propertyTableRep');
         val _ = Logging.write ("VAL representations = " ^
-                     (listToString (fn s => s) representations) ^
+                     (List.toString (fn s => s) representations) ^
                      "\n");
         val influencedRepresentations =
             List.map
                 (fn rep => relevanceScore (questionName, rep, 0.0))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
-                       (listToString
+                       (List.toString
                             (fn (q, r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                             influencedRepresentations) ^
                        "\n");
 
         val dropQuestion = fn (_, r, s) => (r, s);
-        val sortKey = cmpJoin (revCmp Real.compare) String.compare;
-        val sort = mergesort (sortKey o spread flip);
+        val sortKey = Comparison.join (Comparison.rev Real.compare) String.compare;
+        val sort = List.mergesort (sortKey o spread flip);
         val getValid = List.filter (fn (_, s) => s > 0.0);
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs
@@ -220,7 +220,7 @@ fun topKRepresentations question k =
     in
         Logging.write ("\n");
         Logging.write ("RETURN " ^
-             (listToString
+             (List.toString
                   (fn (r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                   result
              ) ^

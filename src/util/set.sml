@@ -80,12 +80,11 @@ fun toString items =
     let
         val printThreshold = 100;
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
-        val withCommas = intersperse ", " stringItems;
         val tooLong = (D.size items) > printThreshold;
         val mostItems = if tooLong
-                        then (List.take (withCommas, 2 * printThreshold))
-                        else withCommas;
-        val joined = String.concat mostItems;
+                        then (List.take (stringItems, printThreshold))
+                        else stringItems;
+        val joined = String.concatWith ", " mostItems;
     in
         "{" ^ joined ^ (if tooLong then "..." else "") ^ "}"
     end;
@@ -127,8 +126,8 @@ fun contains xs x =
     in true end
     handle KeyError => false;
 fun subset xs ys =
-    let val contained = map (fn x => contains ys x) xs;
-    in all contained end;
+    let val contained = fn x => contains ys x;
+    in List.all contained (toList xs) end;
 
 fun getFirst xs = #1 (D.getFirst xs);
 

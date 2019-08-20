@@ -80,11 +80,11 @@ fun loadCorrespondenceTable filename =
           | makeRow [x, y, z] = (readCorrespondence x y z)
           | makeRow r = raise TableError
                               ("Correspondence table entry malformed: " ^
-                               (listToString (fn s => s) r));
+                               (List.toString (fn s => s) r));
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
     in
-        flatmap makeRow csvData
+        List.flatmap makeRow csvData
     end
     handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))

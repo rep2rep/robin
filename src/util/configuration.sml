@@ -90,7 +90,7 @@ fun readCommandLineArguments specs args =
               | SOME s =>
                 let
                     val (v, rest) = switch s args;
-                    val ss' = if countOf s < 2 then (remove s ss) else ss;
+                    val ss' = if countOf s < 2 then (List.remove s ss) else ss;
                 in parse (v::ans) [] ss rest end)
           | parse ans (p::ps) ss (a::args) =
             case switchCase ss a of
@@ -98,7 +98,7 @@ fun readCommandLineArguments specs args =
               | SOME s =>
                 let
                     val (v, rest) = switch s args;
-                    val ss' = if countOf s < 2 then (remove s ss) else ss;
+                    val ss' = if countOf s < 2 then (List.remove s ss) else ss;
                 in parse (v::ans) (p::ps) ss' rest end;
     in
         parse preBools positionalArgs switchArgs args
@@ -144,10 +144,10 @@ fun configFromCommandLine rawArgs =
         val args = readCommandLineArguments argspec rawArgs;
         val (q, rs) = readQuestion (getArgument args "question:rs");
         val limit = readLimit (getArgument args "suggestion limit");
-        val rss = flatmap (Parser.splitStrip ",")
-                          (getArguments args "potential RSs");
-        val corrFiles = flatmap (Parser.splitStrip ",")
-                                (getArguments args "correspondence files");
+        val rss = List.flatmap (Parser.splitStrip ",")
+                               (getArguments args "potential RSs");
+        val corrFiles = List.flatmap (Parser.splitStrip ",")
+                                     (getArguments args "correspondence files");
     in
         ((q, rs), limit, rss, corrFiles)
     end;
