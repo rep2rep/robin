@@ -10,7 +10,6 @@ sig
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
     val toList : t multiset -> t list;
-    val toListWithNegatives : t multiset -> (t list * (t * int) list);
     val toPairList : t multiset -> (t * int) list;
     val toString : t multiset -> string;
 
@@ -80,8 +79,6 @@ val fromPairList = D.fromPairList;
 val toPairList = D.toPairList;
 val fromList = fromPairList o toCountPairs;
 val toList = fromCountPairs o toPairList;
-
-fun toListWithNegatives M = case List.partition (fn (_,n) => n > 0) (toPairList M) of (pL,nL) => (fromCountPairs pL, nL);
 
 fun toString items =
     let
