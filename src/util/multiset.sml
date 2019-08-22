@@ -5,6 +5,8 @@ sig
     type t;
     type 'a multiset;
 
+    exception NegativeCount of (t * int);
+
     val empty : unit -> t multiset;
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
@@ -58,9 +60,11 @@ structure D = Dictionary(struct
 type 'a multiset = ('a, int) D.dict;
 
 
+exception NegativeCount of (t * int);
+
 fun fromCountPairs' ans [] = List.rev ans
   | fromCountPairs' ans ((x, 0)::xs) = fromCountPairs' ans xs
-  | fromCountPairs' ans ((x, i)::xs) = fromCountPairs' (x::ans) ((x, i-1)::xs);
+  | fromCountPairs' ans ((x, i)::xs) = if i > 0 then fromCountPairs' (x::ans) ((x, i-1)::xs) else raise NegativeCount (x,i);
 fun fromCountPairs xs = fromCountPairs' [] xs;
 
 fun toCountPairs' ans [] = List.rev ans
