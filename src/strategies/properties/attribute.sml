@@ -135,11 +135,4 @@ struct
       end;
 
 
-(*)
-  fun getHoles [] = []
-    | getHoles ((x,y)::L) =
-        if x = "holes"
-        then let Parser.splitStrip "." (Parser.removeSquareBrackets y)
-        else getHoles L*)
-
 end
