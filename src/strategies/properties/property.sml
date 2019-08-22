@@ -23,7 +23,7 @@ sig
     val TypeOf : property -> Type.T;
 
     val attributesOf : property -> Attribute.T list;
-    val typeOfValue : property -> Type.T;
+    val getTypeOfValue : property -> Type.T;
 
     val compare : property * property -> order;
     val match : property * property -> bool;
@@ -71,14 +71,37 @@ fun TypeOf p =
     case valueOf p of Type t => t
                     | _ => (print "Not a Type";raise Match);
 
-
 fun attributesOf (_,_,A) = A;
 
 fun typeFromAttributes [] = NONE
   | typeFromAttributes (a::L) = SOME (Attribute.getType a) handle Match => typeFromAttributes L;
 
-fun typeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
+
+fun getTypeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
                                                      | NONE => raise Match;
+
+fun getHoles (_,_,[]) = raise Match
+  | getHoles (k,v,(a::L)) = Attribute.getHoles a handle Match => getHoles (k,v,L);
+
+fun getTokens (_,_,[]) = raise Match
+  | getTokens (k,v,(a::L)) = Attribute.getTokens a handle Match => getTokens (k,v,L);
+
+fun getContent (_,_,[]) = raise Match
+  | getContent (k,v,(a::L)) = Attribute.getContent a handle Match => getContent (k,v,L);
+
+fun getNumFunction s (_,_,[]) = raise Match
+  | getNumFunction s (k,v,(a::L)) =
+    (case Attribute.getNumFunction a of (s',n) =>
+        (if s' = s then (s',n) else getNumFunction s (k,v,L))) handle Match => getNumFunction s (k,v,L);
+
+fun getStringFunction s (_,_,[]) = raise Match
+  | getStringFunction s (k,v,(a::L)) =
+    (case Attribute.getStringFunction a of (s',n) =>
+        (if s' = s then (s',n) else getStringFunction s (k,v,L))) handle Match => getStringFunction s (k,v,L);
+
+fun getFeature (_,_,[]) = raise Match
+  | getFeature (k,v,(a::L)) = Attribute.getFeature a handle Match => getFeature (k,v,L);
+
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
@@ -124,16 +147,16 @@ fun kindValuePairMatch (k,v) (k',v') =
   without the need to have type or attribute information, and type-matching when
   there is type information *)
 fun match (p,p') =
-    let val M = (Type.match (typeOfValue p, typeOfValue p') handle Match => true)
+    let val M = (Type.match (getTypeOfValue p, getTypeOfValue p') handle Match => true)
     in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
+
 
 fun toString (k,v,ats) =
     let val sv = stringOfValue v
         val sats = case ats of [] => "" | aL => " : {" ^ (String.concat (intersperse "; " (map Attribute.toString aL))) ^ "}";
     in (Kind.toString k) ^ "-" ^ sv ^ sats
     end
-
 
 fun breakUntilCharacter _ [] = ([],[])
   | breakUntilCharacter c (h::t) =
@@ -166,7 +189,7 @@ fun fromString s =
     let val (ks,_,vs) = Parser.breakOn "-" s
         val (v,A) = findAttributes vs
         val k = Kind.fromString ks
-        val T = ([Attribute.fromType (typeOfValue (k,v,A))] handle Match => [])
+        val T = ([Attribute.fromType (getTypeOfValue (k,v,A))] handle Match => [])
     in
         if vs = "" then (k, Boolean true, [])
         else if k = Kind.Type then (k, Type (Type.fromString v), [])

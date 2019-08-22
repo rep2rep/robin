@@ -1,16 +1,16 @@
-import "strategies.properties.property"
+import "strategies.properties.property";
 
 signature EXPRESSION_TREES =
 sig
   type expression_tree;
-  val treesFromToken : Property.property list -> Property.property -> expression_tree list;
   val treesFromPattern : Property.property list -> Property.property -> expression_tree list;
 end;
 
 structure ExpressionTrees : EXPRESSION_TREES =
 struct
 
-datatype expression_tree = Leaf of (string) | Branch of (string * expression_tree list);
+datatype branch = Leaf of (string) | Branch of (string * expression_tree list);
+datatype expression_tree = Root of ((string list * real * real) * ((real * branch) list))
 
 fun inList f x [] = false
   | inList f x (y::L) = if f (x,y) then true else inList x L;
@@ -30,7 +30,7 @@ fun isPermutationOf _ [] [] = true
   | isPermutationOf _ _ _ = false;
 
 fun selectTokensWithOutputTypes C t =
-    List.filter ((isPermutationOf Type.match [t]) o #2 o Type.getInOutTypes o Property.typeOfValue) C;
+    List.filter ((isPermutationOf Type.match [t]) o #2 o Type.getInOutTypes o Property.getTypeOfValue) C;
 
 (*
 [["a1","b1","c1"],["a2","b2"],["a3"]] ->
@@ -47,7 +47,7 @@ fun treesFromToken C c =
     fun makeTrees_rec CC (cc::LL) = let val CC' = (decreaseMultiplicityOf cc CC)
                                      in (treesFromToken CC' cc) :: (makeTrees_rec CC' LL)
                                      end;
-    val t = Property.typeOfValue c
+    val t = Property.getTypeOfValue c
     val (iT,_) = Type.getInOutTypes t
     val C' = decreaseMultiplicityOf c C
     val cL = listCombChoices (map (selectTokensWithOutputTypes C') iT) (* list of lists of tokens e.g., in [[t,s],[u,v]] you have to select one from each list
@@ -59,7 +59,7 @@ fun treesFromToken C c =
   end;
 
 
-(*)
+(*
 (*start dummy test*)
 datatype expression_tree = Leaf of ((string list * string) * int) | Branch of (((string list * string) * int) * expression_tree list);
 fun selectTokensWithOutputTypes [] _ = []
@@ -86,15 +86,23 @@ fun treesFromToken C c =
 (*end dummy test*)
 *)
 
-fun treesFromType C t = map (treesFromToken C) (selectTokensWithOutputTypes C t)
-fun getHoles p =
-    let val A = Property.AttributesOf p
-        fun getTokens [] = []
-          | getTokens (a::L) = Attribute.getTokens a handle Match => getTokens L
-
+fun treesFromType C t = List.concat (map (treesFromToken C) (selectTokensWithOutputTypes C t))
 
 fun treesFromPattern C p =
-    let val tM =
+    let val H = Attribute.M.toPairList (Property.getHoles p)
+        val tkL = Property.getTokens p
+        fun dec (x::L) X = dec L (decreaseMultiplicityOf x X) | dec [] X = X
+        val C' = dec tkL C
+        val ud = Property.getStringFunction "udepth" p handle Match => 1.0
+        val ub = Property.getStringFunction "ubreadth" p handle Match => 1.0
+        fun brachesfromHoles [] = []
+          | brachesfromHoles ((t,n)::L) = (map (fn x => (x,n)) (treesFromType C' t)) :: brachesfromHoles L
+        val treeListOptions = listCombChoices (treesfromHoles H)
+        fun mkTree L = Root ((map Property.LabelOf tkL, ud, ub), L)
+    in map mkTree treeListOptions
+    end
+
+
 
 
 end;

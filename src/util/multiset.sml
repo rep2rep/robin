@@ -4,11 +4,13 @@ signature MULTISET =
 sig
     type t;
     type 'a multiset;
+    exception NegativeCount of (t * int);
 
     val empty : unit -> t multiset;
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
     val toList : t multiset -> t list;
+    val toListWithNegatives : t multiset -> (t list * (t * int) list);
     val toPairList : t multiset -> (t * int) list;
     val toString : t multiset -> string;
 
@@ -57,10 +59,11 @@ structure D = Dictionary(struct
                           end);
 type 'a multiset = ('a, int) D.dict;
 
+exception NegativeCount of (t * int);
 
 fun fromCountPairs' ans [] = List.rev ans
   | fromCountPairs' ans ((x, 0)::xs) = fromCountPairs' ans xs
-  | fromCountPairs' ans ((x, i)::xs) = fromCountPairs' (x::ans) ((x, i-1)::xs);
+  | fromCountPairs' ans ((x, i)::xs) = if i > 0 then fromCountPairs' (x::ans) ((x, i-1)::xs) else raise NegativeCount (x,i);
 fun fromCountPairs xs = fromCountPairs' [] xs;
 
 fun toCountPairs' ans [] = List.rev ans
@@ -72,12 +75,14 @@ fun toCountPairs' ans [] = List.rev ans
 fun toCountPairs xs = toCountPairs' [] (mergesort O.compare xs);
 
 
-
 val empty = D.empty;
 val fromPairList = D.fromPairList;
 val toPairList = D.toPairList;
 val fromList = fromPairList o toCountPairs;
 val toList = fromCountPairs o toPairList;
+
+fun toListWithNegatives M = case List.partition (fn (_,n) => n > 0) (toPairList M) of (pL,nL) => (fromCountPairs pL, nL);
+
 fun toString items =
     let
         val printThreshold = 100;
