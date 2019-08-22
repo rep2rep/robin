@@ -134,14 +134,14 @@ struct
   fun toString (Feature s) = s
     | toString (IsOfType t) = "type := " ^ Type.toString t
     | toString (Content t) = "content := " ^ Type.toString t
-    | toString (Tokens L) = "tokens := [" ^ (String.concat (intersperse ". " L)) ^ "]"
+    | toString (Tokens L) = "tokens := [" ^ (String.concatWith ". " L) ^ "]"
     | toString (NumFunction (s,n)) = s ^ " := " ^ Real.toString n
     | toString (StringFunction (s,s')) = s ^ " := " ^ s'
     | toString (Holes m) =
       let val L = M.toPairList m
           fun holePairToString (t,n) = (Type.toString t) ^ " => " ^ (Int.toString n)
           val sL = map holePairToString L
-      in "holes := [" ^ (String.concat (intersperse ". " sL)) ^ "]"
+      in "holes := [" ^ (String.concatWith ". " sL) ^ "]"
       end;
 
 

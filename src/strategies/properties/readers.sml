@@ -49,7 +49,7 @@ fun labelR str =
     end;
 
 fun listOf reader str = if str = "NONE" then []
-                        else flatmap reader (Parser.splitStrip "," str);
+                        else List.flatmap reader (Parser.splitStrip "," str);
 
 fun collection str = listOf (fn s => [s]) str;
 fun dimension str =
