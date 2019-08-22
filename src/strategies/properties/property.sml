@@ -13,6 +13,7 @@ sig
 
     datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
+    structure M : MULTISET;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -24,6 +25,12 @@ sig
 
     val attributesOf : property -> Attribute.T list;
     val getTypeOfValue : property -> Type.T;
+    val getHoles : property -> Type.T M.multiset;
+    val getTokens : property -> string list;
+    val getContent : property -> Type.T;
+    val getStringFunction : string -> property -> (string * string);
+    val getNumFunction : string -> property -> (string * real);
+    val getFeature : property -> string;
 
     val compare : property * property -> order;
     val match : property * property -> bool;
@@ -47,6 +54,7 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Raw s) = "RAW: " ^ s;
 
 type property = (Kind.kind * value * Attribute.T list);
+structure M = Attribute.M
 
 exception ParseError;
 
