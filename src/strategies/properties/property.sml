@@ -32,7 +32,7 @@ sig
     val getNumFunction : string -> property -> (string * real);
     val getFeature : property -> string;
 
-    val updateNumfunction : property -> property;
+    val updateNumFunction : string -> (real -> real) -> property -> property;
 
     val compare : property * property -> order;
     val match : property * property -> bool;

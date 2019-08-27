@@ -22,7 +22,7 @@ sig
   val getStringFunction : T -> string * string;
   val getFeature : T -> string;
 
-  val updateNumFunction : T -> T;
+  val updateNumFunction : string -> (real -> real) -> T -> T;
 
   val fromString : string -> T;
   val toString : T -> string;
