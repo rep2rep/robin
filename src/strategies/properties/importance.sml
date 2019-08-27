@@ -6,6 +6,7 @@ sig
     val compare : (importance * importance) -> order;
     val fromString : string -> importance option;
     val toString : importance -> string;
+    val weight : importance -> real;
 
 end;
 
@@ -36,5 +37,12 @@ fun toString Noise = "Noise"
   | toString Low = "Low"
   | toString Medium = "Medium"
   | toString High = "High";
+
+fun weight Noise = 0.0
+  | weight Zero = 0.0
+  | weight Low = 0.2
+  | weight Medium = 0.6
+  | weight High = 1.0;
+
 
 end;

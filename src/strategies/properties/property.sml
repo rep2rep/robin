@@ -32,6 +32,8 @@ sig
     val getNumFunction : string -> property -> (string * real);
     val getFeature : property -> string;
 
+    val updateNumfunction : property -> property;
+
     val compare : property * property -> order;
     val match : property * property -> bool;
 
@@ -109,6 +111,8 @@ fun getStringFunction s (_,_,[]) = raise Match
 
 fun getFeature (_,_,[]) = raise Match
   | getFeature (k,v,(a::L)) = Attribute.getFeature a handle Match => getFeature (k,v,L);
+
+fun updateNumFunction s f (k,v,L) = (k,v,map (Attribute.updateNumFunction s f) L);
 
 
 fun compareKindValuePair ((k,v),(k',v')) =

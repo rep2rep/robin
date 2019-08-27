@@ -81,6 +81,16 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
+    val weightedSumIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val sumIndexed : ('a -> real) -> 'a list -> real;
+    val weightedSum : (real -> real) -> real list -> real;
+    val sum : real list -> real;
+
+    val weightedAvgIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val avgIndexed : ('a -> real) -> 'a list -> real;
+    val weightedAvg : (real -> real) -> real list -> real;
+    val avg : real list -> real;
+
 end;
 
 structure List : LIST =
@@ -156,6 +166,25 @@ fun takeWhile pred list =
                                       else List.rev ans;
     in takeWhile' list []
     end;
+
+fun weightedSumIndexed w f L =
+    let fun withWeightList' (h::t) (h'::t') = h * (f h') + withWeightList' t t'
+          | withWeightList' [] [] = 0.0
+          | withWeightList' _ _ = (print "impossible size in weightedSum"; raise Match)
+    in withWeightList' (map w L) L
+    end;
+
+fun weightedSum w L = weightedSumIndexed w (fn x => x) L;
+
+fun sumIndexed f L = weightedSumIndexed (fn _ => 1.0) f L;
+fun sum L = weightedSumIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun weightedAvgIndexed w f L = (weightedSumIndexed w f L) / (sumIndexed w L);
+
+fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
+
+fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
+fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
 
 end;
 
