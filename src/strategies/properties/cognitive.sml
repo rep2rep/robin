@@ -12,41 +12,41 @@ fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
 
 (* Cognitive property 1a *)
-fun numberOfSymbols qT =
+fun numberOfTokens qT =
     Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
           (QPropertySet.collectOfKind qT "num_tokens")) ;
-fun numberOfSymbolsCost qT uP =
+fun numberOfTokensCost qT uP =
     let val C = 2.0 ;
         val W = 20.0 ;
         fun userTh table profile = 5.0 ;
         val T = userTh qT uP;
-        val x = real (numberOfSymbols qT)
+        val x = real (numberOfTokens qT)
     in sigmoid C W T x
     end;
 
 (* Cognitive property 1b *)
-fun numberOfDistinctSymbols qT =
+fun numberOfDistinctTokens qT =
     Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
           (QPropertySet.collectOfKind qT "num_distinct_tokens")) ;
-fun numberOfDistinctSymbolsCost qT uP =
+fun numberOfDistinctTokensCost qT uP =
     let val C = 2.0 ;
         val W = 20.0 ;
         fun userTh table profile = 5.0 ;
         val T = userTh qT uP;
-        val x = real (numberOfSymbols qT)
+        val x = real (numberOfTokens qT)
     in sigmoid C W T x
     end;
 
 (* Cognitive property 2 *)
-fun numberOfSymbolTypes qT = QPropertySet.size (QPropertySet.collectOfKind qT "type");
-fun numberOfSymbolTypesCost qT uP =
+fun numberOfTokenTypes qT = QPropertySet.size (QPropertySet.collectOfKind qT "type");
+fun numberOfTokenTypesCost qT uP =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0 ;
         val T = userTh qT uP;
-        val x = real (numberOfSymbolTypes qT)
+        val x = real (numberOfTokenTypes qT)
     in sigmoid C W T x
     end;
 
@@ -54,6 +54,7 @@ fun numberOfSymbolTypesCost qT uP =
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfPatterns qT =
     let val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
+    in List.sumIndexed (#2 o (Property.getNumFunction "multiplicity")) P
     in List.sumIndexed (#2 o (Property.getNumFunction "multiplicity")) P
     end;
 fun numberOfPatternsCost qT rT uP =
@@ -77,6 +78,17 @@ fun numberOfDistinctPatternsCost qT uP =
     in sigmoid C W T x
     end;
 
+(* Cognitive property 3 *)
+fun expressionVariety qT = numberOfPatterns qT + numberOfDistinctPatterns qT
+fun expressionVarietyCost qT uP =
+    let val C = 2.0 ;
+        val W = 2.0 ;
+        fun userTh table profile = 2.0 ;
+        val T = userTh qT uP;
+        val x = real (expressionVariety qT)
+    in sigmoid C W T x
+    end;
+
 (* Cognitive property 4 *)
 fun subRSvariety rT = PropertySet.size (PropertySet.collectOfKind rT "mode");
 fun subRSvarietyCost rT uP =
@@ -89,8 +101,8 @@ fun subRSvarietyCost rT uP =
     end;
 
 (* Cognitive property 5 *)
-(* Collects the symbol registration from the patterns where the symbols appear *)
-fun registrationSymbol qT =
+(* Collects the token registration from the patterns where the tokens appear *)
+fun tokenRegistration qT =
     let val C = QPropertySet.toList (QPropertySet.collectOfKind qT "token")
         val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
         val C1 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.High) C)
@@ -98,29 +110,29 @@ fun registrationSymbol qT =
         val C3 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.Low) C)
         val C4 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.Zero) C)
         val C5 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.Noise) C)
-        val tokenswithreg = map (fn x => (Property.getTokens x, #2 o (Property.getNumFunction "symbol_registration" x))) P
-        fun symbreg [] x = (print "no symbol_registration attribute for " ^ (Property.toString x); (x,1.0))
+        val tokenswithreg = map (fn x => (Property.getTokens x, #2 o (Property.getNumFunction "token_registration" x))) P
+        fun symbreg [] x = (print "no token_registration attribute for " ^ (Property.toString x); (x,1.0))
           | symbreg (([],_)::L) x = symbreg L x
           | symbreg ((s::S,r)::L) x = if Property.LabelOf x = s then (x, Real.max (r,#2 (symbreg L x))) else symbreg x ((S,r)::L);
-        val S = map (map (symbreg tokenswithreg)) [C1,C2,C3,C4,C5] (*this extracted the symbol_registration from the patterns for each symbol, stratified by importances*)
+        val S = map (map (symbreg tokenswithreg)) [C1,C2,C3,C4,C5] (*this extracted the token_registration from the patterns for each token, stratified by importances*)
         val [s1,s2,s3,s4,s5] = map (List.sumIndexed #2) S
         val total = s1+s2+s3+s4+s5
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
     in total * total / (w1*s1 + w2*s2 + w3*s3)
     end;
-fun registartionSymbolCost qT uP =
+fun registartionTokenCost qT uP =
     let val C = 2.0 ;
         val W = 2.0;
         fun userTh table profile = 2.0;
         val T = userTh qT uP;
-        val x = registrationSymbol qT;
+        val x = tokenRegistration qT;
     in sigmoid C W T x
     end;
 
 (* Cognitive property 6 *)
 (* instrumental patterns divided by all patterns, times the average
 value for the expression attributes of types*)
-fun registrationExpression qT rT =
+fun expressionRegistration qT rT =
     let val M = QPropertySet.toList (QPropertySet.collectOfKind rT "mode")
         val P = (QPropertySet.collectOfKind qT "pattern")
         val p1 = QPropertySet.size (QPropertySet.filter (fn x => Importance.importanceOf x = Importance.High) P)
@@ -136,12 +148,12 @@ fun registrationExpression qT rT =
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
     in (numberOfPatterns qT) * (List.avgIndexed modereg M) / (w1*p1 + w2*p2 + w3*p3)
     end;
-fun registartionExpressionCost qT rT uP =
+fun expressionRegistrationCost qT rT uP =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0 ;
         val T = userTh qT uP;
-        val x = registrationExpression qT;
+        val x = expressionRegistration qT;
     in sigmoid C W T x
     end;
 
@@ -155,7 +167,7 @@ fun patternComplexity rT qT =
                 val breadth = map Pattern.breadth C x
                 val typeArity = map Pattern.typeArity x
                 val distinctArity = map Pattern.distinctArity x
-            in depth + breadth + typeArity + distinctArity
+            in depth + breadth + (typeArity + distinctArity) / 2
             end
     in List.weightedAvgIndexed (Importance.weight o QProperty.importanceOf) f P
     end;
@@ -179,8 +191,8 @@ fun quantityScaleCost qT uP =
     end;
 
 
-fun symbolConceptMapping qT =  ;
-fun symbolConceptMappingCost qT uP =
+fun tokenConceptMapping qT =  ;
+fun tokenConceptMappingCost qT uP =
     let val C = 2.0 ;
         val W =  ;
         fun userTh table profile =  ;
