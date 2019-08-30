@@ -40,7 +40,11 @@ fun numberOfDistinctTokensCost qT uP =
     end;
 
 (* Cognitive property 2 *)
-fun numberOfTokenTypes qT = QPropertySet.size (QPropertySet.collectOfKind qT "type");
+fun numberOfTokenTypes qT =
+    let val C = QPropertySet.collectOfKind qT "token"
+        val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) C
+    in QPropertySet.size T
+    end;
 fun numberOfTokenTypesCost qT uP =
     let val C = 2.0 ;
         val W = 2.0 ;
@@ -52,10 +56,17 @@ fun numberOfTokenTypesCost qT uP =
 
 (* Cognitive property 3a *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
+fun numberOfPatternTypes qT =
+    let val P = QPropertySet.collectOfKind qT "pattern"
+        val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) P
+    in QPropertySet.size T
+    end;
+
+(* Cognitive property 3b *)
+(* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfPatterns qT =
     let val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
-    in List.sumIndexed (#2 o (Property.getNumFunction "multiplicity")) P
-    in List.sumIndexed (#2 o (Property.getNumFunction "multiplicity")) P
+    in List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) P
     end;
 fun numberOfPatternsCost qT rT uP =
     let val C = 2.0 ;
@@ -66,7 +77,7 @@ fun numberOfPatternsCost qT rT uP =
     in sigmoid C W T x
     end;
 
-(* Cognitive property 3b *)
+(* Cognitive property 3c *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfDistinctPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT "pattern");
 fun numberOfDistinctPatternsCost qT uP =
@@ -169,7 +180,7 @@ fun patternComplexity rT qT =
                 val distinctArity = map Pattern.distinctArity x
             in depth + breadth + (typeArity + distinctArity) / 2
             end
-    in List.weightedAvgIndexed (Importance.weight o QProperty.importanceOf) f P
+    in List.weightedSumIndexed (Importance.weight o QProperty.importanceOf) f P
     end;
 fun patternComplexityCost qT rT uP =
     let val C = 2.0 ;
