@@ -1,6 +1,6 @@
 P-space_diagrams,
 mode,"proportional"
-tokens,"$trial_line : trial_line, $mark : trial_line -> trial_line"
+tokens,"$trial_line : {type:= trial_line}, $mark : {type:= trial_line -> trial_line}"
 types,"trial_line, trial_line -> trial_line, real, abc_string"
 patterns,"$outcome_segment, $contained, $intersecting, $intersection, $union, $disjoint, $empty, $same_size"
 token_imports,"base_10_real_numerals, latin_alphabet"

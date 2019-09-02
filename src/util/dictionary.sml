@@ -25,6 +25,7 @@ sig
     val remove : (k, 'v) dict -> k -> unit;
 
     val get : (k, 'v) dict -> k -> 'v;
+    val update : (k, 'v) dict -> k -> ('v -> 'v) -> 'v;
 
     val keys : (k, 'v) dict -> k list;
     val values : (k, 'v) dict -> 'v list;
@@ -46,7 +47,8 @@ sig
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val find : (k * 'v -> bool) -> (k, 'v) dict -> (k * 'v) option;
 
-    val equal: (k, 'v) dict * (k, 'v) dict -> bool;
+    val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool;
+    val equal : (k, ''v) dict * (k, ''v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 
     val getFirst : (k, 'v) dict -> (k * 'v);
@@ -264,7 +266,9 @@ fun fromPairList xs =
                                        then dedup((y,b)::zs) (* Favour second *)
                                        else (x,a)::(dedup ((y,b)::zs))
     in
-        fromSortedPairList (dedup (mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs))
+        fromSortedPairList (dedup (List.mergesort
+                                       (fn ((a, _), (b, _)) => K.compare (a, b))
+                                       xs))
     end;
 
 (*
@@ -388,6 +392,18 @@ fun get t k =
         v
     end;
 
+fun update t k f =
+    let
+        val t' = splayFor k (!t);
+        val (t'', v) = case (t') of
+                    BRANCH ((a, b), l, r) =>
+                    if K.compare(a, k) = EQUAL
+                    then let val v = f b in (BRANCH ((a, v), l, r), v) end
+                    else raise KeyError
+                  | _ => raise KeyError;
+        val _ = (t := t'');
+    in v end;
+
 fun keys t = map (fn (k, v) => k) (toPairList t);
 
 fun values t = map (fn (k, v) => v) (toPairList t);
@@ -423,11 +439,30 @@ fun find' p LEAF = NONE
                                        | NONE => find' p r;
 fun find p t = find' p (!t);
 
-fun equal' (LEAF, LEAF) = true
-  | equal' (BRANCH((k, v), l, r), BRANCH((k', v'), l', r')) =
-    (K.compare (k, k') = EQUAL) andalso equal' (l, l') andalso equal' (r, r')
-  | equal' _ = false;
-fun equal (x, y) = equal' (!x, !y);
+fun equalKeys (x, y) =
+    let
+        val xl = keys x;
+        val yl = keys y;
+        fun cmpList [] [] = true
+          | cmpList (kx::xs) (ky::ys) =
+            K.compare(kx, ky) = EQUAL andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
+fun equal (x, y) =
+    let
+        val xl = toPairList x;
+        val yl = toPairList y;
+        fun cmpList [] [] = true
+          | cmpList ((kx, vx)::xs) ((ky, vy)::ys) =
+            K.compare(kx, ky) = EQUAL
+            andalso vx = vy
+            andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
 
 fun isEmpty (ref LEAF) = true
   | isEmpty _ = false;

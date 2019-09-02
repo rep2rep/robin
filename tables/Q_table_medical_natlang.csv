@@ -3,7 +3,7 @@ error_allowed,0
 answer_type,ratio
 instrumental_tokens,"probability,if"
 instrumental_types,"ratio,percentage,class,occurrence"
-instrumental_patterns,"_:ratio _:class have _:class, if _ in _:class _ probability of _:occurrence"
+instrumental_patterns,"$class_ratio, $conditional_probability"
 instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"deduce,calculate"
 relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive"

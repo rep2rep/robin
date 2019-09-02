@@ -119,27 +119,52 @@ fun propInfluence (q, r, s) =
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
-        val matches =
-            let fun liftImportance c =
-                    (c, max (Importance.compare)
-                            (Correspondence.liftImportances qProps' c));
-                fun alreadyCorresponding correspondences corr =
-                    List.exists (Correspondence.matchingProperties corr)
-                                correspondences;
-                val baseCorrs = List.filter (Correspondence.match qProps rProps)
-                                            (!correspondingTable');
-                val allIdentities = PropertySet.map
-                                        Correspondence.identity
-                                        (PropertySet.collectLeftMatches qProps
-                                                                        rProps);
-                val identityCorrs =
-                    List.filter (fn corr =>
-                                    not (alreadyCorresponding baseCorrs corr))
-                                allIdentities;
-                val correspondences = identityCorrs @ baseCorrs;
-            in map liftImportance correspondences end;
 
-        val modulate = Importance.modulate;
+        fun liftImportance c =
+            let
+                fun collateImportances propPairs =
+                    let
+                        val uniqueProperties = PropertySet.fromList (map (fn (p, i) => p) propPairs);
+                        fun collectImportances p' [] ans = ans
+                          | collectImportances p' ((p,i)::ps) ans =
+                            if (Property.compare (p', p) = EQUAL) then collectImportances p' ps (i::ans)
+                            else collectImportances p' ps ans;
+                    in
+                        PropertySet.map (fn p => (p, collectImportances p propPairs [])) uniqueProperties
+                    end;
+                val importanceLookup = (PropertyDictionary.fromPairList o
+                                        collateImportances o
+                                        (map QProperty.toPair) o
+                                        QPropertySet.toList) qProps';
+                val importanceMax = List.max Importance.compare;
+                val getImportance = PropertyDictionary.get importanceLookup;
+                val flatten = List.flatmap (fn x => x);
+                val qp = Correspondence.leftMatches qProps c;
+                val i = importanceMax (flatten (PropertySet.map getImportance qp));
+            in
+                (c, i)
+            end;
+        fun modulate strength importance =
+            case importance of
+                Importance.Noise => 0.0
+              | Importance.Zero => 0.0
+              | Importance.Low => 0.2 * strength
+              | Importance.Medium => 0.6 * strength
+              | Importance.High => strength;
+        val propertyPairs' = List.filter
+                                 (Correspondence.match qProps rProps)
+                                 (!correspondingTable');
+        val identityPairs = PropertySet.map
+                                (fn p => Correspondence.identity p)
+                                (PropertySet.collectLeftMatches qProps rProps);
+        val identityPairs' = List.filter (fn corr =>
+                                             not(List.exists
+                                                     (*(Correspondence.sameProperties corr)*)
+                                                     (Correspondence.matchingProperties corr)
+                                                            propertyPairs'))
+                                                identityPairs;
+        val propertyPairs = map liftImportance (identityPairs' @ propertyPairs');
+
         val strength = Correspondence.strength;
         (* Sort correspondences from most to least important *)
         val sort = mergesort
@@ -203,21 +228,21 @@ fun topKRepresentations question k =
         val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
         val representations = map (fn (r, _) => r) (TableDict.keys (!propertyTableRep'));
         val _ = Logging.write ("VAL representations = " ^
-                     (listToString (fn s => s) representations) ^
+                     (List.toString (fn s => s) representations) ^
                      "\n");
         val influencedRepresentations =
             List.map
                 (fn rep => relevanceScore (question, rep, 0.0))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
-                       (listToString
+                       (List.toString
                             (fn (q, r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                             influencedRepresentations) ^
                        "\n");
 
         val dropQuestion = fn (_, r, s) => (r, s);
-        val sortKey = cmpJoin (revCmp Real.compare) String.compare;
-        val sort = mergesort (sortKey o spread flip);
+        val sortKey = Comparison.join (Comparison.rev Real.compare) String.compare;
+        val sort = List.mergesort (sortKey o spread flip);
         val getValid = List.filter (fn (_, s) => s > 0.0);
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs
@@ -227,7 +252,7 @@ fun topKRepresentations question k =
     in
         Logging.write ("\n");
         Logging.write ("RETURN " ^
-             (listToString
+             (List.toString
                   (fn (r, s) => "(" ^ r ^ ", " ^ (Real.toString s) ^ ")")
                   result
              ) ^
