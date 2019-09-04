@@ -1,4 +1,4 @@
-arithmetic_algebra,
+algebra,
 mode,"sentential"
 types,"integer,real,formula,proof"
 tokens,"= : {type:= integer * integer -> formula}, < : {type:= integer * integer -> formula}, > : {type:= integer * integer -> formula}, divides : {type:= integer * integer -> formula} , + : {type := integer * integer -> integer}, - : {type := integer * integer -> integer}, * : {type := integer * integer -> integer}, \div : {type := integer * integer -> integer}, ^ : {type := integer * integer -> integer}, \sum : {type:= 'a set * ('a -> integer) -> integer}, \vee : {type:= formula * formula -> formula}, \neg : {type:= formula -> formula}"

@@ -7,7 +7,7 @@ def allPairs(*values):
                 yield (i, j)
 
 tests = {
-    "intsum": list(allPairs("natlang", "arithmetic_algebra", "dots", "graphs")),
+    "intsum": list(allPairs("natlang", "algebra", "dots", "graphs")),
     "medical": [(f, t) for f, t in
                 allPairs("natlang", "bayes", "P-space_diagrams", "event_trees",
                          "contingency", "euler", "geometric")
