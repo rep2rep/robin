@@ -315,12 +315,12 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                                                  ^ ", "
                                                  ^ (Importance.toString i)
                                                  ^ "\n");
-                                   raise Match)
+                                   Kind.toString k ^ "_" ^ Importance.toString i(*raise Match*))
                   | findName ((k', i', s)::xs) =
                     if k' = k andalso i' = i then s
                     else findName xs;
             in
-                findName (List.filter notRelated propertyKinds)
+                findName propertyKinds (*(List.filter notRelated propertyKinds)*) (* probably not necessary to filter now*)
             end;
         fun groupByFirst xs =
             let
