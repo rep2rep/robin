@@ -316,6 +316,8 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                                                  ^ (Importance.toString i)
                                                  ^ "\n");
                                    Kind.toString k ^ "_" ^ Importance.toString i(*raise Match*))
+                                   (* BEWARE: THIS GENERATES NONSENSE PROPERTIES FOR THE PSEUDO Q TABLE,
+                                   BUT IT GIVES US AN IDEA OF WHAT SHOULD GO IN THERE FOR WHEN WE FIX IT LATER *)
                   | findName ((k', i', s)::xs) =
                     if k' = k andalso i' = i then s
                     else findName xs;
