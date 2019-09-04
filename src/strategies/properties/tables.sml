@@ -276,7 +276,7 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
                                     (fn corr => not (alreadyCorr baseCorrs corr))
                                     allIdentities;
             val correspondences = identityCorrs @ baseCorrs;
-        in flatmap liftImportance correspondences end;
+        in List.flatmap liftImportance correspondences end;
     val newProperties = QPropertySet.unionAll
                             (List.mapPartial translateProperty matches);
     val errorAllowed = QPropertySet.find
@@ -299,9 +299,10 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                 fun valueString (Property.Label s) = s
                   | valueString (Property.Number i) = Int.toString i
                   | valueString (Property.Boolean b) = if b then "TRUE" else "FALSE"
-                  | valueString (Property.Type t) = Type.toString t;
+                  | valueString (Property.Type t) = Type.toString t
+                  | valueString (Property.Raw s) = s;
                 val (p, importance) = QProperty.toPair qp;
-                val (kind, rawValue) = Property.toKindValuePair p;
+                val (kind, rawValue, attributes) = Property.toKindValueAttributes p;
                 val value = valueString rawValue;
             in
                 (kind, value, importance)
@@ -328,7 +329,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                     if a = x
                     then collectLike (a, y::bs) xs ans
                     else collectLike (x, [y]) xs ((a, List.rev bs)::ans);
-                val sorted = mergesort
+                val sorted = List.mergesort
                                  (fn ((a, b), (x, y)) => String.compare(a, x))
                                  xs;
             in
@@ -338,7 +339,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
             end;
         fun makeCell xs = map
                               (fn (a, b) =>
-                                  [a, String.concat (intersperse ", " b)])
+                                  [a, String.concat (List.intersperse ", " b)])
                               xs;
         val triples = QPropertySet.map qPropertyToTriple qproperties;
         val pairs = map (fn (k, v, i) => (getLabel (k, i), v)) triples;
