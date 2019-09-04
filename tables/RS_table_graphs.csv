@@ -6,8 +6,8 @@ patterns,"$complete, $bipartite, $bipartite_complete, $empty, $acyclic"
 token_imports,"latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$count_invariant"
-fact_imports,NONE
+laws,"$count_invariant"
+law_imports,NONE
 tactics,"edge_add,edge_remove,edge_count,vertex_add,vertex_remove,vertex_count,join_graphs,remove_graph,constructive_omega_rule"
 inferential_complexity,0
 physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"

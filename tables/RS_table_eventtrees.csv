@@ -6,8 +6,8 @@ patterns,"$binary, $child, $conjunction"
 token_imports,"base_10_real_numerals"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$path_multiplication, $children_add_to_1"
-fact_imports,""
+laws,"$path_multiplication, $children_add_to_1"
+law_imports,""
 tactics,"$obtain_from_siblings, $obtain_from_edges"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"
