@@ -271,6 +271,10 @@ fun quantityScale qT =
                    (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
                    raise TableDict.KeyError);
         val arithT = propertiesRS "algebra"
+
+        (* this will probably change one I incorporate these calculations
+        into the stream of representation selection and the tables are handed
+        over by the main function *)
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
@@ -295,7 +299,6 @@ fun quantityScale qT =
               + (List.sumIndexed QProperty.importanceOf nominal)
     in s / (varietyOfTokens qT)
     end;
-
 
 fun quantityScaleCost uP qT =
     let val C = 2.0 ;
