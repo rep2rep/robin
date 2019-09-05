@@ -11,6 +11,6 @@ token-\cap,tactic-distinguish,1
 token-\Pr,tactic-area OR tactic-compare_sizes,1
 token-|,tactic-compare_sizes,0.5
 token-=,type-region,1
-fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
-fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$area_additivity,1
-fact-$non_negative_probability,fact-$non_negative_area,1
+law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
+law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
+law-$non_negative_probability,law-$non_negative_area,1

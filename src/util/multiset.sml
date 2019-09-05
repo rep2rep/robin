@@ -6,6 +6,8 @@ sig
     type 'a multiset;
     exception NegativeCount of (t * int);
 
+    exception NegativeCount of (t * int);
+
     val empty : unit -> t multiset;
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
@@ -57,6 +59,8 @@ structure D = Dictionary(struct
                           val fmt = O.fmt;
                           end);
 type 'a multiset = ('a, int) D.dict;
+
+exception NegativeCount of (t * int);
 
 exception NegativeCount of (t * int);
 

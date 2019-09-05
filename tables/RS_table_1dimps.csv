@@ -6,8 +6,8 @@ patterns,"$outcome_segment, $contained, $intersecting, $intersection, $union, $d
 token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$scale_independence_of_ratio, $length_additivity, $non_negative_length, $length_of_empty"
-fact_imports,NONE
+laws,"$scale_independence_of_ratio, $length_additivity, $non_negative_length, $length_of_empty"
+law_imports,NONE
 tactics,"draw_trial_line, draw_mark, measure_length, measure_relative_length"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;inferential}, colour:{}"

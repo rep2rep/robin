@@ -45,12 +45,13 @@ sig
     val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict;
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
+    val find : (k * 'v -> bool) -> (k, 'v) dict -> (k * 'v) option;
 
     val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool;
     val equal : (k, ''v) dict * (k, ''v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 
-    val getFirst : (k, 'v) dict -> (k * 'v)
+    val getFirst : (k, 'v) dict -> (k * 'v);
 end;
 
 
@@ -430,6 +431,13 @@ fun filter f t = ref (filter' f (!t));
 fun foldl f z t = List.foldl f z (toPairList t);
 
 fun foldr f z t = List.foldr f z (toPairList t);
+
+fun find' p LEAF = NONE
+  | find' p (BRANCH(kv, l, r)) = if (p kv) then SOME kv
+                                else case (find' p l) of
+                                         SOME x => SOME x
+                                       | NONE => find' p r;
+fun find p t = find' p (!t);
 
 fun equalKeys (x, y) =
     let

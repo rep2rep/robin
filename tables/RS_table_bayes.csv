@@ -6,8 +6,8 @@ token_imports,"base_10_real_numerals, latin_alphabet"
 patterns,"$conditional_Pr : {holes:=[event=>2. real=>1]; tokens:=[\Pr. |. =]}, $simple_Pr : {holes:=[event=>1. real=>1]; tokens:=[\Pr. =]}, $equality_chain : {holes:=[real=>#t]; tokens:=[=]}, $joint_Pr : {holes:=[event=>2. real=>1]; tokens:=[\cap. =. \Pr]}"
 grammatical_complexity,type-2
 rigorous,TRUE
-facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, $+inverse, $add-def, $mult-def, $*inverse"
-fact_imports,"real_number_arithmetic, finite_set_algebra"
-tactics,"rewrite:fact * term * state -> state, lemma: formula * state -> state, calc : state * term -> state"
+laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, $+inverse, $add-def, $mult-def, $*inverse"
+law_imports,"real_number_arithmetic, finite_set_algebra"
+tactics,"rewrite, lemma, calc"
 inferential_complexity,2
 physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential}, colour:{}"

@@ -22,6 +22,7 @@ structure RobinLib : ROBINLIB =
 struct
 
 val IMPORTING_STACK_ : string list ref = ref [];
+
 val IMPORTED_ : string list ref = ref ["util.robinlib"];
 
 fun makeFilename str =
@@ -73,7 +74,12 @@ sig
 
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
+    val cartesianProduct : 'a list -> 'b list -> ('a * 'b) list;
+
     val toString : ('a -> string) -> 'a list -> string;
+
+    val unfold : ('a -> ('b * 'a) option) -> 'a -> 'b list;
+    val replicate : int -> 'a -> 'a list;
 
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
@@ -140,9 +146,37 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+
+fun cartesianProduct xs ys =
+    let
+        fun joinall ans x [] = ans
+          | joinall ans x (y::ys) = joinall ((x, y)::ans) x ys
+        fun cartprod ans [] _ = List.rev(ans)
+          | cartprod ans _ [] = List.rev(ans)
+          | cartprod ans (x::xs) ys = cartprod (joinall ans x ys) xs ys;
+    in
+        cartprod [] xs ys
+    end;
 
 fun toString fmt items = "[" ^ String.concatWith ", " (map fmt items) ^ "]";
+
+fun unfold f seed =
+    let
+        fun unfold' f seed ans =
+            case f seed of
+                NONE => ans
+              | SOME (x, next) => (unfold' f next (x::ans));
+    in
+        List.rev (unfold' f seed [])
+    end;
+
+fun replicate n x =
+    let fun gen 0 = NONE
+          | gen n = SOME (x, n-1)
+    in
+        unfold gen n
+    end;
 
 fun max _ [] = raise List.Empty
   | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
@@ -242,3 +276,5 @@ fun lookaheadN (istr, count) =
     end;
 
 end;
+
+open RobinLib;

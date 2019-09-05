@@ -294,6 +294,9 @@ structure QS = Set(struct
                     end);
 open QS;
 
+fun withoutImportances ps =
+    PropertySet.fromList (map (QProperty.withoutImportance) ps)
+
 fun collectOfKind ps k =
     let
         fun isOfKind p = (QProperty.kindOf p) = k;
@@ -304,5 +307,14 @@ fun collectOfImportance ps i =
     let fun isOfImportance p = (#2 (QProperty.toPair p) = i);
     in filter isOfImportance ps
     end;
+
+fun filterMatches p qs =
+    let
+        fun qmatch v = Property.match (p, QProperty.withoutImportance v);
+    in
+        filter qmatch qs
+    end;
+
+fun isMatchedIn p qs = not (isEmpty (filterMatches p qs));
 
 end;
