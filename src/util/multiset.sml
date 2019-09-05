@@ -6,8 +6,6 @@ sig
     type 'a multiset;
     exception NegativeCount of (t * int);
 
-    exception NegativeCount of (t * int);
-
     val empty : unit -> t multiset;
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;

@@ -1,10 +1,69 @@
+import "strategies.properties.tables"
+
 signature COGNITIVE_PROPERTIES =
 sig
+
+  type qtable = (string * string) * QPropertySet.t QPropertySet.set;
+  type rstable = string * PropertySet.t PropertySet.set;
+  type correspondencetable = Correspondence.correspondence list;
+  type userprofile;
+
   val sigmoid : real -> real -> real -> real -> real;
+
+  val numberOfTokens : qtable -> real;
+  val varietyOfTokens : qtable -> real;
+  val numberOfTokenTypes : qtable -> real;
+  val varietyOfExpressions : qtable -> real;
+  val numberOfExpressionTypes : qtable -> real;
+  val subRSVariety : rstable -> real;
+  val tokenRegistration : qtable -> real;
+  val expressionRegistration : qtable -> rstable -> real;
+  val expressionComplexity : qtable -> rstable -> real;
+  val quantityScale : questiontable -> real;
+  val tokenConceptMapping : qTable -> rstable -> real;
+  val expressionConceptMapping : qTable -> rstable -> real;
+  val problemSpaceBranchingFactor : qTable -> rstable -> real;
+
+  val numberOfTokensCost : userprofile -> qtable -> real;
+  val varietyOfTokensCost : userprofile -> qtable -> real;
+  val numberOfTokenTypesCost : userprofile -> qtable -> real;
+  val varietyOfExpressionsCost : userprofile -> qtable -> real;
+  val numberOfExpressionTypesCost : userprofile -> qtable -> real;
+  val subRSVarietyCost : userprofile -> rstable -> real;
+  val tokenRegistrationCost : userprofile -> qtable -> real;
+  val expressionRegistrationCost : userprofile -> qtable -> rstable -> real;
+  val expressionComplexityCost : userprofile -> qtable -> rstable -> real;
+  val quantityScaleCost : userprofile -> questiontable -> real;
+  val tokenConceptMappingCost : userprofile -> qTable -> rstable -> real;
+  val expressionConceptMappingCost : userprofile -> qTable -> rstable -> real;
+  val problemSpaceBranchingFactorCost : userprofile -> qTable -> rstable -> real;
 end;
 
 structure CognitiveProperties : COGNITIVE_PROPERTIES =
 struct
+
+structure TableDict = Dictionary(struct
+                                  type k = string * string;
+                                  val compare =
+                                      Comparison.join String.compare String.compare;
+                                  val fmt =
+                                      (fn (s, t) => "(" ^ s ^ ", " ^ t ^ ")");
+                                  end);
+
+
+type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
+type representationtable = string * PropertySet.t PropertySet.set;
+type correspondencetable = Correspondence.correspondence list;
+
+val _ = registerPropertyReaders
+            PropertyTables.setQGenerators
+            PropertyTables.setRSGenerators;
+
+
+val propertyTableRep' = ref (TableDict.empty ());
+val correspondingTable' = ref [];
+val propertyTableQ' = ref (TableDict.empty ());
+
 
 (* C and W are meant to be set per property/process, while T is meant to be set
    from the User Profile. *)
@@ -16,7 +75,7 @@ fun numberOfTokens qT =
     Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
           (QPropertySet.collectOfKind qT "num_tokens")) ;
-fun numberOfTokensCost qT uP =
+fun numberOfTokensCost uP qT =
     let val C = 2.0 ;
         val W = 20.0 ;
         fun userTh table profile = 5.0 ;
@@ -26,11 +85,11 @@ fun numberOfTokensCost qT uP =
     end;
 
 (* Cognitive property 1b *)
-fun numberOfDistinctTokens qT =
-    Property.NumberOf
+fun varietyOfTokens qT = QPropertySet.size (QPropertySet.collectOfKind qT "token");
+  (*)  Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
-          (QPropertySet.collectOfKind qT "num_distinct_tokens")) ;
-fun numberOfDistinctTokensCost qT uP =
+          (QPropertySet.collectOfKind qT "num_distinct_tokens")) ;*)
+fun varietyOfTokensCost uP qT =
     let val C = 2.0 ;
         val W = 20.0 ;
         fun userTh table profile = 5.0 ;
@@ -45,7 +104,7 @@ fun numberOfTokenTypes qT =
         val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) C
     in QPropertySet.size T
     end;
-fun numberOfTokenTypesCost qT uP =
+fun numberOfTokenTypesCost uP qT =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0 ;
@@ -56,7 +115,7 @@ fun numberOfTokenTypesCost qT uP =
 
 (* Cognitive property 3a *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
-fun numberOfPatternTypes qT =
+fun numberOfExpressionTypes qT =
     let val P = QPropertySet.collectOfKind qT "pattern"
         val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) P
     in QPropertySet.size T
@@ -80,7 +139,7 @@ fun numberOfPatternsCost qT rT uP =
 (* Cognitive property 3c *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfDistinctPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT "pattern");
-fun numberOfDistinctPatternsCost qT uP =
+fun numberOfDistinctPatternsCost uP qT =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0 ;
@@ -90,13 +149,13 @@ fun numberOfDistinctPatternsCost qT uP =
     end;
 
 (* Cognitive property 3 *)
-fun expressionVariety qT = numberOfPatterns qT + numberOfDistinctPatterns qT
-fun expressionVarietyCost qT uP =
+fun varietyOfExpressions qT = numberOfPatterns qT + numberOfDistinctPatterns qT
+fun varietyOfExpressionsCost uP qT =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0 ;
         val T = userTh qT uP;
-        val x = real (expressionVariety qT)
+        val x = real (varietyOfExpressions qT)
     in sigmoid C W T x
     end;
 
@@ -131,7 +190,7 @@ fun tokenRegistration qT =
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
     in total * total / (w1*s1 + w2*s2 + w3*s3)
     end;
-fun registartionTokenCost qT uP =
+fun registartionTokenCost uP qT =
     let val C = 2.0 ;
         val W = 2.0;
         fun userTh table profile = 2.0;
@@ -169,7 +228,7 @@ fun expressionRegistrationCost qT rT uP =
     end;
 
 (* Cognitive property 7 *)
-fun patternComplexity rT qT =
+fun expressionComplexity qT rT =
     let val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
         val C = QPropertySet.collectOfKind rT "token"
         fun f p =
@@ -182,28 +241,73 @@ fun patternComplexity rT qT =
             end
     in List.weightedSumIndexed (Importance.weight o QProperty.importanceOf) f P
     end;
-fun patternComplexityCost qT rT uP =
+fun expressionComplexityCost qT rT uP =
     let val C = 2.0 ;
         val W = 2.0 ;
         fun userTh table profile = 2.0;
         val T = userTh qT uP;
-        val x = patternComplexity rT qT
+        val x = expressionComplexity qT rT
     in sigmoid C W T x
     end;
 
 
-fun quantityScale qT =  ;
-fun quantityScaleCost qT uP =
+fun quantityScale qT =
+    let
+        fun filesMatchingPrefix dir prefix =
+            let
+                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                              SOME f => getWholeDir direc (f::out)
+                                            | NONE => List.rev out;
+                val dirstream = OS.FileSys.openDir dir;
+                val filenames = getWholeDir dirstream [];
+                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+                fun attachDir p = dir ^ p;
+            in
+                map (OS.FileSys.fullPath o attachDir) filteredFiles
+            end;
+        fun propertiesRS rep =
+            TableDict.get (!propertyTableRep') (rep, rep)
+            handle TableDict.KeyError =>
+                   (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
+                   raise TableDict.KeyError);
+        val arithT = propertiesRS "algebra"
+        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
+        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
+
+        val ((_,_), pT) = PropertyTables.computePseudoQuestionTable qT arithT corrT
+
+        fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y) L
+        fun ordinalFun x = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
+        fun intervalFun x = check x ["+","-","sum","\\sum"]
+        fun ratioFun x = check x ["*","\\div","\\dvd","\\gcd","\\lcm","/"]
+        fun nominalFun x = not (ordinalFun x orelse intervalFun x orelse ratioFun x)
+
+        val pL = QPropertySet.toPairList pT
+
+        val ratio = List.filter ratioFun pL
+        val interval = List.filter intervalFun pL
+        val ordinal = List.filter ordinalFun pL
+        val nominal = List.filter nominalFun pL
+
+        val s = 4.0*(List.sumIndexed QProperty.importanceOf ratio)
+              + 3.0*(List.sumIndexed QProperty.importanceOf interval)
+              + 2.0*(List.sumIndexed QProperty.importanceOf ordinal)
+              + (List.sumIndexed QProperty.importanceOf nominal)
+    in s / (varietyOfTokens qT)
+    end;
+
+
+fun quantityScaleCost uP qT =
     let val C = 2.0 ;
-        val W =  ;
-        fun userTh table profile =  ;
+        val W = 2.0 ;
+        fun userTh table profile = 2.0 ;
         val T = userTh qT uP;
     in sigmoid C W T x
     end;
 
 
 fun tokenConceptMapping qT =  ;
-fun tokenConceptMappingCost qT uP =
+fun tokenConceptMappingCost uP qT =
     let val C = 2.0 ;
         val W =  ;
         fun userTh table profile =  ;
@@ -212,7 +316,7 @@ fun tokenConceptMappingCost qT uP =
     end;
 
 fun expressionConceptMapping qT =  ;
-fun expressionConceptMappingCost qT uP =
+fun expressionConceptMappingCost uP qT =
     let val C = 2.0 ;
         val W =  ;
         fun userTh table profile =  ;
