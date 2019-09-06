@@ -13,6 +13,7 @@ token-probability,tactic-area OR tactic-compare_sizes,1
 token-given OR token-if,tactic-focus_on_region,1
 token-if AND (NOT token-given),tactic-focus_on_region,-0.25
 token-equals,tactic-observe,1
-fact-$Bayes'_theorem,fact-$scale_independence_of_ratio,1
-fact-$law_of_total_probability OR fact-$sigma_additivity,fact-$area_additivity,1
-fact-$non_negative_probability,fact-non-negative-area,1
+law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
+law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
+law-$non_negative_probability,law-non-negative-area,1
+pattern-$class_ratio,pattern-$section,1

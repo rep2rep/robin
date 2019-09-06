@@ -114,7 +114,7 @@ for filename in os.listdir("pseudo_tables/csv"):
 for filename in os.listdir("tables"):
     if filename.endswith(".csv") and filename.startswith("Q_table"):
         (problem, rs) = filename.split(".")[0].split("_")[2:]
-        if rs == "algebra": rs = "arithmetic_algebra"
+        if rs == "algebra": rs = "algebra"
         table[problem].append((rs, rs))
         newfile = f"{problem}_from_{rs}_to_{rs}.tex"
         csv_to_tex(f"tables/{filename}", f"pseudo_tables/tex/{newfile}")

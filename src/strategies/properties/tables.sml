@@ -13,8 +13,8 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
-    type rsgenerator = (string -> Property.value list) * Kind.kind;
+    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+    type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
     type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
     type representationtable = string * PropertySet.t PropertySet.set;
     type correspondencetable = Correspondence.correspondence list;
@@ -60,12 +60,14 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
-type rsgenerator = (string -> Property.value list) * Kind.kind;
+type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
 type representationtable = string * PropertySet.t PropertySet.set;
 type correspondencetable = Correspondence.correspondence list;
 
+type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 
 fun readCorrespondence q r s =
     let
@@ -82,11 +84,11 @@ fun loadCorrespondenceTable filename =
           | makeRow [x, y, z] = (readCorrespondence x y z)
           | makeRow r = raise TableError
                               ("Correspondence table entry malformed: " ^
-                               (listToString (fn s => s) r));
+                               (List.toString (fn s => s) r));
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
     in
-        flatmap makeRow csvData
+        List.flatmap makeRow csvData
     end
     handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
@@ -182,19 +184,12 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => (
-                      Logging.error("Warning: "
-                                    ^ "Unknown property key: "
-                                    ^ key ^ "\n");
-                      ((fn s => [Property.Label s]),
-                       Kind.fromString key,
-                       Importance.Low));
+                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
-            fun makeProp v = QProperty.fromPair
-                                 (Property.fromKindValuePair (keypre, v),
-                                  importance);
+            fun makeProp (v,A) = QProperty.fromPair
+                                   (Property.fromKindValueAttributes (keypre, v, A), importance);
         in
             qset' (map makeProp (valparser args))
         end
@@ -222,15 +217,8 @@ fun loadRepresentationTable filename = let
                                     handle GenDict.KeyError => NONE;
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
-                                        | NONE => (
-                                            Logging.error(
-                                                "Warning: "
-                                                ^ "Unknown property key: "
-                                                ^ key ^ "\n");
-                                            ((fn s => [Property.Label s]),
-                                            Kind.fromString key)
-                                        )
-            fun makeProp v = Property.fromKindValuePair ( keypre, v);
+                                        | NONE => raise TableError ("Unknown property kind: " ^ key);
+            fun makeProp (v,A) = Property.fromKindValueAttributes (keypre, v, A);
         in
             set' (map makeProp (valparser args))
         end
@@ -288,7 +276,7 @@ fun computePseudoQuestionTable qTable targetRSTable corrTable = let
                                     (fn corr => not (alreadyCorr baseCorrs corr))
                                     allIdentities;
             val correspondences = identityCorrs @ baseCorrs;
-        in flatmap liftImportance correspondences end;
+        in List.flatmap liftImportance correspondences end;
     val newProperties = QPropertySet.unionAll
                             (List.mapPartial translateProperty matches);
     val errorAllowed = QPropertySet.find
@@ -311,9 +299,10 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                 fun valueString (Property.Label s) = s
                   | valueString (Property.Number i) = Int.toString i
                   | valueString (Property.Boolean b) = if b then "TRUE" else "FALSE"
-                  | valueString (Property.Type t) = Type.toString t;
+                  | valueString (Property.Type t) = Type.toString t
+                  | valueString (Property.Raw s) = s;
                 val (p, importance) = QProperty.toPair qp;
-                val (kind, rawValue) = Property.toKindValuePair p;
+                val (kind, rawValue, attributes) = Property.toKindValueAttributes p;
                 val value = valueString rawValue;
             in
                 (kind, value, importance)
@@ -326,12 +315,14 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                                                  ^ ", "
                                                  ^ (Importance.toString i)
                                                  ^ "\n");
-                                   raise Match)
+                                   Kind.toString k ^ "_" ^ Importance.toString i(*raise Match*))
+                                   (* BEWARE: THIS GENERATES NONSENSE PROPERTIES FOR THE PSEUDO Q TABLE,
+                                   BUT IT GIVES US AN IDEA OF WHAT SHOULD GO IN THERE FOR WHEN WE FIX IT LATER *)
                   | findName ((k', i', s)::xs) =
                     if k' = k andalso i' = i then s
                     else findName xs;
             in
-                findName (List.filter notRelated propertyKinds)
+                findName propertyKinds (*(List.filter notRelated propertyKinds)*) (* probably not necessary to filter now*)
             end;
         fun groupByFirst xs =
             let
@@ -340,7 +331,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                     if a = x
                     then collectLike (a, y::bs) xs ans
                     else collectLike (x, [y]) xs ((a, List.rev bs)::ans);
-                val sorted = mergesort
+                val sorted = List.mergesort
                                  (fn ((a, b), (x, y)) => String.compare(a, x))
                                  xs;
             in
@@ -350,7 +341,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
             end;
         fun makeCell xs = map
                               (fn (a, b) =>
-                                  [a, String.concat (intersperse ", " b)])
+                                  [a, String.concat (List.intersperse ", " b)])
                               xs;
         val triples = QPropertySet.map qPropertyToTriple qproperties;
         val pairs = map (fn (k, v, i) => (getLabel (k, i), v)) triples;

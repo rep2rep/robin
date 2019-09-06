@@ -54,7 +54,7 @@ fun main () =
         Logging.write ("RECOMMEND: " ^
              (if (List.null bestRepresentations)
               then "NONE"
-              else (listToString (fn (s, _) => s) bestRepresentations)) ^
+              else (List.toString (fn (s, _) => s) bestRepresentations)) ^
              "\n");
 
         if (List.null bestRepresentations)

@@ -2,9 +2,9 @@ intsum,natlang
 error_allowed,0
 answer_type,proof
 instrumental_tokens,"prove,sum,equals"
-instrumental_types,"proof,natural"
-instrumental_patterns,"_-through-_"
-instrumental_facts,"$+-commutative, $+-associative"
+instrumental_types,"proof,integer"
+instrumental_patterns,"$range : {tokens:=[from. to]; holes:=[int=>2]; type:=integer set}"
+instrumental_laws,"$+-commutative, $+-associative"
 instrumental_tactics,"induction"
 relevant_tokens,"1,2,divided_by,minus,times,odd"
 relevant_related_tokens,"series,0,plus,squared"

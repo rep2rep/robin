@@ -1,13 +1,13 @@
 event_trees,
-mode,""
-types,""
-tokens,""
-patterns,""
-token_imports,""
+mode,"connection,sentential"
+types,"node,edge"
+tokens,"$node, $edge"
+patterns,"$binary, $child, $conjunction"
+token_imports,"base_10_real_numerals"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,""
-fact_imports,""
-tactics,""
+laws,"$path_multiplication, $children_add_to_1"
+law_imports,""
+tactics,"$obtain_from_siblings, $obtain_from_edges"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"

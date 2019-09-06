@@ -5,7 +5,7 @@ sig
 
     val Token : kind;
     val Type : kind;
-    val Fact : kind;
+    val Law : kind;
     val Tactic : kind;
     val Pattern : kind;
     val Mode : kind;
@@ -35,7 +35,7 @@ type kind = string;
 
 val Token = "token";
 val Type = "type";
-val Fact = "fact";
+val Law = "law";
 val Tactic = "tactic";
 val Pattern = "pattern";
 val Mode = "mode";
@@ -56,7 +56,7 @@ structure StringSet = Set(struct
 
 val allKinds' = StringSet.fromList [Token,
                                     Type,
-                                    Fact,
+                                    Law,
                                     Tactic,
                                     Pattern,
                                     Mode,

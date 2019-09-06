@@ -5,9 +5,12 @@ signature TYPE =
 sig
     exception ParseError;
     type T;
+    val getInOutTypes : T -> (T list * T list);
     val outputArity : T -> int;
     val inputArity : T -> int;
     val order : T -> int;
+    exception TUNIFY;
+    val unify : (T * T) list -> (T * T) list
     val match : T * T -> bool;
     val compare : T * T -> order;
     val toString : T -> string;
@@ -56,6 +59,15 @@ datatype T = Ground of string
            | Function of T * T
            | Constructor of string * T;
 
+fun pairToList (Pair (x,y)) = (pairToList x) @ (pairToList y)
+  | pairToList x = [x]
+
+fun getInOutTypes (Ground x) = ([], [Ground x])
+  | getInOutTypes (Var x) = ([], [Var x])
+  | getInOutTypes (Pair (x,y)) = ([], (pairToList x) @ (pairToList y))
+  | getInOutTypes (Function (x,y)) = let val (x',y') = getInOutTypes y; in ((pairToList x) @ x', y') end
+  | getInOutTypes (Constructor (s,x)) = ([], [Constructor (s,x)])
+
 fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
   | dimensionality _ =  1
 
@@ -80,14 +92,51 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
+fun pairApply f (x,y) = (f x, f y)
+
+fun replaceVar (Var x, t') t =
+     (case t of
+          Ground s => Ground s
+        | Var y => if x = y then t' else Var y
+        | Pair (s,t) => Pair (replaceVar (Var x, t') s, replaceVar (Var x, t') t)
+        | Function (s,t) => Function (replaceVar (Var x, t') s, replaceVar (Var x, t') t)
+        | Constructor (s,t) => Constructor (s, replaceVar (Var x, t') t))
+  | replaceVar _ _ = raise Match;
+
+exception TUNIFY;
+fun unify [] = []
+  | unify (p :: C) =
+    case p of
+      (Ground a, Ground b) => if a = b then unify C else raise TUNIFY
+    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (pairApply (replaceVar p)) C))
+    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar p)) C))
+    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar (Var x, t))) C))
+    | (Pair (s,t), Pair (s',t')) => unify ((s,s') :: (t,t') :: C)
+    | (Function (s,t), Function (s',t')) => unify ((s,s') :: (t,t') :: C)
+    | (Constructor (s,t), Constructor (s',t')) => if s = s' then unify ((t,t') :: C) else raise TUNIFY
+    | _ => raise TUNIFY;
+
+(* I don't want to bother changing variables to absolutely guarantee that they are different,
+   but this should be enough for practical purposes. We can also assume '_a is an invalid type variable name *)
+fun giveUnlikelyVarNames (Ground s) = Ground s
+  | giveUnlikelyVarNames (Var a) = Var ("_" ^ a)
+  | giveUnlikelyVarNames (Pair (s,t)) = Pair (giveUnlikelyVarNames s, giveUnlikelyVarNames t)
+  | giveUnlikelyVarNames (Function (s,t)) = Function (giveUnlikelyVarNames s, giveUnlikelyVarNames t)
+  | giveUnlikelyVarNames (Constructor (s,t)) = Constructor (s, giveUnlikelyVarNames t)
+
+fun match (x,y) =
+  let val (_,found) = (unify [(x, giveUnlikelyVarNames y)],true) handle TUNIFY => ([],false)
+  in found
+  end;
+(*
 fun match (Ground s, Ground s') = (s = s')
-(*  | match (Var x) (Var y) = true*)
-  | match (Var x, t) = true (*not (occurs x t)*)
-  | match (t, Var x) = true (*not (occurs x t)*)
+  | match (Var x, t) = true
+  | match (t, Var x) = true
   | match (Pair(s,t), Pair(s',t')) = (match (s, s')) andalso (match (t, t'))
   | match (Function(s,t), Function(s',t')) = (match (s, s')) andalso (match (t, t'))
   | match (Constructor(s,t), Constructor(s',t')) = (s = s') andalso (match (t, t'))
   | match (_, _) = false;
+*)
 
 (*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
@@ -230,4 +279,4 @@ fun fromString str =
         parse tokens
     end;
 
-  end;
+end;

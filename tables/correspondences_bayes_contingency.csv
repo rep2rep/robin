@@ -3,6 +3,6 @@ token-\cup,token-SUM,0.25
 token-\cap,token-PRODUCT,0.25
 token-\Pr,tactic-get_value OR tactic-compare_values,0.5
 token-\Omega,token-last_row AND token-last_column,1
-fact-$law_of_total_probability,fact-$row_total AND fact-$column_total,1
-fact-$sigma_additivity,fact-$row_total OR fact-$column_total,0.25
-fact-$unit_measure,fact-total-1,1
+law-$law_of_total_probability,law-$row_total AND law-$column_total,1
+law-$sigma_additivity,law-$row_total OR law-$column_total,0.25
+law-$unit_measure,law-total-1,1
