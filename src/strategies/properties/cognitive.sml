@@ -1,4 +1,4 @@
-import "strategies.properties.tables"
+Kind.Tokenimport "strategies.properties.tables"
 
 signature COGNITIVE_PROPERTIES =
 sig
@@ -7,8 +7,6 @@ sig
   type rstable = string * PropertySet.t PropertySet.set;
   type correspondencetable = Correspondence.correspondence list;
   type userprofile;
-
-  val sigmoid : real -> real -> real -> real -> real;
 
   val numberOfTokens : qtable -> real;
   val varietyOfTokens : qtable -> real;
@@ -23,20 +21,6 @@ sig
   val tokenConceptMapping : qTable -> rstable -> real;
   val expressionConceptMapping : qTable -> rstable -> real;
   val problemSpaceBranchingFactor : qTable -> rstable -> real;
-
-  val numberOfTokensCost : userprofile -> qtable -> real;
-  val varietyOfTokensCost : userprofile -> qtable -> real;
-  val numberOfTokenTypesCost : userprofile -> qtable -> real;
-  val varietyOfExpressionsCost : userprofile -> qtable -> real;
-  val numberOfExpressionTypesCost : userprofile -> qtable -> real;
-  val subRSVarietyCost : userprofile -> rstable -> real;
-  val tokenRegistrationCost : userprofile -> qtable -> real;
-  val expressionRegistrationCost : userprofile -> qtable -> rstable -> real;
-  val expressionComplexityCost : userprofile -> qtable -> rstable -> real;
-  val quantityScaleCost : userprofile -> questiontable -> real;
-  val tokenConceptMappingCost : userprofile -> qTable -> rstable -> real;
-  val expressionConceptMappingCost : userprofile -> qTable -> rstable -> real;
-  val problemSpaceBranchingFactorCost : userprofile -> qTable -> rstable -> real;
 end;
 
 structure CognitiveProperties : COGNITIVE_PROPERTIES =
@@ -74,49 +58,22 @@ fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 fun numberOfTokens qT =
     Property.NumberOf
       ((#1 o QProperty.toPair o QPropertySet.getFirst)
-          (QPropertySet.collectOfKind qT "num_tokens")) ;
-fun numberOfTokensCost uP qT =
-    let val C = 2.0 ;
-        val W = 20.0 ;
-        fun userTh table profile = 5.0 ;
-        val T = userTh qT uP;
-        val x = real (numberOfTokens qT)
-    in sigmoid C W T x
-    end;
+          (QPropertySet.collectOfKind qT Kind.NumTokens)) ;
 
 (* Cognitive property 1b *)
-fun varietyOfTokens qT = QPropertySet.size (QPropertySet.collectOfKind qT "token");
-  (*)  Property.NumberOf
-      ((#1 o QProperty.toPair o QPropertySet.getFirst)
-          (QPropertySet.collectOfKind qT "num_distinct_tokens")) ;*)
-fun varietyOfTokensCost uP qT =
-    let val C = 2.0 ;
-        val W = 20.0 ;
-        fun userTh table profile = 5.0 ;
-        val T = userTh qT uP;
-        val x = real (numberOfTokens qT)
-    in sigmoid C W T x
-    end;
+fun varietyOfTokens qT = QPropertySet.size (QPropertySet.collectOfKind qT Kind.Token);
 
 (* Cognitive property 2 *)
 fun numberOfTokenTypes qT =
-    let val C = QPropertySet.collectOfKind qT "token"
+    let val C = QPropertySet.collectOfKind qT Kind.Token
         val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) C
     in QPropertySet.size T
-    end;
-fun numberOfTokenTypesCost uP qT =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT uP;
-        val x = real (numberOfTokenTypes qT)
-    in sigmoid C W T x
     end;
 
 (* Cognitive property 3a *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfExpressionTypes qT =
-    let val P = QPropertySet.collectOfKind qT "pattern"
+    let val P = QPropertySet.collectOfKind qT Kind.Pattern
         val T = QPropertySet.map (Property.getTypeOfValue o Importance.withoutImportance) P
     in QPropertySet.size T
     end;
@@ -124,57 +81,25 @@ fun numberOfExpressionTypes qT =
 (* Cognitive property 3b *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfPatterns qT =
-    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
+    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
     in List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) P
-    end;
-fun numberOfPatternsCost qT rT uP =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT rT uP;
-        val x = real (numberOfPatterns qT)
-    in sigmoid C W T x
     end;
 
 (* Cognitive property 3c *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
-fun numberOfDistinctPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT "pattern");
-fun numberOfDistinctPatternsCost uP qT =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT uP;
-        val x = real (numberOfDistinctPatterns qT)
-    in sigmoid C W T x
-    end;
+fun numberOfDistinctPatterns qT = QPropertySet.size (QPropertySet.collectOfKind qT Kind.Pattern);
 
 (* Cognitive property 3 *)
 fun varietyOfExpressions qT = numberOfPatterns qT + numberOfDistinctPatterns qT
-fun varietyOfExpressionsCost uP qT =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT uP;
-        val x = real (varietyOfExpressions qT)
-    in sigmoid C W T x
-    end;
 
 (* Cognitive property 4 *)
-fun subRSvariety rT = PropertySet.size (PropertySet.collectOfKind rT "mode");
-fun subRSvarietyCost rT uP =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0;
-        val T = userTh qT uP;
-        val x = subRSvariety rT;
-    in sigmoid C W T x
-    end;
+fun subRSvariety rT = PropertySet.size (PropertySet.collectOfKind rT Kind.Mode);
 
 (* Cognitive property 5 *)
 (* Collects the token registration from the patterns where the tokens appear *)
 fun tokenRegistration qT =
-    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT "token")
-        val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
+    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
+        val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
         val C1 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.High) C)
         val C2 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.Medium) C)
         val C3 = map Importance.withoutImportance (List.filter (fn x => Importance.importanceOf x = Importance.Low) C)
@@ -190,21 +115,12 @@ fun tokenRegistration qT =
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
     in total * total / (w1*s1 + w2*s2 + w3*s3)
     end;
-fun registartionTokenCost uP qT =
-    let val C = 2.0 ;
-        val W = 2.0;
-        fun userTh table profile = 2.0;
-        val T = userTh qT uP;
-        val x = tokenRegistration qT;
-    in sigmoid C W T x
-    end;
-
 (* Cognitive property 6 *)
 (* instrumental patterns divided by all patterns, times the average
 value for the expression attributes of types*)
 fun expressionRegistration qT rT =
-    let val M = QPropertySet.toList (QPropertySet.collectOfKind rT "mode")
-        val P = (QPropertySet.collectOfKind qT "pattern")
+    let val M = QPropertySet.toList (QPropertySet.collectOfKind rT Kind.Mode)
+        val P = (QPropertySet.collectOfKind qT Kind.Pattern)
         val p1 = QPropertySet.size (QPropertySet.filter (fn x => Importance.importanceOf x = Importance.High) P)
         val p2 = QPropertySet.size (QPropertySet.filter (fn x => Importance.importanceOf x = Importance.Medium) P)
         val p3 = QPropertySet.size (QPropertySet.filter (fn x => Importance.importanceOf x = Importance.Low) P)
@@ -218,19 +134,11 @@ fun expressionRegistration qT rT =
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
     in (numberOfPatterns qT) * (List.avgIndexed modereg M) / (w1*p1 + w2*p2 + w3*p3)
     end;
-fun expressionRegistrationCost qT rT uP =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT uP;
-        val x = expressionRegistration qT;
-    in sigmoid C W T x
-    end;
 
 (* Cognitive property 7 *)
 fun expressionComplexity qT rT =
-    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT "pattern")
-        val C = QPropertySet.collectOfKind rT "token"
+    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
+        val C = QPropertySet.collectOfKind rT Kind.Token
         fun f p =
             let val x = QProperty.withoutImportance p
                 val depth = Pattern.depth C x
@@ -240,14 +148,6 @@ fun expressionComplexity qT rT =
             in depth + breadth + (typeArity + distinctArity) / 2
             end
     in List.weightedSumIndexed (Importance.weight o QProperty.importanceOf) f P
-    end;
-fun expressionComplexityCost qT rT uP =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0;
-        val T = userTh qT uP;
-        val x = expressionComplexity qT rT
-    in sigmoid C W T x
     end;
 
 
@@ -300,41 +200,115 @@ fun quantityScale qT =
     in s / (varietyOfTokens qT)
     end;
 
-fun quantityScaleCost uP qT =
-    let val C = 2.0 ;
-        val W = 2.0 ;
-        fun userTh table profile = 2.0 ;
-        val T = userTh qT uP;
-    in sigmoid C W T x
+
+fun tokenConceptMapping qT rT =
+    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
+        val C1 = (filter (fn x => Importance.importanceOf x = Importance.High) C)
+        val C2 = (filter (fn x => Importance.importanceOf x = Importance.Medium) C)
+        val C3 = (filter (fn x => Importance.importanceOf x = Importance.Low) C)
+        fun filesMatchingPrefix dir prefix =
+            let
+                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                              SOME f => getWholeDir direc (f::out)
+                                            | NONE => List.rev out;
+                val dirstream = OS.FileSys.openDir dir;
+                val filenames = getWholeDir dirstream [];
+                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+                fun attachDir p = dir ^ p;
+            in
+                map (OS.FileSys.fullPath o attachDir) filteredFiles
+            end;
+        (* this will probably change one I incorporate these calculations
+        into the stream of representation selection and the tables are handed
+        over by the main function *)
+        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
+        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
+
+        fun assess_ird p =
+            let val T = #2 (PropertyTables.computePseudoQuestionTable (("","",),QPropertySet.fromList [p]) rT corrT)
+                val x = QPropertySet.size T
+            in if x = 1 then 1.0 else (* isomorphism *)
+               if x > 1 then 3.0 else (* redundancy *)
+               if x < 1 then 4.0 else 0.0  (* deficit *)
+            end;
+
+        val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
+        fun assess_oe r =
+            let val T = PropertyTables.computePseudoQuestionTable  (("","",),QPropertySet.fromList [(r,Importance.High)]) C corrT'
+                val x = QPropertySet.size T
+            in if x = 1 then 0.0 else (* isomorphism *)
+               if x > 1 then 5.0 else (* overload *)
+               if x < 1 then 2.0 (* excess *)
+            end;
+        fun excess =
+        val s1 = List.sumIndexed assess_ird C1
+        val s2 = List.sumIndexed assess_ird C2
+        val s3 = List.sumIndexed assess_ird C3
+        val oe = List.sumIndexed assess_oe rT
+(* note that overload and excess don't take importance into account precisely
+because they are properties of the target and not of the source,
+so it's not possible to assess the improtance of such overload or excess *)
+    in   (Importance.weight Importance.High) * s1
+       + (Importance.weight Importance.Medium) * s2
+       + (Importance.weight Importance.Low) * s3
+       + oe
     end;
 
 
-fun tokenConceptMapping qT =  ;
-fun tokenConceptMappingCost uP qT =
-    let val C = 2.0 ;
-        val W =  ;
-        fun userTh table profile =  ;
-        val T = userTh qT uP;
-    in sigmoid C W T x
-    end;
+fun expressionConceptMapping qT =
+    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
+        val C1 = (filter (fn x => Importance.importanceOf x = Importance.High) C)
+        val C2 = (filter (fn x => Importance.importanceOf x = Importance.Medium) C)
+        val C3 = (filter (fn x => Importance.importanceOf x = Importance.Low) C)
+        fun filesMatchingPrefix dir prefix =
+            let
+                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                              SOME f => getWholeDir direc (f::out)
+                                            | NONE => List.rev out;
+                val dirstream = OS.FileSys.openDir dir;
+                val filenames = getWholeDir dirstream [];
+                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+                fun attachDir p = dir ^ p;
+            in
+                map (OS.FileSys.fullPath o attachDir) filteredFiles
+            end;
+        (* this will probably change one I incorporate these calculations
+        into the stream of representation selection and the tables are handed
+        over by the main function *)
+        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
+        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
-fun expressionConceptMapping qT =  ;
-fun expressionConceptMappingCost uP qT =
-    let val C = 2.0 ;
-        val W =  ;
-        fun userTh table profile =  ;
-        val T = userTh qT uP;
-    in sigmoid C W T x
+        fun assess_ird p =
+            let val T = #2 (PropertyTables.computePseudoQuestionTable (("","",),QPropertySet.fromList [p]) rT corrT)
+                val x = QPropertySet.size T
+            in if x = 1 then 1.0 else (* isomorphism *)
+               if x > 1 then 3.0 else (* redundancy *)
+               if x < 1 then 4.0 else 0.0  (* deficit *)
+            end;
+
+        val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
+        fun assess_oe r =
+            let val T = PropertyTables.computePseudoQuestionTable  (("","",),QPropertySet.fromList [(r,Importance.High)]) C corrT'
+                val x = QPropertySet.size T
+            in if x = 1 then 0.0 else (* isomorphism *)
+               if x > 1 then 5.0 else (* overload *)
+               if x < 1 then 2.0 (* excess *)
+            end;
+        fun excess =
+        val s1 = List.sumIndexed assess_ird C1
+        val s2 = List.sumIndexed assess_ird C2
+        val s3 = List.sumIndexed assess_ird C3
+        val oe = List.sumIndexed assess_oe rT
+(* note that overload and excess don't take importance into account precisely
+because they are properties of the target and not of the source,
+so it's not possible to assess the improtance of such overload or excess *)
+    in   (Importance.weight Importance.High) * s1
+       + (Importance.weight Importance.Medium) * s2
+       + (Importance.weight Importance.Low) * s3
+       + oe
     end;
 
 fun problemSpaceBranchingFactor qT = ;
-fun problemSpaceBranchingFactorCost qT iP =
-    let val C = 2.0 ;
-        val W =  ;
-        fun userTh table profile =  ;
-        val T = userTh qT uP;
-    in sigmoid C W T x
-    end;
 
 
 end;
