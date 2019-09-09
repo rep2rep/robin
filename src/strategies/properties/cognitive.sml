@@ -234,7 +234,8 @@ fun tokenConceptMapping qT rT =
 
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
-            let val T = PropertyTables.computePseudoQuestionTable  (("","",),QPropertySet.fromList [(r,Importance.High)]) C corrT'
+            let val C' = PropertySet.fromList (map QPropertySet.withoutImportance C)
+                val T = PropertyTables.computePseudoQuestionTable  (("",""),QPropertySet.fromList [(r,Importance.High)]) C' corrT'
                 val x = QPropertySet.size T
             in if x = 1 then 0.0 else (* isomorphism *)
                if x > 1 then 5.0 else (* overload *)
@@ -246,8 +247,9 @@ fun tokenConceptMapping qT rT =
         val s3 = List.sumIndexed assess_ird C3
         val oe = List.sumIndexed assess_oe rT
 (* note that overload and excess don't take importance into account precisely
-because they are properties of the target and not of the source,
-so it's not possible to assess the improtance of such overload or excess *)
+because they are properties of the target RS and not of the source Q,
+so it's not possible to assess the improtance of such overload or excess.
+This is debatable for overload, as it does have q properties. *)
     in   (Importance.weight Importance.High) * s1
        + (Importance.weight Importance.Medium) * s2
        + (Importance.weight Importance.Low) * s3
@@ -288,7 +290,8 @@ fun expressionConceptMapping qT =
 
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
-            let val T = PropertyTables.computePseudoQuestionTable  (("","",),QPropertySet.fromList [(r,Importance.High)]) C corrT'
+            let val C' = PropertySet.fromList (map QPropertySet.withoutImportance C)
+                val T = PropertyTables.computePseudoQuestionTable  (("",""),QPropertySet.fromList [(r,Importance.High)]) C' corrT'
                 val x = QPropertySet.size T
             in if x = 1 then 0.0 else (* isomorphism *)
                if x > 1 then 5.0 else (* overload *)
@@ -300,8 +303,9 @@ fun expressionConceptMapping qT =
         val s3 = List.sumIndexed assess_ird C3
         val oe = List.sumIndexed assess_oe rT
 (* note that overload and excess don't take importance into account precisely
-because they are properties of the target and not of the source,
-so it's not possible to assess the improtance of such overload or excess *)
+because they are properties of the target RS and not of the source Q,
+so it's not possible to assess the improtance of such overload or excess.
+This is debatable for overload, as it does have q properties. *)
     in   (Importance.weight Importance.High) * s1
        + (Importance.weight Importance.Medium) * s2
        + (Importance.weight Importance.Low) * s3
