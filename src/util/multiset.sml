@@ -60,7 +60,6 @@ type 'a multiset = ('a, int) D.dict;
 
 exception NegativeCount of (t * int);
 
-exception NegativeCount of (t * int);
 
 fun fromCountPairs' ans [] = List.rev ans
   | fromCountPairs' ans ((x, 0)::xs) = fromCountPairs' ans xs
