@@ -14,6 +14,9 @@ sig
     datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
     structure M : MULTISET;
+    val toPairList : Type.T M.multiset -> (Type.T * int) list;
+    val countUnique : Type.T M.multiset -> int;
+    val size : Type.T M.multiset -> int;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -57,6 +60,10 @@ fun stringOfValue (Label s) = s
 
 type property = (Kind.kind * value * Attribute.T list);
 structure M = Attribute.M
+
+fun toPairList m = M.toPairList m;
+fun countUnique m = M.countUnique m;
+fun size m = M.size m;
 
 exception ParseError;
 
