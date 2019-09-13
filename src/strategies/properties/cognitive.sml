@@ -6,7 +6,7 @@ sig
 
   type qtable = QPropertySet.t QPropertySet.set;
   type rstable = PropertySet.t PropertySet.set;
-  type correspondencetable = Correspondence.correspondence list;
+  type corrtable = Correspondence.correspondence list;
   type userprofile;
 
   val numberOfTokens : qtable -> int;
@@ -38,7 +38,7 @@ structure TableDict = Dictionary(struct
 
 type qtable = QPropertySet.t QPropertySet.set;
 type rstable = PropertySet.t PropertySet.set;
-type correspondencetable = Correspondence.correspondence list;
+type corrtable = Correspondence.correspondence list;
 type userprofile = (string * real) list;
 
 val _ = registerPropertyReaders
@@ -226,7 +226,7 @@ fun tokenConceptMapping qT rT =
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
-        fun assess_ird p =
+        fun assess_rd p =
             let val T = #2 (PropertyTables.computePseudoQuestionTable (("",""),QPropertySet.fromList [p]) ("x",rT) corrT)
                 val x = QPropertySet.size T
             in if x = 1 then 1.0 else (* isomorphism *)
@@ -243,9 +243,9 @@ fun tokenConceptMapping qT rT =
                if x > 1 then 5.0 else (* overload *)
                if x < 1 then 2.0 else 0.0 (* excess *)
             end;
-        val s1 = List.sumIndexed assess_ird C1
-        val s2 = List.sumIndexed assess_ird C2
-        val s3 = List.sumIndexed assess_ird C3
+        val s1 = List.sumIndexed assess_rd C1
+        val s2 = List.sumIndexed assess_rd C2
+        val s3 = List.sumIndexed assess_rd C3
         val oe = List.sumIndexed assess_oe (PropertySet.toList (rT))
 (* note that overload and excess don't take importance into account precisely
 because they are properties of the target RS and not of the source Q,
@@ -281,12 +281,13 @@ fun expressionConceptMapping qT rT =
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
-        fun assess_ird p =
+        fun assess_rd p =
             let val T = #2 (PropertyTables.computePseudoQuestionTable (("",""),QPropertySet.fromList [p]) ("x",rT) corrT)
                 val x = QPropertySet.size T
-            in if x = 1 then 1.0 else (* isomorphism *)
+            in if x = 1 then 0.0 else (* functional *)
                if x > 1 then 3.0 else (* redundancy *)
-               if x < 1 then 4.0 else 0.0  (* deficit *)
+               if x < 1 then 4.0 else (* deficit *)
+                  0.0
             end;
 
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
@@ -294,13 +295,14 @@ fun expressionConceptMapping qT rT =
             let val C' = PropertySet.fromList (map QProperty.withoutImportance C)
                 val T = PropertyTables.computePseudoQuestionTable  (("",""),QPropertySet.fromList [QProperty.fromPair (r,Importance.High)]) ("x",C') corrT'
                 val x = QPropertySet.size (#2 T)
-            in if x = 1 then 0.0 else (* isomorphism *)
+            in if x = 1 then 1.0 else (* injetive & surjective *)
                if x > 1 then 5.0 else (* overload *)
-               if x < 1 then 2.0 else 0.0(* excess *)
+               if x < 1 then 2.0 else (* excess *)
+                  0.0
             end;
-        val s1 = List.sumIndexed assess_ird C1
-        val s2 = List.sumIndexed assess_ird C2
-        val s3 = List.sumIndexed assess_ird C3
+        val s1 = List.sumIndexed assess_rd C1
+        val s2 = List.sumIndexed assess_rd C2
+        val s3 = List.sumIndexed assess_rd C3
         val oe = List.sumIndexed assess_oe (PropertySet.toList (rT))
 (* note that overload and excess don't take importance into account precisely
 because they are properties of the target RS and not of the source Q,
@@ -312,7 +314,22 @@ This is debatable for overload, as it does have q properties. *)
        + oe
     end;
 
-fun problemSpaceBranchingFactor qT rT = 0.0;
+fun problemSpaceBranchingFactor qT rT =
+    let val T = PropertySet.collectOfKind rT Kind.Tactic;
+        val L = PropertySet.collectOfKind rT Kind.Law;
+        val P = QPropertySet.collectOfKind qT Kind.Pattern;
+        val Tl = PropertySet.map (#2 o (Property.getNumFunction "laws")) T
+        val Tp = PropertySet.map (#2 o (Property.getNumFunction "patterns")) T
+        val bl = PropertySet.size L
+        val bp = QPropertySet.size P
+        fun exp(x,y) = if y < 1.0 then 1.0 else x * (exp(x,Real.-(y,1.0)));
+        fun dotProduct [] [] = 0.0
+          | dotProduct (h::t) (h'::t') = (h * h') + dotProduct t t'
+          | dotProduct  _ _ = raise Match;
+        val l = map (fn x => exp(real bl,x)) Tl
+        val p = map (fn x => exp(real bp,x)) Tp
+    in dotProduct l p
+    end;
 
 
 end;

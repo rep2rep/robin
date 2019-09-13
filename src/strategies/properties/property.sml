@@ -33,7 +33,7 @@ sig
     val getContent : property -> Type.T;
     val getStringFunction : string -> property -> (string * string);
     val getNumFunction : string -> property -> (string * real);
-    val getFeature : property -> string;
+    val getFeatures : property -> string list;
 
     val updateNumFunction : string -> (real -> real) -> property -> property;
 
@@ -116,8 +116,8 @@ fun getStringFunction s (_,_,[]) = raise Match
     (case Attribute.getStringFunction a of (s',n) =>
         (if s' = s then (s',n) else getStringFunction s (k,v,L))) handle Match => getStringFunction s (k,v,L);
 
-fun getFeature (_,_,[]) = raise Match
-  | getFeature (k,v,(a::L)) = Attribute.getFeature a handle Match => getFeature (k,v,L);
+fun getFeatures (_,_,[]) = []
+  | getFeatures (k,v,(a::L)) = Attribute.getFeature a :: getFeatures (k,v,L) handle Match => getFeatures (k,v,L);
 
 fun updateNumFunction s f (k,v,L) = (k,v,map (Attribute.updateNumFunction s f) L);
 
