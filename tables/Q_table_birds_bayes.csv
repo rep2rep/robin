@@ -1,14 +1,67 @@
 birds,bayes
-error_allowed,0
-answer_type,real
-instrumental_tokens,"\Pr,\cap,\bar,="
-instrumental_types,"real,event"
-instrumental_patterns,"$conditional_Pr, $joint_Pr, $simple_Pr"
+error_allowed, 0
+answer_type, real
+instrumental_tokens,"\Pr : {type := event * event -> real;
+                            occurrences := 4},
+                     \cap : {type := event * event -> event;
+                             occurrences := 2},
+                     \bar : {type := event -> event;
+                             occurrences := 1},
+                     | : {type := event * event -> event;
+                          occurrences := 3},
+                     = : {type := real * real -> real;
+                          occurrences := 4}"
+instrumental_types,"real,
+                    event"
+instrumental_patterns,"$conditional_Pr : {type := formula;
+                                          holes := [event => 2. real => 1];
+                                          occurrences := 3;
+                                          tokens := [Pr. |. =];
+                                          token_registration := 2},
+                       $joint_Pr : {type := event;
+                                    holes := [event => 2];
+                                    occurrences := 2;
+                                    tokens := [Pr. \cap];
+                                    token_registration := 2},
+                       $simple_Pr : {type := formula;
+                                     holes := [event => 1. real => 1];
+                                     occurrences := 1;
+                                     tokens := [Pr. =];
+                                     token_registration := 2}"
 instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental_tactics,"rewrite,calc"
-relevant_tokens,"1, \div, 4, b, f, \Omega, 2, 3, |, assume, calculate"
-relevant_related_tokens,"*, +, -, \cup, 0"
-num_tokens,30
-num_distinct_tokens,12
+instrumental_tactics,"rewrite : {laws := 1;
+                                 patterns := 1},
+                      calc : {patterns := 1
+                              laws := 0}"
+relevant_tokens,"1 : {type := real;
+                      occurrences := 3},
+                 \div : {type := real * real -> real;
+                         occurrences := 3},
+                 4 : {type := real;
+                      occurrences := 1},
+                 b : {type := event;
+                      occurrences := 3},
+                 f : {type := event;
+                      occurrences := 3},
+                 \Omega : {type := event;
+                           occurrences := 0},
+                 2 : {type := real;
+                      occurrences := 1},
+                 3 : {type := real;
+                      occurrences := 1},
+                 assume : {type := cue;
+                           occurrences := 1},
+                 calculate : {type := cue;
+                              occurrences := 1},
+                 * : {type := real * real -> real;
+                      occurrences := 0},
+                 + : {type := real * real -> real;
+                      occurrences := 0},
+                 - : {type := real * real -> real;
+                      occurrences := 0},
+                 \cup : {type := event * event -> event;
+                         occurrences := 0},
+                 0 : {type := real;
+                      occurrences := 0}"
 noise_tokens,""
 noise_related_tokens,""
