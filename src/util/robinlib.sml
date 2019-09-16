@@ -64,6 +64,7 @@ sig
     include LIST;
 
     val remove : ''a -> ''a list -> ''a list;
+    val removeDuplicates : ''a list -> ''a list;
 
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
 
@@ -105,6 +106,9 @@ struct
 open List;
 
 fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
+
+fun removeDuplicates [] = []
+  | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
