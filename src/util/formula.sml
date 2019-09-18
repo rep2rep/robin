@@ -8,6 +8,7 @@ To provide more generality, we allow you to specify the tokens
 that you use for negation, conjunction, and disjunction.
 *)
 
+import "util.logging";
 import "util.parser";
 
 signature FORMULA =
@@ -170,20 +171,40 @@ fun fromString builder s =
     let
         fun tokenize string =
             let
+                fun revJoinAll xs = List.map (String.implode o List.rev) xs;
+                fun dropEmpty xs = List.filter (fn s => s <> "") xs;
+                fun stripAllSpaces xs = List.map (Parser.stripSpaces) xs;
                 fun cluster [] xs = cluster [[]] xs
-                  | cluster cs [] = cs
+                  | cluster cs [] = List.rev cs
                   | cluster (c::cs) (x::xs) =
                     case x of
                         #"(" => cluster ([]::[#"("]::c::cs) xs
                       | #")" => cluster ([]::[#")"]::c::cs) xs
                       | s => if Char.isSpace s
-                             then cluster ([]::c::cs) xs
+                             then cluster ([]::[s]::c::cs) xs
                              else cluster ((s::c)::cs) xs;
+                fun fixSpaces ans [] = List.rev ans
+                  | fixSpaces ans [t] = fixSpaces (t::ans) []
+                  | fixSpaces ans (t::t'::ts) =
+                    if t = "("
+                       orelse t = Format.neg
+                    then
+                        fixSpaces (t::ans) (t'::ts)
+                    else if t' = Format.conj
+                            orelse t' = Format.disj
+                            orelse t' = Format.neg
+                            orelse t' = ")"
+                    then
+                        fixSpaces (t'::t::ans) ts
+                    else
+                        fixSpaces ans ((t ^ t')::ts);
+                val chars = String.explode string;
             in
-                List.rev (List.map (String.implode o List.rev)
-                              (List.filter
-                                   (fn cs => not (List.null cs))
-                                   (cluster [[]] (String.explode string))))
+                dropEmpty
+                    (stripAllSpaces
+                         (fixSpaces []
+                                    (revJoinAll
+                                         (cluster [[]] chars))))
             end;
 
         fun parseAtom () =

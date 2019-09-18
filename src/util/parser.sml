@@ -118,10 +118,10 @@ fun stripSpaces str =
     let
         val chars = String.explode str;
         val remainingChars = List.rev
-                                 (dropWhile
+                                 (List.dropWhile
                                       Char.isSpace
                                       (List.rev
-                                           (dropWhile
+                                           (List.dropWhile
                                                 Char.isSpace
                                                 chars)));
     in

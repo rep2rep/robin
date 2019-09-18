@@ -10,9 +10,10 @@ sig
 
     type reader;
 
-    val boolean : reader;
-    val number : reader;
-    val label : reader;
+    val booleanR : reader;
+    val numberR : reader;
+    val typeR : reader;
+    val labelR : reader;
     val listOf : reader -> reader;
     val dimension : reader;
 
@@ -23,24 +24,32 @@ struct
 
 exception ReadError of string * string;
 
-type reader = string -> Property.value list;
+type reader = string -> (Property.value * Attribute.T list) list;
 
-fun boolean str =
+fun booleanR str =
     if (String.implode (map Char.toLower (String.explode str))) = "true"
-    then [Property.Boolean true] else [Property.Boolean false];
+    then [(Property.Boolean true,[])] else [(Property.Boolean false,[])];
 
-fun number str =
+fun numberR str =
     case Int.fromString str of
-        SOME n => [Property.Number n]
+        SOME n => [(Property.Number n,[])]
       | NONE => case str of
-                    "\\infty" => [Property.Number ~1]
-                  | "na" => [Property.Number ~2]
+                    "\\infty" => [(Property.Number ~1,[])]
+                  | "na" => [(Property.Number ~2,[])]
                   | _ => raise ReadError ("number", str);
 
-fun label str = [Property.Label str];
+fun typeR str =
+    let val (v,A) = Property.findAttributes str
+    in [(Property.Type (Type.fromString v), A)]
+    end;
+
+fun labelR str =
+    let val (v,A) = Property.findAttributes str
+    in [(Property.Label v, A)]
+    end;
 
 fun listOf reader str = if str = "NONE" then []
-                        else flatmap reader (Parser.splitStrip "," str);
+                        else List.flatmap reader (Parser.splitStrip "," str);
 
 fun collection str = listOf (fn s => [s]) str;
 fun dimension str =
@@ -64,7 +73,7 @@ fun dimension str =
                                          map (fn z:string => z) y)
                                      dimensionsWithValues;
     in
-        map Property.Label
+        map (fn x => (Property.Label x, []))
           (List.concat (dimensionsSplitOut @ dimensionsNoLabels))
     end;
 
@@ -78,57 +87,57 @@ local
 
     val RSProperties = [
         ("mode",
-         (listOf label, Kind.Mode)),
+         (listOf labelR, Kind.Mode)),
         ("token_imports",
-         (listOf label, Kind.Import)),
+         (listOf labelR, Kind.Import)),
         ("grammatical_complexity",
-         (label, Kind.GrammaticalComplexity)),
+         (labelR, Kind.GrammaticalComplexity)),
         ("rigorous",
-         (boolean, Kind.Rigorous)),
+         (booleanR, Kind.Rigorous)),
         ("facts",
-         (listOf label, Kind.Fact)),
+         (listOf labelR, Kind.Fact)),
         ("fact_imports",
-         (listOf label, Kind.Import)),
+         (listOf labelR, Kind.Import)),
         ("tactics",
-         (listOf label, Kind.Tactic)),
+         (listOf labelR, Kind.Tactic)),
         ("inferential_complexity",
-         (number, Kind.InferentialComplexity)),
+         (numberR, Kind.InferentialComplexity)),
         ("physical_dimension_use",
          (dimension, Kind.DimensionUse)),
         ("types",
-         (listOf label, Kind.Type)),
+         (listOf typeR, Kind.Type)),
         ("tokens",
-         (listOf label, Kind.Token)),
+         (listOf labelR, Kind.Token)),
         ("patterns",
-         (listOf label, Kind.Pattern))
+         (listOf labelR, Kind.Pattern))
     ];
     val QProperties = [
         ("error_allowed",
-         (label, Kind.ErrorAllowed, High)),
+         (labelR, Kind.ErrorAllowed, High)),
         ("answer_type",
-         (listOf label, Kind.Type, High)),
+         (listOf typeR, Kind.Type, High)),
         ("instrumental_tokens",
-         (listOf label, Kind.Token, Medium)),
+         (listOf labelR, Kind.Token, Medium)),
         ("instrumental_types",
-         (listOf label, Kind.Type, Medium)),
+         (listOf typeR, Kind.Type, Medium)),
         ("instrumental_patterns",
-         (listOf label, Kind.Pattern, Medium)),
+         (listOf labelR, Kind.Pattern, Medium)),
         ("instrumental_facts",
-         (listOf label, Kind.Fact, Medium)),
+         (listOf labelR, Kind.Fact, Medium)),
         ("instrumental_tactics",
-         (listOf label, Kind.Tactic, Medium)),
+         (listOf labelR, Kind.Tactic, Medium)),
         ("relevant_tokens",
-         (listOf label, Kind.Token, Low)),
+         (listOf labelR, Kind.Token, Low)),
         ("relevant_related_tokens",
-         (listOf label, Kind.Token, Low)),
+         (listOf labelR, Kind.Token, Low)),
         ("num_tokens",
-         (number, Kind.NumTokens, Zero)),
+         (numberR, Kind.NumTokens, Zero)),
         ("num_distinct_tokens",
-         (number, Kind.NumDistinctTokens, Zero)),
+         (numberR, Kind.NumDistinctTokens, Zero)),
         ("noise_tokens",
-         (listOf label, Kind.Token, Noise)),
+         (listOf labelR, Kind.Token, Noise)),
         ("noise_related_tokens",
-         (listOf label, Kind.Token, Noise))
+         (listOf labelR, Kind.Token, Noise))
     ];
     val QandRSProperties = [
     ];

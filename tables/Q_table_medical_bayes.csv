@@ -3,10 +3,10 @@ error_allowed,0
 answer_type,real
 instrumental_tokens,"\Pr,="
 instrumental_types,"real,event"
-instrumental_patterns,"\Pr(_|_), \Pr(_|_)=_"
+instrumental_patterns,"$conditional_Pr, $simple_Pr"
 instrumental_facts,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"rewrite"
-relevant_tokens,"0.98, 0.97, 0.01,d:event,t:event"
+relevant_tokens,"0.98, 0.97, 0.01,d:{type:= event},t:{type:= event}"
 relevant_related_tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
 num_tokens,20
 num_distinct_tokens,14

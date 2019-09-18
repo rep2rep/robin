@@ -14,8 +14,8 @@ sig
 
     structure FileDict : DICTIONARY;
 
-    type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
-    type rsgenerator = (string -> Property.value list) * Kind.kind;
+    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+    type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 
     val loadCorrespondenceTable : string -> Correspondence.correspondence list;
     val loadQuestionTable : string -> (FileDict.k, QPropertySet.t QPropertySet.set) FileDict.dict;
@@ -62,8 +62,8 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> Property.value list) * Kind.kind * Importance.importance;
-type rsgenerator = (string -> Property.value list) * Kind.kind;
+type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 
 fun readCorrespondence q r s =
     let
@@ -80,11 +80,11 @@ fun loadCorrespondenceTable filename =
           | makeRow [x, y, z] = (readCorrespondence x y z)
           | makeRow r = raise TableError
                               ("Correspondence table entry malformed: " ^
-                               (listToString (fn s => s) r));
+                               (List.toString (fn s => s) r));
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
     in
-        flatmap makeRow csvData
+        List.flatmap makeRow csvData
     end
     handle IO.Io e => (Logging.error ("ERROR: File '" ^ filename ^ "' could not be loaded\n");
                        raise (IO.Io e))
@@ -174,13 +174,12 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [Property.Label s]), (Kind.fromString key), Importance.Low);
+                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.Low);
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
-            fun makeProp v = QProperty.fromPair
-                                 (Property.fromKindValuePair (keypre, v),
-                                  importance);
+            fun makeProp (v,A) = QProperty.fromPair
+                                   (Property.fromKindValueAttributes (keypre, v, A), importance);
         in
             qset' (map makeProp (valparser args))
         end
@@ -201,7 +200,7 @@ fun loadRepresentationTable filename = let
             val (valparser, keypre) = case (findRSGenerator key) of
                                           SOME kt => kt
                                         | NONE => raise TableError ("Unknown property kind: " ^ key);
-            fun makeProp v = Property.fromKindValuePair ( keypre, v);
+            fun makeProp (v,A) = Property.fromKindValueAttributes (keypre, v, A);
         in
             set' (map makeProp (valparser args))
         end
