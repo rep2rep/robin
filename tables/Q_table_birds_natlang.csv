@@ -1,14 +1,69 @@
 birds,natlang
 error_allowed,0
 answer_type,ratio
-instrumental_tokens,"probability,and,not"
-instrumental_types,"ratio,class"
-instrumental_patterns,"$class_ratio : {holes := [class=>2. ratio=>1]; tokens := [of. are]}, $probability_of_conjunction : {holes := [class=>2. ratio=>1]; tokens := [probability. of. and]}"
-instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental_tactics,"deduction, arithmetic_calculation"
-relevant_tokens,"one, quarter, all, animals, birds, two, thirds, can, fly, half, flying, X, animal, probability, cannot"
-relevant_related_tokens,"times, divided_by, plus, minus, equals, union, intersection, probability, zero"
-num_tokens,67
-num_distinct_tokens,31
-noise_tokens,"feathers"
-noise_related_tokens,"beast,animate,creature,wing,aviate,flock,fowl,dame,carnal,being,fauna"
+instrumental_tokens, "probability : {type := class * ratio -> statement;
+                                     occurrences := 1},
+                      and : {type := statement * statement -> statement;
+                             occurrences := 1},
+                      if : {type := statement * statement -> statement;
+                            occurrences := 1},
+                      not : {type := statement -> statement;
+                             occurrences := 1}"
+instrumental_types, "ratio,
+                     class"
+instrumental_patterns, "$class_ratio : {holes := [class => 1. statement => 1. ratio => 1];
+                                        tokens := [of. are];
+                                        type := statement;
+                                        occurrences := 3;
+                                        token_registration := 2},
+                        $probability_of_conjunction : {holes := [class=>2. ratio=>1];
+                                                       tokens := [probability. of. and];
+                                                       type := statement;
+                                                       occurrences := 1;
+                                                       token_registration := 2},
+                        $conditional_probability : {holes := [class=>2. ratio=>1];
+                                                    tokens := [probability. of];
+                                                    type := statement;
+                                                    occurrences := 1;
+                                                    token_registration := 2}"
+instrumental_laws, "$Bayes'_theorem,
+                    $law_of_total_probability,
+                    $non_negative_probability,
+                    $unit_measure,
+                    $sigma_additivity"
+instrumental_tactics, "deduction : {laws := 1; patterns := 2},
+                       arithmetic_calculation : {laws := 0; patterns := 1}"
+relevant_tokens, "one : {type := quantity; occurrences := 1},
+                  quarter : {type := quantity -> ratio; occurrences := 1},
+                  all : {type := class * statement -> class; occurrences := 3},
+                  animals : {type := class; occurrences := 2},
+                  birds : {type := class; occurrences := 5},
+                  two : {type := quantity; occurrences := 1},
+                  thirds : {type := quantity -> ratio; occurrences := 5},
+                  can : {type := class * action -> statement; occurrences := 1},
+                  fly : {type := action; occurrences := 2},
+                  half : {type := ratio; occurrences := 1},
+                  flying : {type := class -> class; occurrences := 1},
+                  X : {type := class; occurrences := 1},
+                  animal : {type := class; occurrences := 1},
+                  cannot : {type := action -> statement; occurrences := 1},
+                  times : {type := quantity * quantity -> quantity; occurrences := 0},
+                  divided_by : {type := quantity * quantity -> quantity; occurrences := 0},
+                  plus : {type := quantity * quantity -> quantity; occurrences := 0},
+                  minus : {type := quantity * quantity -> quantity; occurrences := 0},
+                  equals : {type := quantity * quantity -> statement; occurrences := 0},
+                  union : {type := class * class -> class; occurrences := 0},
+                  intersection : {type := class * class -> class; occurrences := 0},
+                  zero : {type := quantity; occurrences := 0}"
+noise_tokens,"feathers : {type := class; occurrences := 1},
+              beast : {type := class; occurrences := 0},
+              animate : {type := class; occurrences := 0},
+              creature : {type := class; occurrences := 0},
+              wing : {type := class; occurrences := 0},
+              aviate : {type := action; occurrences := 0},
+              flock : {type := class; occurrences := 0},
+              fowl : {type := class; occurrences := 0},
+              dame : {type := class; occurrences := 0},
+              carnal : {type := class -> class; occurrences := 0},
+              being : {type := class; occurrences := 0},
+              fauna : {type := class; occurrences := 0}"

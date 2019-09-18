@@ -6,9 +6,8 @@ instrumental_types,"proof,integer"
 instrumental_patterns,"$range : {tokens:=[from. to]; holes:=[int=>2]; type:=integer set}"
 instrumental_laws,"$+-commutative, $+-associative"
 instrumental_tactics,"induction"
-relevant_tokens,"1,2,divided_by,minus,times,odd"
-relevant_related_tokens,"series,0,plus,squared"
+relevant_tokens,"1,2,divided_by,minus,times,odd,series :{occurrences := 0},
+                 0 :{occurrences := 0},plus :{occurrences := 0},squared :{occurrences := 0}"
 num_tokens,12
 num_distinct_tokens,9
 noise_tokens,""
-noise_related_tokens,""

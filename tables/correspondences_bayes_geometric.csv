@@ -5,10 +5,10 @@ token-\Omega,type-region,0.5
 token-+,tactic-join,0.25
 token--,tactic-delete,0.25
 token-*,tactic-area,0.25
-token-\div,tactic-compare_sizes,0.5
-token-\cup,tactic-join,1
-token-\cap,tactic-distinguish,1
-token-\Pr,tactic-area OR tactic-compare_sizes,1
+token-\div,pattern-$relative_size,0.5
+token-\cup,pattern-$union,1
+token-\cap,pattern-$intersection,1
+token-\Pr,pattern-$size OR pattern-$relative_size,1
 token-|,tactic-compare_sizes,0.5
 token-=,type-region,1
 law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
