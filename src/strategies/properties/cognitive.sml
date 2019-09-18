@@ -167,14 +167,24 @@ fun expressionRegistration qT rT =
 (* Cognitive property 7 *)
 fun expressionComplexity qT rT =
     let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
-        val C = PropertySet.toList (PropertySet.collectOfKind rT Kind.Token)
+        val C = map QProperty.withoutImportance (QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE qT*)
+        val n = numberOfTokens qT
         fun f p =
             let val x = QProperty.withoutImportance p
                 val depth = Pattern.depth C x
-                val breadth = Pattern.breadth C x
-                val typeArity = Pattern.typeArity x
-                val distinctArity = Pattern.distinctArity x
-            in depth + breadth + (typeArity + distinctArity) / 2.0
+                val breadth = let val b = Pattern.breadth C x
+                              in if Real.== (b, ~3.0) then n else
+                                 if Real.== (b, ~2.0) then Math.sqrt n else
+                                 if Real.== (b, ~1.0) then Math.ln n else
+                                    b
+                              end
+                val arity = (real (Pattern.arity x) handle Property.NegativeCount (_,i) =>
+                                               if i = ~3 then n else
+                                               if i = ~2 then Math.sqrt n else
+                                               if i = ~1 then Math.ln n else
+                                                 raise (print ("bad multiset multiplicity: "^(Int.toString i));Match))
+
+            in (depth * breadth) + arity
             end
     in List.weightedSumIndexed (Importance.weight o QProperty.importanceOf) f P
     end;

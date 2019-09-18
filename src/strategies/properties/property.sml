@@ -17,6 +17,7 @@ sig
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
     val countUnique : Type.T M.multiset -> int;
     val size : Type.T M.multiset -> int;
+    exception NegativeCount of Type.T * int;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -64,6 +65,7 @@ structure M = Attribute.M
 fun toPairList m = M.toPairList m;
 fun countUnique m = M.countUnique m;
 fun size m = M.size m;
+exception NegativeCount = M.NegativeCount;
 
 exception ParseError;
 
