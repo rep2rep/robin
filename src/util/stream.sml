@@ -5,6 +5,9 @@ signature STREAM = sig
     val empty : 'a stream;
     val cons : 'a * 'a stream -> 'a stream;
 
+    val head : 'a stream -> 'a;
+    val tail : 'a stream -> 'a stream;
+
     val fromList : 'a list -> 'a stream;
     val toList : 'a stream -> 'a list; (* Finite only! *)
 
@@ -34,11 +37,17 @@ structure Stream = struct
 datatype 'a stream = EMPTY
                    | CONS of 'a * (unit -> 'a stream);
 
+fun force x = (x());
+
 val empty = EMPTY;
 
 fun cons (x, xs) = CONS(x, fn () => xs);
 
-fun force x = (x());
+fun head EMPTY = raise Subscript
+  | head (CONS(x, xf)) = x;
+
+fun tail EMPTY = raise Subscript
+  | tail (CONS(x, xf)) = force xf;
 
 fun interleave EMPTY y = y
   | interleave x EMPTY = x
@@ -94,8 +103,8 @@ fun length EMPTY = 0
   | length (CONS(x, xf)) = 1 + length (force xf);
 
 fun unfold f s = case f s of
-                     SOME x => CONS(x, fn () => unfold f x)
-                   | NONE => EMPTY;
+                     SOME x => CONS(s, fn () => unfold f x)
+                   | NONE => CONS(s, fn () => EMPTY);
 
 val nats = unfold (fn x => SOME (x + 1)) 0;
 
