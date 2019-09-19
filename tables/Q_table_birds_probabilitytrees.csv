@@ -1,0 +1,72 @@
+birds,probabilitytrees
+error_allowed, 0
+answer_type, real
+instrumental_tokens, "$node : {type := node;
+                                content := label;
+                                occurrences := 20},
+                      $arrow : {type := arrow;
+                                 occurrences := 16}"
+instrumental_types,"node, arrow"
+instrumental_patterns, "$path : {type := path;
+                                  holes := [node => -3. arrow => -3];
+                                  occurrences := 24;
+                                  tokens := [$node,$arrow];
+                                  token_registration := 2},
+                        $binary_tree : {type := tree;
+                                         holes := [node => -3. arrows => -3];
+                                         occurrences := 2;
+                                         tokens := [$node. $arrow];
+                                         token_registration := 2},
+                        $path_comparison : {type := reference;
+                                             holes := [node => -3. arrow => -3];
+                                             occurrences := 576;
+                                             tokens := [$node];
+                                             token_registration := 3},
+                        $non-explicit_reference : {type := reference;
+                                                   holes := [class => 1. node => 1];
+                                                   occurrences := 2;
+                                                   tokens := [$node,$arrow];
+                                                   token_registration := 3}"
+instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
+                    $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
+                    $total_leaves_1 : {description := the sum of all leaf values is 1},
+                    $equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
+                    $path_sum : {description := the value of arrow a -> c is the sum over b of the values of the paths a -> b -> c in a different tree}"
+instrumental_tactics,"assign_value_to_arrow : {patterns := 1;
+                                                laws := 1},
+                      assign_value_to_node : {patterns := 1;
+                                              laws := 1}"
+relevant_tokens,"1 : {type := real;
+                      occurrences := 2},
+                 4 : {type := real;
+                      occurrences := 1},
+                 2 : {type := real;
+                      occurrences := 1},
+                 3 : {type := real;
+                      occurrences := 1},
+                 \div : {type := real * real -> real;
+                         occurrences := 3},
+                 bird : {type := label;
+                          occurrences := 6},
+                 flying : {type := label;
+                           occurrences := 6},
+                 animal : {type := label;
+                           occurrences := 2},
+                 non : {type := label -> label;
+                        occurrences := 6},
+                 calculate : {type := instruction;
+                              occurrences := 1},
+                 the : {type := class -> class;
+                        occurrences := 2},
+                 value : {type := class;
+                         occurrences := 1},
+                 of : {type := class * class -> class;
+                        occurrences := 1},
+                 indicated : {type := class -> class;
+                            occurrences := 1},
+                 node : {type := class;
+                        occurrences := 1},
+                 $frame : {type := node -> node;
+                            occurrences := 2}"
+relevant_patterns, ""
+noise_tokens,""
