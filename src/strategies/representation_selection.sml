@@ -124,20 +124,8 @@ fun propInfluence (q, r, s) =
             let fun liftImportance c =
                     (c, List.max (Importance.compare)
                             (Correspondence.liftImportances qProps' c));
-                fun alreadyCorresponding correspondences corr =
-                    List.exists (Correspondence.matchingProperties corr)
-                                correspondences;
-                val baseCorrs = List.filter (Correspondence.match qProps rProps)
-                                            (!correspondingTable');
-                val allIdentities = PropertySet.map
-                                        Correspondence.identity
-                                        (PropertySet.collectLeftMatches qProps
-                                                                        rProps);
-                val identityCorrs =
-                    List.filter (fn corr =>
-                                    not (alreadyCorresponding baseCorrs corr))
-                                allIdentities;
-                val correspondences = identityCorrs @ baseCorrs;
+                val correspondences = allCorrespondenceMatches (!correspondingTable')
+                                                               qProps rProps;
             in map liftImportance correspondences end;
 
         val modulate = Importance.modulate;
