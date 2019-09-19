@@ -23,7 +23,19 @@ sig
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val computePseudoQuestionTable: questiontable -> representationtable -> correspondencetable -> questiontable;
+    val transformQProperty : QProperty.property ->
+                             PropertySet.t PropertySet.set ->
+                             correspondencetable ->
+                             QPropertySet.t QPropertySet.set;
+    val transformQPropertySet : QPropertySet.t QPropertySet.set ->
+                                PropertySet.t PropertySet.set ->
+                                correspondencetable ->
+                                QPropertySet.t QPropertySet.set;
+
+    val computePseudoQuestionTable: questiontable ->
+                                    representationtable ->
+                                    correspondencetable ->
+                                    questiontable;
     val questionTableToCSV: questiontable -> string -> unit;
 
     val setQGenerator : (string * qgenerator) -> unit;
@@ -39,8 +51,13 @@ struct
 
 exception TableError of string;
 
+structure SK = Set(struct type t = Kind.kind;
+                          val compare = Kind.compare;
+                          val fmt = Kind.toString;
+                   end);
 structure SQ = QPropertySet;
 structure S = PropertySet;
+val kset' = SK.fromList;
 val qset' = SQ.fromList;
 val set' = S.fromList;
 
@@ -228,63 +245,65 @@ in
     loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
-local structure KindSet = Set(struct
-                               type t = Kind.kind;
-                               val compare = Kind.compare;
-                               val fmt = Kind.toString;
-                               end) in
+fun transformQPropertySet qProperties targetProperties corrTable =
+    let
+        fun translateProperty (correspondence, importance) =
+            let
+                val strengthThreshold = 0.5;
+                val allKinds = kset' Kind.allKinds;
+                val badKinds = kset' [Kind.ErrorAllowed,
+                                      Kind.NumTokens,
+                                      Kind.NumDistinctTokens];
+                val propertyKinds = SK.difference allKinds badKinds;
+                val strength = Correspondence.strength correspondence;
+                val properties = S.filter (fn p => SK.contains propertyKinds
+                                                               (Property.kindOf p))
+                                          (Correspondence.rightMatches
+                                               targetProperties correspondence);
+                val makeQProperty = fn p => QProperty.fromPair (p, importance);
+            in
+                if strength > strengthThreshold
+                then qset' (S.map makeQProperty properties)
+                else SQ.empty ()
+            end;
+        val sourceProps = SQ.withoutImportances qProperties;
+        val matches =
+            let fun liftImportance c =
+                    map (fn i => (c, i))
+                        (Correspondence.liftImportances qProperties c);
+                fun alreadyCorr correspondences corr =
+                    List.exists (Correspondence.matchingProperties corr)
+                                correspondences;
+                val baseCorrs = List.filter (Correspondence.match sourceProps
+                                                                  targetProperties)
+                                    corrTable;
+                val allIdentities = S.map Correspondence.identity
+                                          (PropertySet.collectLeftMatches
+                                               sourceProps targetProperties);
+                val identityCorrs = List.filter
+                                        (fn corr => not (alreadyCorr baseCorrs corr))
+                                        allIdentities;
+                val correspondences = identityCorrs @ baseCorrs;
+            in List.flatmap liftImportance correspondences end;
+        val newProperties = SQ.unionAll (List.map translateProperty matches);
+        val errorAllowed = SQ.find
+                               (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
+                               qProperties;
+        val _ = case errorAllowed of
+                    SOME ea => SQ.insert newProperties ea
+                  | NONE => ();
+    in
+        newProperties
+    end;
+
+fun transformQProperty qProperty targetProperties corrTable =
+    transformQPropertySet (qset' [qProperty]) targetProperties corrTable;
+
 fun computePseudoQuestionTable qTable targetRSTable corrTable = let
     val ((qName, qRS), sourceProperties) = qTable;
     val (targetRSName, targetRSProperties) = targetRSTable;
-    fun translateProperty (correspondence, importance) =
-        let
-            val allKinds = KindSet.fromList Kind.allKinds;
-            val badKinds = KindSet.fromList [Kind.ErrorAllowed,
-                                             Kind.NumTokens,
-                                             Kind.NumDistinctTokens];
-            val propertyKinds = KindSet.difference allKinds badKinds;
-            val strength = Correspondence.strength correspondence;
-            val properties = PropertySet.filter
-                                 (fn p => KindSet.contains propertyKinds
-                                                           (Property.kindOf p))
-                                 (Correspondence.rightMatches
-                                      targetRSProperties correspondence);
-            val makeQProperty = fn p => QProperty.fromPair (p, importance);
-        in
-            if strength > 0.5
-            then SOME (QPropertySet.fromList
-                           (PropertySet.map makeQProperty properties))
-            else NONE
-        end;
-    val sourceProps = QPropertySet.withoutImportances sourceProperties;
-    val matches =
-        let fun liftImportance c =
-                map (fn i => (c, i))
-                    (Correspondence.liftImportances sourceProperties c);
-            fun alreadyCorr correspondences corr =
-                List.exists (Correspondence.matchingProperties corr)
-                            correspondences;
-            val baseCorrs = List.filter
-                                (Correspondence.match sourceProps
-                                                      targetRSProperties)
-                                corrTable;
-            val allIdentities = PropertySet.map
-                                    Correspondence.identity
-                                    (PropertySet.collectLeftMatches
-                                         sourceProps targetRSProperties);
-            val identityCorrs = List.filter
-                                    (fn corr => not (alreadyCorr baseCorrs corr))
-                                    allIdentities;
-            val correspondences = identityCorrs @ baseCorrs;
-        in List.flatmap liftImportance correspondences end;
-    val newProperties = QPropertySet.unionAll
-                            (List.mapPartial translateProperty matches);
-    val errorAllowed = QPropertySet.find
-                           (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
-                           sourceProperties;
-    val _ = case errorAllowed of
-                SOME ea => QPropertySet.insert newProperties ea
-              | NONE => ();
+    val newProperties = transformQPropertySet
+                            sourceProperties targetRSProperties corrTable;
 in
     (("pseudo-" ^ qName, targetRSName), newProperties)
 end;
@@ -343,7 +362,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                               (fn (a, b) =>
                                   [a, String.concat (List.intersperse ", " b)])
                               xs;
-        val triples = QPropertySet.map qPropertyToTriple qproperties;
+        val triples = SQ.map qPropertyToTriple qproperties;
         val pairs = map (fn (k, v, i) => (getLabel (k, i), v)) triples;
         val cellData = (makeCell o groupByFirst) pairs;
         val csvFile = CSVLiberal.openOut filename;
@@ -351,7 +370,5 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
         val _ = CSVLiberal.output csvFile cellData;
         val _ = (CSVLiberal.flushOut csvFile; CSVLiberal.closeOut csvFile);
     in () end;
-
-end;
 
 end;
