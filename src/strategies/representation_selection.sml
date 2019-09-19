@@ -48,7 +48,7 @@ fun init (repTables, corrTables, qTables) = let
               if Correspondence.matchingProperties y z
               then (
                   if Correspondence.equal y z then
-                      zs
+                      removeCorr y zs
                   else
                       (Logging.error ("ERROR: Conflicting correspondences:\n");
                        Logging.error ("\t" ^
