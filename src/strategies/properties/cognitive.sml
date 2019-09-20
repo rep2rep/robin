@@ -51,10 +51,11 @@ type rstable = PropertySet.t PropertySet.set;
 type corrtable = Correspondence.correspondence list;
 type userprofile = (string * real) list;
 
+(*
 val _ = registerPropertyReaders
             PropertyTables.setQGenerators
             PropertyTables.setRSGenerators;
-
+*)
 
 (* C and W are meant to be set per property/process, while T is meant to be set
    from the User Profile. *)
@@ -121,12 +122,20 @@ fun tokenRegistration qT =
         val C3 = importance_filter Importance.Low C
         val C4 = importance_filter Importance.Zero C
         val C5 = importance_filter Importance.Noise C*)
-        val tokenswithreg = map (fn x => (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x))) P
-        fun symbreg [] x = (print ("no token_registration attribute for " ^ (Property.toString x)); 1.0)
-          | symbreg (([],_)::L) x = symbreg L x
-          | symbreg ((s::S,r)::L) x = if Property.LabelOf x = s
-                                      then (Real.max (r, symbreg L x)) * (#2 (Property.getNumFunction "occurrences" x))
-                                      else symbreg ((S,r)::L) x;
+        val tokenswithreg = map (fn x => (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x)) handle Match => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getTokens x,1.0) )) P
+        val typeswithreg = map (fn x => (Property.getHoles x, #2 (Property.getNumFunction "token_registration" x)) handle Match => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getHoles x,1.0) )) P
+        fun typereg P t = 1.0
+          | typereg ((T,r)::L) t = if Property.contains T t then Real.max (r, typereg L t) else typereg L t
+        fun symbreg' [] x = (1.0,false)
+          | symbreg' (([],_)::L) x = symbreg' L x
+          | symbreg' ((s::S,r)::L) x = if Property.LabelOf x = s
+                                      then (Real.max (r, #1 (symbreg' L x)), true)
+                                      else symbreg' ((S,r)::L) x;
+        fun symbreg L x = let val (sr,found) = symbreg' L x
+                          in (if found then sr
+                              else typereg typeswithreg (Property.getTypeOfValue x))
+                              * (#2 (Property.getNumFunction "occurrences" x))
+                          end
     (*)    val S = map (map (symbreg tokenswithreg)) [C1,C2,C3,C4,C5] (*this extracted the token_registration from the patterns for each token, stratified by importances*)
         val [s1,s2,s3,s4,s5] = map (List.sum) S
         val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]

@@ -1,30 +1,30 @@
 import "strategies.representation_selection";
 
 
-fun setOfDict x = #2 (hd (PropertyTables.FileDict.items x));
+fun filesMatchingPrefix dir prefix =
+    let
+        fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                      SOME f => getWholeDir direc (f::out)
+                                    | NONE => List.rev out;
+        val dirstream = OS.FileSys.openDir dir;
+        val filenames = getWholeDir dirstream [];
+        val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+        fun attachDir p = dir ^ p;
+    in
+        map (OS.FileSys.fullPath o attachDir) filteredFiles
+    end;
 
-val BirdsBayes = setOfDict
-                  (PropertyTables.loadQuestionTable
-                      "/home/daniel/robin/tables/Q_table_birds_bayes.csv");
+fun load problem =
+    let val paths = filesMatchingPrefix "tables/" ("Q_table_" ^ problem)
+    in map PropertyTables.loadQuestionTable paths
+    end;
 
-val Bayes = setOfDict
-                (PropertyTables.loadRepresentationTable
-                    "/home/daniel/robin/tables/RS_table_bayes.csv");
-val Geometric = setOfDict
-                    (PropertyTables.loadRepresentationTable
-                        "/home/daniel/robin/tables/RS_table_geometric.csv");
-val Natlang = setOfDict
-                (PropertyTables.loadRepresentationTable
-                    "/home/daniel/robin/tables/RS_table_natlang.csv");
-val Contingency = setOfDict
-                      (PropertyTables.loadRepresentationTable
-                          "/home/daniel/robin/tables/RS_table_contingency.csv");
-val Euler = setOfDict
-                (PropertyTables.loadRepresentationTable
-                    "/home/daniel/robin/tables/RS_table_euler.csv");
-val Dots = setOfDict
-              (PropertyTables.loadRepresentationTable
-                  "/home/daniel/robin/tables/RS_table_dots.csv");
-val PS = setOfDict
-            (PropertyTables.loadRepresentationTable
-                "/home/daniel/robin/tables/RS_table_1dimps.csv");
+fun subRSVariety_rank rL =
+  let fun f (_,x) = (x, CognitiveProperties.subRSVariety x)
+  in List.mergesort (fn (x,y) => Real.compare (#2 x, #2 y)) (map f rL)
+  end;
+
+fun tokenRegistration_rank qL =
+    let fun f (_,x) = (x, CognitiveProperties.tokenRegistration x)
+    in List.mergesort (fn (x,y) => Real.compare (#2 x, #2 y)) (map f qL)
+    end;

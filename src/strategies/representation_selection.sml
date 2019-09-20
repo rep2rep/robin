@@ -8,6 +8,7 @@ import "strategies.properties.tables";
 import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
 import "strategies.properties.importance";
 import "strategies.properties.correspondence";
+import "strategies.properties.cognitive";
 
 structure RepresentationSelection =
 struct
