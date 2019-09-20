@@ -10,7 +10,7 @@ instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
                                   holes := [node => -3. arrow => -3];
                                   occurrences := 24;
-                                  tokens := [$node,$arrow];
+                                  tokens := [$node. $arrow];
                                   token_registration := 2},
                         $binary_tree : {type := tree;
                                          holes := [node => -3. arrows => -3];
@@ -25,7 +25,7 @@ instrumental_patterns, "$path : {type := path;
                         $non-explicit_reference : {type := reference;
                                                    holes := [class => 1. node => 1];
                                                    occurrences := 2;
-                                                   tokens := [$node,$arrow];
+                                                   tokens := [$node. $arrow];
                                                    token_registration := 3}"
 instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
                     $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
@@ -68,5 +68,5 @@ relevant_tokens,"1 : {type := real;
                         occurrences := 1},
                  $frame : {type := node -> node;
                             occurrences := 2}"
-relevant_patterns, ""
+relevant_patterns,""
 noise_tokens,""

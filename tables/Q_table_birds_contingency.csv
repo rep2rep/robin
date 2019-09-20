@@ -66,5 +66,5 @@ relevant_tokens,"1 : {type := real;
                               occurrences := 1},
                  x : {type := label;
                       occurrences := 1}"
-relevant_patterns, ""
+relevant_patterns,""
 noise_tokens,""

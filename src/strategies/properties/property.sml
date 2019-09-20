@@ -20,6 +20,8 @@ sig
     val contains : Type.T M.multiset -> Type.T -> bool;
     exception NegativeCount of Type.T * int;
 
+    exception Error of string;
+
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
 
@@ -70,6 +72,7 @@ fun contains m a = M.contains m a;
 exception NegativeCount = M.NegativeCount;
 
 exception ParseError;
+exception Error of string;
 
 fun toKindValuePair (k,v,_) = (k,v)
 
@@ -78,19 +81,19 @@ fun valueOf (_,v,_) = v;
 
 fun LabelOf p =
     case valueOf p of Label s => s
-                    | _ => (print "Not a Label";raise Match);
+                    | _ => raise Error "Not a Label";
 
 fun NumberOf p =
     case valueOf p of Number n => n
-                    | _ => (print "Not a Number";raise Match);
+                    | _ => raise Error "Not a Number";
 
 fun BooleanOf p =
     case valueOf p of Boolean b => b
-                    | _ => (print "Not a Boolean";raise Match);
+                    | _ => raise Error "Not a Boolean";
 
 fun TypeOf p =
     case valueOf p of Type t => t
-                    | _ => (print "Not a Type";raise Match);
+                    | _ => raise Error "Not a Type";
 
 fun attributesOf (_,_,A) = A;
 

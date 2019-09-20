@@ -48,7 +48,7 @@ fun labelR str =
     in [(Property.Label v, A)]
     end;
 
-fun listOf reader str = if str = "NONE" then []
+fun listOf reader str = if str = "NONE" orelse str = "" then []
                         else List.flatmap reader (Parser.splitStrip "," str);
 
 fun collection str = listOf (fn s => [s]) str;

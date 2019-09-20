@@ -123,7 +123,7 @@ fun filter f xs = D.filter f xs;
 fun foldl f a xs = List.foldl f a (toList xs);
 fun foldr f a xs = List.foldr f a (toList xs);
 
-fun size xs = D.foldr (fn ((x, i), v) => i + v) 0 xs;
+fun size xs = D.foldr (fn ((x, i), v) => if i >=0 then i + v else Int.min (i,v)) 0 xs; (* note that negative multiplicities are taken as "infinite", and smaller negatives are larger cardinal infinites*)
 fun countUnique xs = D.size xs;
 
 fun equal (xs, ys) = D.equal (xs, ys);

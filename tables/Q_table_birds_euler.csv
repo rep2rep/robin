@@ -1,14 +1,10 @@
 birds,euler
 error_allowed, 0
 answer_type, real
-instrumental_tokens,"$contour"
+instrumental_tokens,"$contour: {type := contour;
+                                occurrences := 2}"
 instrumental_types,"zone"
-instrumental_patterns, "$label_reference : {type := reference;
-                                            holes := [label=>1];
-                                            occurrences := 1;
-                                            tokens := [];
-                                            token_registration := 3},
-                        $set_ratio : {holes := [label => 2. real => 1];
+instrumental_patterns, "$set_ratio : {holes := [label => 2. real => 1];
                                                 tokens := [=. ||];
                                                 type := formula;
                                                 occurrences := 3;
@@ -66,14 +62,14 @@ relevant_tokens,"1 : {type := real;
                       occurrences := 1},
                  zone : {type := class;
                          occurrences := 1}"
-relevant_patterns, "$union: {type := region;
-                             holes := [region => 2];
+relevant_patterns, "$union: {type := zone;
+                             holes := [zone => 2];
                              occurrences := 120;
-                             tokens := [$segment];
+                             tokens := [$contour];
                              token_registration := 1},
-                    $difference: {type := region;
-                                  holes := [region => 2];
-                                  occurrences := 3;
-                                  tokens := [$segment];
+                    $difference: {type := zone;
+                                  holes := [zone => 2];
+                                  occurrences := 120;
+                                  tokens := [$contour];
                                   token_registration := 1}"
 noise_tokens,""

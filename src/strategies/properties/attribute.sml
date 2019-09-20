@@ -69,7 +69,8 @@ struct
   fun getNumFunction (NumFunction (s,n)) = (s,n)
     | getNumFunction _ = raise Match;
 
-  fun updateNumFunction s' f (NumFunction (s,n)) = if s' = s then NumFunction (s,f n) else NumFunction (s,n)
+  fun updateNumFunction s' f (NumFunction (s,n)) = if s' = s then NumFunction (s,f n)
+                                                    else NumFunction (s,n)
     | updateNumFunction _ _ a = a;
 
   fun getStringFunction (StringFunction (s,s')) = (s,s')
@@ -92,8 +93,11 @@ struct
   fun intFromString s =
       case Int.fromString s of
               SOME n => n
-            | NONE => if s = "#t" then ~3 else if s = "sqrt(#t)" then ~2 else if s = "log(#t)" then ~1
-                        else (print ("bad numerical expression: " ^ s); raise Parser.ParseError);
+            | NONE => if s = "#t" then ~3 else
+                      if s = "sqrt(#t)" then ~2 else
+                      if s = "log(#t)" then ~1
+                        else (print ("bad numerical expression: " ^ s);
+                              raise Parser.ParseError);
 
   fun makeHoleList [] = []
     | makeHoleList (a::L) =

@@ -55,7 +55,8 @@ fun listCombChoices [] = [[]]
 fun decreaseMultiplicityOf c [] = []
   | decreaseMultiplicityOf c (c'::L) =
       if c = Property.LabelOf c'
-      then (if Real.== (#2 (Property.getNumFunction "occurrences" c'), 1.0) then L
+      then
+           (if #2 (Property.getNumFunction "occurrences" c') <= 1.0 then L
             else (Property.updateNumFunction "occurrences" (fn x => x - 1.0) c') :: L)
               handle Match => (print ("no attribute \"occurrences\" for token" ^ Property.toString c'); raise Match)
       else c' :: decreaseMultiplicityOf c L
@@ -79,33 +80,6 @@ fun treesFromToken C c =
     map (Branch o (fn x => (Property.LabelOf c,x))) ch
   end;
 
-
-(*
-(*start dummy test*)
-datatype expression_tree = Leaf of ((string list * string) * int) | Branch of (((string list * string) * int) * expression_tree list);
-fun selectTokensWithOutputTypes [] _ = []
-  | selectTokensWithOutputTypes (c::L) t = let val ((x,y),_) = c in if t = y then c :: (selectTokensWithOutputTypes L t) else (selectTokensWithOutputTypes L t) end;
-fun decreaseMultiplicityOf _ [] = []
-  | decreaseMultiplicityOf (c,m) ((c',n)::L) = if c = c' then (if n = 1 then L else (c',n-1)::L) else (c',n)::decreaseMultiplicityOf (c,m) L;
-fun treesFromToken C c =
-  let
-    fun makeTrees_rec CC [] = []
-      | makeTrees_rec CC (cc::LL) = let val CC' = (decreaseMultiplicityOf cc CC)
-                                     in (treesFromToken CC' cc) :: (makeTrees_rec CC' LL)
-                                     end
-    val t = c
-    val ((iT,_),_) = t
-    val C' = decreaseMultiplicityOf c C
-    val cL = listCombChoices (map (selectTokensWithOutputTypes C') iT) (* first obtains a list of lists of tokens e.g., in [[t,s],[u,v]],
-                                                                         from which you have to select one from each list
-                                                                        e.g., [t,u] or [t,v], thus the application of listCombChoices.
-                                                                        Each element of cL is a potential set of children *)
-    val ch = List.concat (map (listCombChoices o (makeTrees_rec C')) cL)
-  in case iT of [] => [Leaf (c)]
-               | _ => map (Branch o (fn x => (c,x))) ch
-  end;
-(*end dummy test*)
-*)
 
 fun treesFromType C t = List.concat (map (treesFromToken C) (selectTokensWithOutputTypes C t))
 
