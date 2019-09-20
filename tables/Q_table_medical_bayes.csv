@@ -6,9 +6,18 @@ instrumental_types,"real,event"
 instrumental_patterns,"$conditional_Pr, $simple_Pr"
 instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"rewrite"
-relevant_tokens,"0.98, 0.97, 0.01,d:{type:= event},t:{type:= event}"
-relevant_related_tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
+relevant_tokens,"0.98, 0.97, 0.01,d:{type:= event},t:{type:= event},
+                  0 : {occurrences := 0},
+                  1 : {occurrences := 0},
+                  \emptyset : {occurrences := 0},
+                  \Omega : {occurrences := 0},
+                  + : {occurrences := 0},
+                  * : {occurrences := 0},
+                  - : {occurrences := 0},
+                  \div : {occurrences := 0},
+                  \cup : {occurrences := 0},
+                  \cap : {occurrences := 0},
+                  \setminus : {occurrences := 0}"
 num_tokens,20
 num_distinct_tokens,14
 noise_tokens,""
-noise_related_tokens,""

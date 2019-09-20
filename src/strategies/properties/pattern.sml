@@ -9,7 +9,7 @@ sig
 
   val depth : Property.property list -> Property.property -> real;
   val breadth : Property.property list -> Property.property -> real;
-  val typeArity : Property.property -> real;
+  val arity : Property.property -> int;
   val distinctArity : Property.property -> real;
 end;
 
@@ -55,9 +55,9 @@ fun listCombChoices [] = [[]]
 fun decreaseMultiplicityOf c [] = []
   | decreaseMultiplicityOf c (c'::L) =
       if c = Property.LabelOf c'
-      then (if Real.== (#2 (Property.getNumFunction "multiplicity" c'), 1.0) then L
-            else (Property.updateNumFunction "multiplicity" (fn x => x - 1.0) c') :: L)
-              handle Match => (print ("no multiplicity for token" ^ Property.toString c'); raise Match)
+      then (if Real.== (#2 (Property.getNumFunction "occurrences" c'), 1.0) then L
+            else (Property.updateNumFunction "occurrences" (fn x => x - 1.0) c') :: L)
+              handle Match => (print ("no attribute \"occurrences\" for token" ^ Property.toString c'); raise Match)
       else c' :: decreaseMultiplicityOf c L
 
 (* returns a list of possible trees that can be constructing by applying a token
@@ -136,11 +136,14 @@ fun listMax [] = 0
 fun maxBranchDepth (Branch (_,[])) = 0
   | maxBranchDepth (Branch (_,h::L)) = maxWithOmegaPlus (maxBranchDepth h, listMax (map maxBranchDepth L)) + 1;
 
-fun maxBranchBreadth (Branch (_,[])) = 0
-  | maxBranchBreadth (Branch (_,h::L)) = listMax ((maxBranchBreadth h) :: (1 + List.length L) :: (map maxBranchBreadth L));
+fun maxBranchBreadth ((Branch (_,[])),i) = i
+  | maxBranchBreadth ((Branch (_,h::L)),i) =
+      listMax ((maxBranchBreadth (h,1))
+                :: (1 + List.length L)
+                :: (map (maxBranchBreadth o (fn x => (x,1))) L));
 
 fun maxDepth ((Root ((s,ud),L))) = listMax ((map (maxBranchDepth o #1) L)) + ud
-fun maxBreadth ((Root ((s,_),L))) = listMax ((map (maxBranchBreadth o #1) L))
+fun maxBreadth ((Root ((s,_),L))) = listMax (map maxBranchBreadth L)
 
 fun typeCount (t,n) = n;
 
@@ -154,8 +157,8 @@ fun avgBreadth L = List.avgIndexed (real o maxBreadth) L
 fun depth C p = avgDepth (treesFromPattern C p) + (#2(Property.getNumFunction "udepth" p) handle Match => 1.0)
 fun breadth C p = avgBreadth (treesFromPattern C p)
 
-fun typeArity p = real (Property.countUnique (Property.getHoles p))
-fun distinctArity p = real (Property.size (Property.getHoles p))
+fun arity p = (Property.size (Property.getHoles p))
+fun distinctArity p = real (Property.countUnique (Property.getHoles p))
 
 
 end;

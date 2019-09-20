@@ -6,9 +6,42 @@ instrumental_types,"ratio,percentage,class,occurrence"
 instrumental_patterns,"$class_ratio, $conditional_probability"
 instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
 instrumental_tactics,"deduce,calculate"
-relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive"
-relevant_related_tokens,"not,times,divided_by,plus,minus,equals,union,intersection, zero, empty, universe"
+relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive,
+                  not : {occurrences := 0},
+                  times : {occurrences := 0},
+                  divided_by : {occurrences := 0},
+                  plus : {occurrences := 0},
+                  minus : {occurrences := 0},
+                  equals : {occurrences := 0},
+                  union : {occurrences := 0},
+                  intersection : {occurrences := 0},
+                  zero : {occurrences := 0},
+                  empty : {occurrences := 0},
+                  universe : {occurrences := 0}"
 num_tokens,64
 num_distinct_tokens,30
-noise_tokens,""
-noise_related_tokens,"medicine, amount, prospect, opportunity, risk, quantity, measure, group, people, settlement, colonization, integer, sickness, illness, irrefutable, confirming, confident, hypothesise, conjecture, speculate, theorise, think, imagine, guess, say"
+noise_tokens, "medicine : {occurrences := 0},
+               amount : {occurrences := 0},
+               prospect : {occurrences := 0},
+               opportunity : {occurrences := 0},
+               risk : {occurrences := 0},
+               quantity : {occurrences := 0},
+               measure : {occurrences := 0},
+               group : {occurrences := 0},
+               people : {occurrences := 0},
+               settlement : {occurrences := 0},
+               colonization : {occurrences := 0},
+               integer : {occurrences := 0},
+               sickness : {occurrences := 0},
+               illness : {occurrences := 0},
+               irrefutable : {occurrences := 0},
+               confirming : {occurrences := 0},
+               confident : {occurrences := 0},
+               hypothesise : {occurrences := 0},
+               conjecture : {occurrences := 0},
+               speculate : {occurrences := 0},
+               theorise : {occurrences := 0},
+               think : {occurrences := 0},
+               imagine : {occurrences := 0},
+               guess : {occurrences := 0},
+               say : {occurrences := 0}"

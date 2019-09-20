@@ -17,6 +17,8 @@ sig
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
     val countUnique : Type.T M.multiset -> int;
     val size : Type.T M.multiset -> int;
+    val contains : Type.T M.multiset -> Type.T -> bool;
+    exception NegativeCount of Type.T * int;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -33,7 +35,7 @@ sig
     val getContent : property -> Type.T;
     val getStringFunction : string -> property -> (string * string);
     val getNumFunction : string -> property -> (string * real);
-    val getFeature : property -> string;
+    val getFeatures : property -> string list;
 
     val updateNumFunction : string -> (real -> real) -> property -> property;
 
@@ -64,6 +66,8 @@ structure M = Attribute.M
 fun toPairList m = M.toPairList m;
 fun countUnique m = M.countUnique m;
 fun size m = M.size m;
+fun contains m a = M.contains m a;
+exception NegativeCount = M.NegativeCount;
 
 exception ParseError;
 
@@ -116,8 +120,8 @@ fun getStringFunction s (_,_,[]) = raise Match
     (case Attribute.getStringFunction a of (s',n) =>
         (if s' = s then (s',n) else getStringFunction s (k,v,L))) handle Match => getStringFunction s (k,v,L);
 
-fun getFeature (_,_,[]) = raise Match
-  | getFeature (k,v,(a::L)) = Attribute.getFeature a handle Match => getFeature (k,v,L);
+fun getFeatures (_,_,[]) = []
+  | getFeatures (k,v,(a::L)) = Attribute.getFeature a :: getFeatures (k,v,L) handle Match => getFeatures (k,v,L);
 
 fun updateNumFunction s f (k,v,L) = (k,v,map (Attribute.updateNumFunction s f) L);
 

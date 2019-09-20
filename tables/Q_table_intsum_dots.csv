@@ -7,8 +7,6 @@ instrumental_patterns,"$rectangle,$triangle"
 instrumental_laws,"$count_invariant"
 instrumental_tactics,"$constructive_omega_rule,$stack_vertical,$stack_horizontal"
 relevant_tokens,""
-relevant_related_tokens,""
 num_tokens,10
 num_distinct_tokens,1
 noise_tokens,""
-noise_related_tokens,""

@@ -122,7 +122,7 @@ struct
       else if x = "holes" then Holes (holeMultisetFromString y)
       else if x = "tokens" then Tokens (tokenListFromString y)
       else case Real.fromString y of SOME n => NumFunction (x,n)
-                                   | NONE => (print ("reading attribute: " ^ x ^ " := " ^ y); StringFunction (x,y));
+                                   | NONE => StringFunction (x,y);
 
   val fromString = attributeFromPair o decomposeAttribute;
 

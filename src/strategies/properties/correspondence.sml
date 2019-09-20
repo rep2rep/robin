@@ -179,3 +179,17 @@ fun fromString s =
          | Kind.KindError => raise ParseError;
 
 end;
+
+
+fun allCorrespondenceMatches corrs qProps rProps =
+    let
+        fun alreadyCorr cs c = List.exists (Correspondence.matchingProperties c) cs;
+        val baseCorrs = List.filter (Correspondence.match qProps rProps) corrs;
+        val identities = PropertySet.map
+                             Correspondence.identity
+                             (PropertySet.collectLeftMatches qProps rProps);
+        val newIdentities = List.filter (fn c => not (alreadyCorr baseCorrs c))
+                                        identities;
+    in
+        newIdentities @ baseCorrs
+    end;

@@ -6,9 +6,8 @@ instrumental_tokens,"\sum,*,="
 instrumental_patterns,"$sum, $equality_chain"
 instrumental_laws,""
 instrumental_tactics,"induction"
-relevant_tokens,"n:{type:=integer}, i:{type:=integer}, +, \div"
-relevant_related_tokens,"-,^,\sqrt,0"
+relevant_tokens,"n:{type:=integer}, i:{type:=integer}, +, \div,
+                 - : {occurrences := 0},^ : {occurrences := 0},\sqrt : {occurrences := 0},0 : {occurrences := 0}"
 num_tokens,14
 num_distinct_tokens,9
 noise_tokens,""
-noise_related_tokens,""

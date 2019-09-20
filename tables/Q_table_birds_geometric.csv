@@ -1,0 +1,83 @@
+birds,geometric
+error_allowed, 0
+answer_type, real
+instrumental_tokens,""
+instrumental_types,"region"
+instrumental_patterns, "$rectangle : {type := region;
+                                      holes := [segment => 4. shade => 1];
+                                      occurrences := 7;
+                                      tokens := [$segment];
+                                      token_registration := 1},
+                        $size : {type := real;
+                                 holes := [region => 1. real => 1];
+                                 occurrences := 15;
+                                 tokens := [$segment];
+                                 token_registration := 1},
+                        $relative_size : {type := real;
+                                          holes := [region => 2. real => 1];
+                                          occurrences := 105;
+                                          tokens := [$segment];
+                                          token_registration := 1},
+                        $intersection : {type := region;
+                                         holes := [region => 2];
+                                         occurrences := 105;
+                                         tokens := [$segment];
+                                         token_registration := 1},
+                        $labelled_region : {type := figure;
+                                            holes := [region=>1. label=>1];
+                                            occurrences := 5;
+                                            tokens := [$segment];
+                                            token_registration := 1},
+                        $label_reference : {type := reference;
+                                            holes := [label=>1];
+                                            occurrences := 1;
+                                            tokens := [];
+                                            token_registration := 3}"
+instrumental_laws, "$scale_independence_of_ratio : {description := the ratio of two areas is independent of the scale},
+                    $area_additivity : {description := the area of a region is the sum of the areas of its parts}"
+instrumental_tactics,"rewrite : {laws := 1;
+                                 patterns := 1},
+                      calc : {patterns := 1;
+                              laws := 0}"
+relevant_tokens,"1 : {type := real;
+                      occurrences := 2},
+                 4 : {type := real;
+                      occurrences := 1},
+                 2 : {type := real;
+                      occurrences := 1},
+                 3 : {type := real;
+                      occurrences := 1},
+                 \div : {type := real * real -> real;
+                         occurrences := 2},
+                 birds : {type := label;
+                          occurrences := 2},
+                 flying : {type := label;
+                           occurrences := 2},
+                 animals : {type := label;
+                           occurrences := 2},
+                 x : {type := label;
+                      occurrences := 2},
+                 $segment : {type := segment;
+                             occurrences := 7},
+                 $shade_1 : {type := texture;
+                           occurrences := 1},
+                 $shade_2 : {type := texture;
+                           occurrences := 1},
+                 calculate : {type := instruction;
+                              occurrences := 1},
+                 the : {type := class -> class;
+                        occurrences := 2},
+                 area : {type := class;
+                         occurrences := 1},
+                 of : {type := class * class -> class;
+                        occurrences := 1},
+                 region : {type := label -> class;
+                            occurrences := 1},
+                 x : {type := label;
+                      occurrences := 1}"
+relevant_patterns, "$union: {type := region;
+                             holes := [region => 2];
+                             occurrences := 105;
+                             tokens := [$segment];
+                             token_registration := 1}"
+noise_tokens,""
