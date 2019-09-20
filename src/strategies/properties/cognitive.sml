@@ -56,11 +56,6 @@ val _ = registerPropertyReaders
             PropertyTables.setRSGenerators;
 
 
-val propertyTableRep' = ref (TableDict.empty ());
-val correspondingTable' = ref [];
-val propertyTableQ' = ref (TableDict.empty ());
-
-
 (* C and W are meant to be set per property/process, while T is meant to be set
    from the User Profile. *)
 fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
@@ -204,12 +199,8 @@ fun quantityScale qT =
             in
                 map (OS.FileSys.fullPath o attachDir) filteredFiles
             end;
-        fun propertiesRS rep =
-            TableDict.get (!propertyTableRep') (rep, rep)
-            handle TableDict.KeyError =>
-                   (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
-                   raise TableDict.KeyError);
-        val arithT = propertiesRS "algebra"
+        val arithpath = filesMatchingPrefix "tables/" "RS_table_algebra"
+        val (_,arithT) = PropertyTables.loadRepresentationTable (hd arithpath)
 
         (* this will probably change one I incorporate these calculations
         into the stream of representation selection and the tables are handed
