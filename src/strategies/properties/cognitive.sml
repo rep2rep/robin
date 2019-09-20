@@ -217,10 +217,7 @@ fun quantityScale qT =
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
-        val ((_,_), pT) = PropertyTables.computePseudoQuestionTable (("",""),qT)
-                                                                    ("algebra",arithT)
-                                                                    corrT
-
+        val pT = PropertyTables.transformQPropertySet qT arithT corrT
         fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y) L
         fun ordinalFun x = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
         fun intervalFun x = check x ["+","-","sum","\\sum"]
@@ -243,10 +240,10 @@ fun quantityScale qT =
 
 
 fun tokenConceptMapping qT rT =
-    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
-        val C1 = (List.filter (fn x => QProperty.importanceOf x = Importance.High) C)
-        val C2 = (List.filter (fn x => QProperty.importanceOf x = Importance.Medium) C)
-        val C3 = (List.filter (fn x => QProperty.importanceOf x = Importance.Low) C)
+    let val C = QPropertySet.collectOfKind qT Kind.Token
+        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C)
+        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C)
+        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C)
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -266,11 +263,8 @@ fun tokenConceptMapping qT rT =
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
         fun assess_rd p =
-            let val T = PropertyTables.computePseudoQuestionTable
-                            (("",""),QPropertySet.fromList [p])
-                            ("x",rT)
-                            corrT
-                val x = QPropertySet.size (#2 T)
+            let val T = PropertyTables.transformQProperty p rT corrT
+                val x = QPropertySet.size T
             in if x = 1 then 1.0 else (* isomorphism *)
                if x > 1 then 3.0 else (* redundancy *)
                if x < 1 then 4.0 else 0.0  (* deficit *)
@@ -278,20 +272,17 @@ fun tokenConceptMapping qT rT =
 
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
-            let val C' = PropertySet.fromList (map QProperty.withoutImportance C)
-                val T = PropertyTables.computePseudoQuestionTable
-                            (("",""),QPropertySet.fromList [QProperty.fromPair (r,Importance.High)])
-                            ("x",C')
-                            corrT'
-                val x = QPropertySet.size (#2 T)
+            let val C' = QPropertySet.withoutImportances C
+                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' corrT'
+                val x = QPropertySet.size T
             in if x = 1 then 0.0 else (* isomorphism *)
                if x > 1 then 5.0 else (* overload *)
                if x < 1 then 2.0 else 0.0 (* excess *)
             end;
-        val s1 = List.sumIndexed assess_rd C1
-        val s2 = List.sumIndexed assess_rd C2
-        val s3 = List.sumIndexed assess_rd C3
-        val oe = List.sumIndexed assess_oe (PropertySet.toList (rT))
+        val s1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
+        val s2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
+        val s3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
+        val oe = List.sumIndexed assess_oe (PropertySet.toList rT)
 (* note that overload and excess don't take importance into account precisely
 because they are properties of the target RS and not of the source Q,
 so it's not possible to assess the improtance of such overload or excess.
@@ -304,10 +295,10 @@ This is debatable for overload, as it does have q properties. *)
 
 
 fun expressionConceptMapping qT rT =
-    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
-        val C1 = (List.filter (fn x => QProperty.importanceOf x = Importance.High) C)
-        val C2 = (List.filter (fn x => QProperty.importanceOf x = Importance.Medium) C)
-        val C3 = (List.filter (fn x => QProperty.importanceOf x = Importance.Low) C)
+    let val C = QPropertySet.collectOfKind qT Kind.Pattern
+        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
+        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
+        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -327,11 +318,8 @@ fun expressionConceptMapping qT rT =
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
         fun assess_rd p =
-            let val T = PropertyTables.computePseudoQuestionTable
-                            (("",""),QPropertySet.fromList [p])
-                            ("x",rT)
-                            corrT
-                val x = QPropertySet.size (#2 T)
+            let val T = PropertyTables.transformQProperty p rT corrT
+                val x = QPropertySet.size T
             in if x = 1 then 0.0 else (* functional *)
                if x > 1 then 3.0 else (* redundancy *)
                if x < 1 then 4.0 else (* deficit *)
@@ -340,20 +328,17 @@ fun expressionConceptMapping qT rT =
 
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
-            let val C' = PropertySet.fromList (map QProperty.withoutImportance C)
-                val T = PropertyTables.computePseudoQuestionTable
-                            (("",""), QPropertySet.fromList [QProperty.fromPair (r,Importance.High)])
-                            ("x",C')
-                            corrT'
-                val x = QPropertySet.size (#2 T)
+            let val C' = QPropertySet.withoutImportances C
+                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' corrT
+                val x = QPropertySet.size T
             in if x = 1 then 1.0 else (* injetive & surjective *)
                if x > 1 then 5.0 else (* overload *)
                if x < 1 then 2.0 else (* excess *)
                   0.0
             end;
-        val s1 = List.sumIndexed assess_rd C1
-        val s2 = List.sumIndexed assess_rd C2
-        val s3 = List.sumIndexed assess_rd C3
+            val s1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
+            val s2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
+            val s3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
         val oe = List.sumIndexed assess_oe (PropertySet.toList (rT))
 (* note that overload and excess don't take importance into account precisely
 because they are properties of the target RS and not of the source Q,
