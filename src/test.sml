@@ -50,7 +50,7 @@ fun RS_order (x,y) =
 fun crunch L =
     let val max = #2 (List.argmax #2 L)
         val min = #2 (List.argmin #2 L)
-        val normL = map (fn (x,v) => (x, (1 + v - min) / (1 + max - min))) L
+        val normL = map (fn (x,v) => (x, (v - min) / (max - min))) L
         val sorted = List.mergesort RS_order normL
     in sorted
     end;
@@ -151,7 +151,7 @@ fun cognitiveRank qL =
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10]
         val forLatex = (String.concat ("& \\textbf{":: List.intersperse "} & \\textbf{" rss) ^ "} \\\\ \\hline \n") ^
                         (String.concat ("\\textbf{token registration} & " :: List.intersperse " & " (map printAsInteger c1)) ^ " \\\\ \\hline\n") ^
-                        (String.concat ("\\textbf{expression registration} & " :: List.intersperse " & " (map printAsInteger c2)) ^ " \\\\ \\hline\n") ^
+                        (String.concat ("\\textbf{expression registration} & " :: List.intersperse " & " (map Real.toString c2)) ^ " \\\\ \\hline\n") ^
                         (String.concat ("\\textbf{token-concept mapping} & " :: List.intersperse " & " (map printAsInteger c3)) ^ " \\\\ \\hline\n") ^
                         (String.concat ("\\textbf{expression-concept mapping} & " :: List.intersperse " & " (map printAsInteger c4)) ^ " \\\\ \\hline\n") ^
                         (String.concat ("\\textbf{number of token types} & " :: List.intersperse " & " (map printAsInteger c5)) ^ " \\\\ \\hline\n") ^
