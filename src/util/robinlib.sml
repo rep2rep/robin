@@ -97,7 +97,8 @@ sig
     val avgIndexed : ('a -> real) -> 'a list -> real;
     val weightedAvg : (real -> real) -> real list -> real;
     val avg : real list -> real;
-
+    val argmax : ('a -> real) -> 'a list -> ('a * real);
+    val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
 
 structure List : LIST =
@@ -223,6 +224,20 @@ fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
 
 fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
 fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun argmax _ [] = raise Match
+  | argmax f [x] = (x, f x)
+  | argmax f (x::L) = let val r = argmax f L
+                          val v = f x
+                      in if v > #2 r then (x,v) else r
+                      end;
+
+fun argmin _ [] = raise Match
+  | argmin f [x] = (x, f x)
+  | argmin f (x::L) = let val r = argmin f L
+                          val v = f x
+                      in if v < #2 r then (x,v) else r
+                      end;
 
 end;
 
