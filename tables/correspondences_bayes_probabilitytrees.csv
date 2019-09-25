@@ -1,0 +1,6 @@
+type-event,type-node OR type-arrow,1
+token-\cap,pattern-$path,1
+token-\cup,pattern-$subtree,0.75
+token-\Omega,type-tree,0.75
+token-\Pr,tactic-assign_value_to_node OR tactic-assign_value_to_arrow,1
+token-=,pattern-$path_comparison,0.25
