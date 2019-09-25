@@ -2,10 +2,24 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
+  type branch;
   type expression_tree;
+
+  val decreaseMultiplicityOf : string -> Property.property list -> Property.property list;
+  val treesFromToken : Property.property list -> Property.property -> branch list;
   val treesFromPattern : Property.property list -> Property.property -> expression_tree list;
   val baseTokens : expression_tree -> string list;
   val baseDepth : expression_tree -> real;
+
+  val listMaxWithOmegaPlus : int list -> int;
+
+  val maxBreadth : expression_tree -> int;
+  val maxDepth : expression_tree -> int;
+
+  val maxBranchDepth : branch -> int;
+  val maxBranchBreadth : branch * int -> int;
+  val avgDepth : expression_tree list -> real;
+  val avgBreadth : expression_tree list -> real;
 
   val depth : Property.property list -> Property.property -> real;
   val breadth : Property.property list -> Property.property -> real;
@@ -40,8 +54,13 @@ fun isPermutationOf _ [] [] = true
                                  end
   | isPermutationOf _ _ _ = false;
 
-fun selectTokensWithOutputTypes C t =
-    List.filter ((isPermutationOf Type.match [t]) o #2 o Type.getInOutTypes o Property.getTypeOfValue) C;
+fun selectTokensWithOutputType C t =
+    let fun f x = let val outTypes = (#2 o Type.getInOutTypes o Property.getTypeOfValue) x
+                  in isPermutationOf Type.match [t] outTypes
+                  end
+        val L = List.filter f C
+    in L
+    end;
 
 (*
 [["a1","b1","c1"],["a2","b2"],["a3"]] ->
@@ -63,8 +82,10 @@ fun decreaseMultiplicityOf c [] = []
 
 (* returns a list of possible trees that can be constructing by applying a token
    to some arguments, if the token has a function type. *)
-fun treesFromToken C c =
+fun treesFromToken tokens c = if null tokens then [] else
   let
+    val C = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) tokens
+  (*)  val _ = print (Property.LabelOf c ^ " " ^ (Real.toString (#2 (Property.getNumFunction "occurrences" c)))^ "\n")*)
     fun makeTrees_rec CC (cc::LL) = let val CC' = (decreaseMultiplicityOf (Property.LabelOf cc) CC)
                                      in (treesFromToken CC' cc) :: (makeTrees_rec CC' LL)
                                      end
@@ -72,23 +93,28 @@ fun treesFromToken C c =
     val t = Property.getTypeOfValue c
     val (iT,_) = Type.getInOutTypes t
     val C' = decreaseMultiplicityOf (Property.LabelOf c) C
-    val cL = listCombChoices (map (selectTokensWithOutputTypes C') iT) (* list of lists of tokens e.g., in [[t,s],[u,v]] you have to select one from each list
+    val cL = listCombChoices (map (selectTokensWithOutputType C') iT) (* list of lists of tokens e.g., in [[t,s],[u,v]] you have to select one from each list
                                                                         e.g., [t,u] or [t,v], thus the application of listCombChoices.
                                                                         Each element of cL is a potential set of children *)
-    val ch = List.concat (map (listCombChoices o (makeTrees_rec C')) cL)
+  (*)  val _ = print (Property.toString (hd (hd cL)) ^ "\n" handle _ => "none") *)
+
+    fun ch' L = listCombChoices (makeTrees_rec C' L)
+    val ch = List.hd (map ch' cL) handle Empty => []
+
   in
-    map (Branch o (fn x => (Property.LabelOf c,x))) ch
+    map (fn x => Branch (Property.LabelOf c,x)) ch
   end;
 
 
-fun treesFromType C t = List.concat (map (treesFromToken C) (selectTokensWithOutputTypes C t))
+fun treesFromType C t = List.concat (map (treesFromToken C) (selectTokensWithOutputType C t))
 
-fun treesFromPattern C p =
-    let val H = Property.toPairList (Property.getHoles p)
+fun treesFromPattern tokens p =
+    let val C = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) tokens
         val tkL = Property.getTokens p
         fun dec (x::L) X = dec L (decreaseMultiplicityOf x X) | dec [] X = X
         val C' = dec tkL C
         val ud = #2 (Property.getNumFunction "udepth" p) handle Match => 1.0
+        val H = Property.toPairList (Property.getHoles p)
         fun branchesFromHoles [] = []
           | branchesFromHoles ((t,n)::L) = (map (fn x => (x,n)) (treesFromType C' (t))) :: branchesFromHoles L
         val treeListOptions = listCombChoices (branchesFromHoles H)
@@ -104,31 +130,30 @@ fun maxWithOmegaPlus (x,y) =
     else if y < 0 then y
     else Int.max (x,y);
 
-fun listMax [] = 0
-  | listMax (h::t) = maxWithOmegaPlus (h,listMax t);
+fun listMaxWithOmegaPlus [] = 0
+  | listMaxWithOmegaPlus (h::t) = maxWithOmegaPlus (h,listMaxWithOmegaPlus t);
 
 fun maxBranchDepth (Branch (_,[])) = 0
-  | maxBranchDepth (Branch (_,h::L)) = maxWithOmegaPlus (maxBranchDepth h, listMax (map maxBranchDepth L)) + 1;
+  | maxBranchDepth (Branch (_,h::L)) = maxWithOmegaPlus (maxBranchDepth h, listMaxWithOmegaPlus (map maxBranchDepth L)) + 1;
 
 fun maxBranchBreadth ((Branch (_,[])),i) = i
   | maxBranchBreadth ((Branch (_,h::L)),i) =
-      listMax ((maxBranchBreadth (h,1))
-                :: (1 + List.length L)
-                :: (map (maxBranchBreadth o (fn x => (x,1))) L));
+      listMaxWithOmegaPlus ((maxBranchBreadth (h,1))
+                            :: (1 + List.length L)
+                            :: (map (maxBranchBreadth o (fn x => (x,1))) L));
 
-fun maxDepth ((Root ((s,ud),L))) = listMax ((map (maxBranchDepth o #1) L)) + ud
-fun maxBreadth ((Root ((s,_),L))) = listMax (map maxBranchBreadth L)
+fun maxDepth ((Root ((s,ud),L))) = listMaxWithOmegaPlus ((map (maxBranchDepth o #1) L)) + ud
+fun maxBreadth ((Root ((s,_),L))) = listMaxWithOmegaPlus (map maxBranchBreadth L)
 
 fun typeCount (t,n) = n;
 
 
 (* tree list functions *)
-fun avgDepth L = List.avgIndexed (real o maxDepth) L
-fun avgBreadth L = List.avgIndexed (real o maxBreadth) L
-
+fun avgDepth L = if null L then 1.0 else List.avgIndexed (real o maxDepth) L
+fun avgBreadth L = if null L then 1.0 else List.avgIndexed (real o maxBreadth) L
 
 (* Pattern functions *)
-fun depth C p = avgDepth (treesFromPattern C p) + (#2(Property.getNumFunction "udepth" p) handle Match => 1.0)
+fun depth C p = avgDepth (treesFromPattern C p)
 fun breadth C p = avgBreadth (treesFromPattern C p)
 
 fun arity p = (Property.size (Property.getHoles p))

@@ -215,11 +215,10 @@ fun fromString s =
     let val (ks,_,vs) = Parser.breakOn "-" s
         val (v,A) = findAttributes vs
         val k = Kind.fromString ks
-        val T = ([Attribute.fromType (getTypeOfValue (k,v,A))] handle Match => [])
     in
-        if vs = "" then (k, Boolean true, [])
-        else if k = Kind.Type then (k, Type (Type.fromString v), [])
-        else (k, Label v, T)
+        if vs = "" then (k, Boolean true, A)
+        else if k = Kind.Type then (k, Type (Type.fromString v), A)
+        else (k, Label v, A)
     end;
 
 end;

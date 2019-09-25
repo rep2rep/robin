@@ -1,13 +1,13 @@
 probabilitytrees,
-mode,"connection,sentential"
+mode,"connection"
 types,"node,edge"
 tokens,"$node, $edge"
-patterns,"$binary, $child, $conjunction"
+patterns,"$binary, $child, $conjunction, $path"
 token_imports,"base_10_real_numerals"
 grammatical_complexity,type-3
 rigorous,TRUE
-laws,"$path_multiplication, $children_add_to_1"
+laws,"$path_multiplication, $total_arrows_1, $total_leaves_1, $equivalent_paths, $path_sum"
 law_imports,""
-tactics,"$obtain_from_siblings, $obtain_from_edges"
+tactics,"$assign_value_to_arrow, $assign_value_to_node"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"

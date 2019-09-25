@@ -105,7 +105,9 @@ fun quantityScale_rank qL =
     end;
 
 fun expressionComplexity_rank qL =
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionComplexity x)
+    let fun f ((q,r),x) = let val v = CognitiveProperties.expressionComplexity x
+                          in (((q,r),x), v)
+                          end;
     in crunch (map f qL)
     end;
 
@@ -131,12 +133,12 @@ fun vectorSum [] = raise Match
   | vectorSum (v::L) = vectorPlus v (vectorSum L);
 end;
 
-fun printAsInteger r = Int.toString (Real.toInt IEEEReal.TO_NEAREST r)
+fun printAsInteger r = Int.toString (Real.toInt IEEEReal.TO_NEAREST (1000.0 * r)) handle Domain => "NaN";
 
 fun cognitiveRank qL =
-    let val w1 = 100.0
-        val w2 = 200.0
-        val w3 = 400.0
+    let val w1 = 1.0
+        val w2 = 2.0
+        val w3 = 4.0
         val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
         val c1 = map (fn (_,v) => w1 * v) (tokenRegistration_rank qL)
         val c2 = map (fn (_,v) => w1 * v) (expressionRegistration_rank qL)
@@ -165,5 +167,11 @@ fun cognitiveRank qL =
     end;
 
 val B = loadQs "birds";
+val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Token);
+val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Pattern);
+val p = List.nth (P,1);
+val _ = print (Property.toString p)
 
-val _ = cognitiveRank B;
+(*)
+val B' = List.take (B,2);
+val _ = cognitiveRank B';*)

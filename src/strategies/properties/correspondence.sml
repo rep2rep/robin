@@ -14,6 +14,8 @@ sig
     type 'a corrformula;
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
+    val flip : real -> correspondence -> correspondence;
+
     val equal : correspondence -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
@@ -52,6 +54,7 @@ type 'a corrformula = 'a F.formula;
 type correspondence = Property.property corrformula * Property.property corrformula * real;
 
 fun strength (_, _, s) = s;
+fun flip r (a,b,s) = (b,a,s*r);
 
 fun matchTree setMatch ps p =
     let

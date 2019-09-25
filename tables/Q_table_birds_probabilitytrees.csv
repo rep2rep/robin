@@ -26,15 +26,20 @@ instrumental_patterns, "$path : {type := path;
                                                    holes := [class => 1. node => 1];
                                                    occurrences := 2;
                                                    tokens := [$node. $arrow];
-                                                   token_registration := 3}"
+                                                   token_registration := 3},
+                        $subtree : {type := tree set;
+                                    holes := [node =>-3. arrows =>-3];
+                                    occurrences := 24;
+                                    tokens := [$node. $arrow];
+                                    token_registration := 3}"
 instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
                     $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
                     $total_leaves_1 : {description := the sum of all leaf values is 1},
                     $equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
                     $path_sum : {description := the value of arrow a -> c is the sum over b of the values of the paths a -> b -> c in a different tree}"
-instrumental_tactics,"assign_value_to_arrow : {patterns := 1;
+instrumental_tactics,"assign_value_to_arrow : {patterns := 0;
                                                 laws := 1},
-                      assign_value_to_node : {patterns := 1;
+                      assign_value_to_node : {patterns := 0;
                                               laws := 1}"
 relevant_tokens,"1 : {type := real;
                       occurrences := 2},

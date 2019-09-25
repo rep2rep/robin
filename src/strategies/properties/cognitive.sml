@@ -181,13 +181,14 @@ fun expressionComplexity qT (*rT *)=
         val n = numberOfTokens qT
         fun f p =
             let val x = QProperty.withoutImportance p
-                val depth = 1.0 (*Pattern.depth C x*)
-                val breadth = 1.0 (*let val b = Pattern.breadth C x
-                              in if Real.== (b, ~3.0) then n else
-                                 if Real.== (b, ~2.0) then Math.sqrt n else
-                                 if Real.== (b, ~1.0) then Math.ln n else
-                                    b
-                              end*)
+                val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)
+                val depth = Pattern.avgDepth trees
+                val breadth = let val b = Pattern.listMaxWithOmegaPlus (map Pattern.maxBreadth trees)
+                              in if b = ~3 then n else
+                                 if b = ~2 then Math.sqrt n else
+                                 if b = ~1 then Math.ln n else
+                                    Pattern.avgBreadth trees
+                              end
                 val arity = let val i = Pattern.arity x
                             in if i = ~3 then n else
                                if i = ~2 then Math.sqrt n else
@@ -222,8 +223,9 @@ fun quantityScale qT =
         over by the main function *)
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
+        val corrT' = map (Correspondence.flip 0.75) corrT
 
-        val pT = PropertyTables.transformQPropertySet qT arithT corrT
+        val pT = PropertyTables.transformQPropertySet qT arithT (corrT @ corrT')
         fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y handle Property.Error _ => false) L
         fun ordinalFun x = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
         fun intervalFun x = check x ["+","-","sum","\\sum"]
@@ -269,7 +271,7 @@ fun tokenConceptMapping qT rT =
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
 
         fun assess_rd p =
-            let val T = PropertyTables.transformQProperty p rT corrT
+            let val T = PropertyTables.transformQProperty p rT (corrT)
                 val x = QPropertySet.size T
             in if x = 1 then 1.0 else (* isomorphism *)
                if x > 1 then 3.0 else (* redundancy *)
@@ -279,7 +281,7 @@ fun tokenConceptMapping qT rT =
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
             let val C' = QPropertySet.withoutImportances C
-                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' corrT'
+                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' (corrT')
                 val x = QPropertySet.size T
             in if x = 1 then 0.0 else (* isomorphism *)
                if x > 1 then 5.0 else (* overload *)
@@ -335,7 +337,7 @@ fun expressionConceptMapping qT rT =
         val corrT' = map (fn c => case c of (a,b,s) => (b,a,s)) corrT
         fun assess_oe r =
             let val C' = QPropertySet.withoutImportances C
-                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' corrT
+                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' corrT'
                 val x = QPropertySet.size T
             in if x = 1 then 1.0 else (* injetive & surjective *)
                if x > 1 then 5.0 else (* overload *)
