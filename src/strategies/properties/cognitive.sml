@@ -195,9 +195,11 @@ fun expressionComplexity qT (*rT *)=
                                if i = ~1 then Math.ln n else
                                   real i
                             end
-            in (depth * breadth) + arity
+            in Math.ln (arity + Math.sqrt (depth * breadth))
             end
-    in List.weightedSumIndexed (Importance.weight o QProperty.importanceOf) f P
+        fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+                          * (Importance.weight (QProperty.importanceOf x))
+    in List.weightedAvgIndexed weighing f P
     end;
 
 
@@ -215,7 +217,7 @@ fun quantityScale qT =
             in
                 map (OS.FileSys.fullPath o attachDir) filteredFiles
             end;
-        val arithpath = filesMatchingPrefix "tables/" "RS_table_algebra"
+        val arithpath = filesMatchingPrefix "tables/" "RS_table_realarith"
         val (_,arithT) = PropertyTables.loadRepresentationTable (hd arithpath)
 
         (* this will probably change one I incorporate these calculations
@@ -223,13 +225,13 @@ fun quantityScale qT =
         over by the main function *)
         val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
-        val corrT' = map (Correspondence.flip 0.75) corrT
+        val corrT' = map (Correspondence.flip 1.0) corrT
 
         val pT = PropertyTables.transformQPropertySet qT arithT (corrT @ corrT')
         fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y handle Property.Error _ => false) L
         fun ordinalFun x = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
         fun intervalFun x = check x ["+","-","sum","\\sum"]
-        fun ratioFun x = check x ["*","\\div","\\dvd","\\gcd","\\lcm","/"]
+        fun ratioFun x = check x ["*","\\div","\\dvd","\\gcd","\\lcm","/","^"]
         fun nominalFun x = not (ordinalFun x orelse intervalFun x orelse ratioFun x)
 
         val pL = QPropertySet.toList pT
@@ -246,12 +248,17 @@ fun quantityScale qT =
     in s / (varietyOfTokens qT)
     end;
 
-
 fun tokenConceptMapping qT rT =
     let val C = QPropertySet.collectOfKind qT Kind.Token
-        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C)
-        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C)
-        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C)
+        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
+        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
+        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -304,9 +311,15 @@ This is debatable for overload, as it does have q properties. *)
 
 fun expressionConceptMapping qT rT =
     let val C = QPropertySet.collectOfKind qT Kind.Pattern
-        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
-        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
-        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
+        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
+        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
+        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low
+                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
+                                       C)
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
