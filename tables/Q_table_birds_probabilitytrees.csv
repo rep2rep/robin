@@ -8,7 +8,7 @@ instrumental_tokens, "$node : {type := node;
                                  occurrences := 16}"
 instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
-                                  holes := [node => -3. arrow => -3];
+                                  holes := [node => -1. arrow => -1];
                                   occurrences := 24;
                                   tokens := [$node. $arrow];
                                   token_registration := 2},
@@ -18,7 +18,7 @@ instrumental_patterns, "$path : {type := path;
                                          tokens := [$node. $arrow];
                                          token_registration := 2},
                         $path_comparison : {type := reference;
-                                             holes := [node => -3. arrow => -3];
+                                             holes := [node => -1. arrow => -1];
                                              occurrences := 576;
                                              tokens := [$node];
                                              token_registration := 3},
@@ -29,7 +29,7 @@ instrumental_patterns, "$path : {type := path;
                                                    token_registration := 3},
                         $subtree : {type := tree set;
                                     holes := [node =>-3. arrows =>-3];
-                                    occurrences := 24;
+                                    occurrences := 6;
                                     tokens := [$node. $arrow];
                                     token_registration := 3}"
 instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
