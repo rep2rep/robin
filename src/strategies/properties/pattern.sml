@@ -122,7 +122,35 @@ fun treesFromPattern tokens p =
     in map mkTree treeListOptions
     end
 
-exception BadTree;
+
+fun getChildrenOptions _ [] = []
+  | getChildrenOptions t (((tL,t'),i)::K) =
+    if Type.match (t, t')
+    then (tL,t') :: getChildrenOptions t K
+    else getChildrenOptions t K;
+
+fun diminish (tL,t) [] = []
+  | diminish (tL,t) (((tL',t'),i)::K) =
+    if t = t' andalso tL = tL'
+    then (if i <= 1.0 then K else ((tL',t'),i-1.0)::K)
+    else ((tL',t'),i) :: diminish (tL,t) K;
+
+(* tF ~ [([a,b],K1),([c],K2),([a,c,d,e],K3)]*)
+fun unfoldTypeDNF tF =
+    let fun distribute [] LL' = []
+          | distribute ((tL,t')::LL) LL' = (map (fn (l,K) => (tL @ l, diminish (tL,t') K)) LL') @ distribute LL LL';
+        fun unfoldClause ([],K) = [([],K)]
+          | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
+        val L = List.concat (map unfoldClause tF)
+    in L
+    end;
+
+fun depthOfTypeDNF tF i =
+    let val tF' = unfoldTypeDNF tF
+        val r = map #1 tF
+        val r' = map #1 tF'
+    in if r = r' then i else f tF' (i+1)
+    end;
 
 fun maxWithOmegaPlus (x,y) =
     if (x < 0 andalso y < 0) then Int.min (x,y)
