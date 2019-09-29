@@ -11,6 +11,11 @@ sig
   val baseTokens : expression_tree -> string list;
   val baseDepth : expression_tree -> real;
 
+  val unfoldTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list
+                        -> (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list;
+  val satisfyTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list
+                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list * int) option;
+
   val listMaxWithOmegaPlus : int list -> int;
 
   val maxBreadth : expression_tree -> int;
@@ -124,32 +129,56 @@ fun treesFromPattern tokens p =
 
 
 fun getChildrenOptions _ [] = []
-  | getChildrenOptions t (((tL,t'),i)::K) =
+  | getChildrenOptions t (((label,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
-    then (tL,t') :: getChildrenOptions t K
+    then (label,tokens,(tL,t')) :: getChildrenOptions t K
     else getChildrenOptions t K;
 
-fun diminish (tL,t) [] = []
-  | diminish (tL,t) (((tL',t'),i)::K) =
-    if t = t' andalso tL = tL'
-    then (if i <= 1.0 then K else ((tL',t'),i-1.0)::K)
-    else ((tL',t'),i) :: diminish (tL,t) K;
+exception Unsatisfiable;
+
+(* takes a list of token labels and diminishes their multiplicity in the knowledge base *)
+fun diminish [] K = K
+  | diminish _ [] = raise Unsatisfiable
+  | diminish L (((label,tokens,typeinfo),i)::K) =
+    if inList (fn (x,y) => x = y) label L
+    then let val L' = List.remove label L
+             val K' = diminish L' K
+         in (if i <= 1.0 then K' else ((label,tokens,typeinfo),i-1.0)::K')
+         end
+    else ((label,tokens,typeinfo),i) :: diminish L K;
 
 (* tF ~ [([a,b],K1),([c],K2),([a,c,d,e],K3)]*)
 fun unfoldTypeDNF tF =
     let fun distribute [] LL' = []
-          | distribute ((tL,t')::LL) LL' = (map (fn (l,K) => (tL @ l, diminish (tL,t') K)) LL') @ distribute LL LL';
+          | distribute ((label,tokens,(tL,t))::LL) LL' =
+              (map (fn (l,K) => (tL @ l, diminish tokens K)) LL' handle Unsatisfiable => [])
+              @ distribute LL LL';
         fun unfoldClause ([],K) = [([],K)]
           | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
         val L = List.concat (map unfoldClause tF)
     in L
     end;
 
-fun depthOfTypeDNF tF i =
-    let val tF' = unfoldTypeDNF tF
-        val r = map #1 tF
-        val r' = map #1 tF'
-    in if r = r' then i else f tF' (i+1)
+exception Length;
+fun zipLists [] [] = []
+  | zipLists (x::xL) (y::yL) = (x,y) :: zipLists xL yL
+  | zipLists _ _ = raise Length;
+fun sameK (tK,tK') = (#1 tK = #1 tK') andalso Real.== (#2 tK, #2 tK')
+fun same (t,t') = (#1 t = #1 t') andalso (List.all sameK (zipLists (#2 t) (#2 t'))
+                                            handle Length => false)
+fun sameTypeDNF (tF, tF') = List.all same (zipLists tF tF')
+                              handle Length => false
+
+fun satisfyTypeDNF tF =
+    let fun iterate x i =
+            let val x' = unfoldTypeDNF x
+            in
+                if null x' then raise Unsatisfiable
+                else (if (sameTypeDNF (x,x') handle Match => false)
+                       then (x', i)
+                       else iterate x' (i+1))
+            end
+    in SOME (iterate tF 0) handle Unsatisfiable => NONE
     end;
 
 fun maxWithOmegaPlus (x,y) =
