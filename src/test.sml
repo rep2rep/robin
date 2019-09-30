@@ -210,9 +210,11 @@ fun cognitiveScores qL crunch =
     end;
 
 val B = loadQs "birds";
-val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Token);
-val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Pattern);
-val p = List.nth (P,1);
+val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Token);
+val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Pattern);
+val p1 = List.nth (P,0);
+val p2 = List.nth (P,1);
+val p3 = List.nth (P,2);
 
 (*)
 val _ = cognitiveScores B crunch_norm;
