@@ -115,7 +115,9 @@ fun quantityScale_score qL crunch=
     end;
 
 fun expressionComplexity_score qL crunch=
-    let fun f ((q,r),x) = let val v = CognitiveProperties.expressionComplexity x
+    let fun f ((q,r),x) = let val _ = print (r ^ "... ")
+                              val v = CognitiveProperties.expressionComplexity x
+                              val _ = print ("done \n")
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
@@ -216,5 +218,5 @@ val p = List.nth (P,1);
 val _ = cognitiveScores B crunch_norm;
 val _ = print "\n"
 val _ = cognitiveScores B crunch_rank;*)
-
-val S = quantityScale_score B crunch_raw;
+(*)
+val S = quantityScale_score B crunch_raw;*)

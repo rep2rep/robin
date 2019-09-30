@@ -14,7 +14,9 @@ sig
   val unfoldTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list
                         -> (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list;
   val satisfyTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list
-                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list * int) option;
+                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list * int);
+  val satisfyPattern : Property.property -> Property.property list
+                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * real) list)) list * int)
 
   val listMaxWithOmegaPlus : int list -> int;
 
@@ -60,8 +62,8 @@ fun isPermutationOf _ [] [] = true
   | isPermutationOf _ _ _ = false;
 
 fun selectTokensWithOutputType C t =
-    let fun f x = let val outTypes = (#2 o Type.getInOutTypes o Property.getTypeOfValue) x
-                  in isPermutationOf Type.match [t] outTypes
+    let fun f x = let val outType = (#2 o Type.getInOutTypes o Property.getTypeOfValue) x
+                  in Type.match (t, outType)
                   end
         val L = List.filter f C
     in L
@@ -137,8 +139,7 @@ fun getChildrenOptions _ [] = []
 exception Unsatisfiable;
 
 (* takes a list of token labels and diminishes their multiplicity in the knowledge base *)
-fun diminish [] K = K
-  | diminish _ [] = raise Unsatisfiable
+fun diminish L [] = if null L then [] else raise Unsatisfiable
   | diminish L (((label,tokens,typeinfo),i)::K) =
     if inList (fn (x,y) => x = y) label L
     then let val L' = List.remove label L
@@ -148,38 +149,61 @@ fun diminish [] K = K
     else ((label,tokens,typeinfo),i) :: diminish L K;
 
 (* tF ~ [([a,b],K1),([c],K2),([a,c,d,e],K3)]*)
-fun unfoldTypeDNF tF =
+fun unfoldTypeDNF tF = (* HERE *)
     let fun distribute [] LL' = []
-          | distribute ((label,tokens,(tL,t))::LL) LL' =
-              (map (fn (l,K) => (tL @ l, diminish tokens K)) LL' handle Unsatisfiable => [])
-              @ distribute LL LL';
+          | distribute _ [] = [([],[])]
+          | distribute ((label,tokens,(tL,t))::LL) ((l,K)::LL') = ([(tL @ l, diminish tokens K)] handle Unsatisfiable => [])
+                                                                  @ (distribute ((label,tokens,(tL,t))::LL) LL')
+                                                                  @ distribute LL LL';
         fun unfoldClause ([],K) = [([],K)]
           | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
-        val L = List.concat (map unfoldClause tF)
-    in L
+    in List.concat (map unfoldClause tF)
     end;
 
 exception Length;
 fun zipLists [] [] = []
   | zipLists (x::xL) (y::yL) = (x,y) :: zipLists xL yL
   | zipLists _ _ = raise Length;
-fun sameK (tK,tK') = (#1 tK = #1 tK') andalso Real.== (#2 tK, #2 tK')
-fun same (t,t') = (#1 t = #1 t') andalso (List.all sameK (zipLists (#2 t) (#2 t'))
-                                            handle Length => false)
-fun sameTypeDNF (tF, tF') = List.all same (zipLists tF tF')
-                              handle Length => false
+
+fun sameTypeDNF (tF, tF') =
+    let fun sameK (tK,tK') = (#1 tK = #1 tK') andalso Real.== (#2 tK, #2 tK')
+        fun same (t,t') = (#1 t = #1 t') andalso (List.all sameK (zipLists (#2 t) (#2 t')))
+    in List.all same (zipLists tF tF') handle Length => false
+    end
 
 fun satisfyTypeDNF tF =
     let fun iterate x i =
             let val x' = unfoldTypeDNF x
             in
                 if null x' then raise Unsatisfiable
-                else (if (sameTypeDNF (x,x') handle Match => false)
+                else (if sameTypeDNF (x,x')
                        then (x', i)
                        else iterate x' (i+1))
             end
-    in SOME (iterate tF 0) handle Unsatisfiable => NONE
+    in iterate tF 0
     end;
+
+
+fun satisfyPattern p C =
+    let val nt = (List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) C) / 2.0
+        fun makeTypeListFromHoles M =
+            let fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
+                        else if x = ~2 then Real.floor (Math.sqrt nt)
+                        else if x = ~3 then Real.floor nt else raise Match
+            in Property.toListHandlingNegatives fneg M
+            end
+        fun toLTTN c =
+            let val label = Property.LabelOf c
+                val typ = Property.getTypeOfValue c
+            in if Property.kindOf c = Kind.Token then ((label, [label], Type.getInOutTypes typ), #2 (Property.getNumFunction "occurrences" c))
+               else ((label, Property.getTokens c, (makeTypeListFromHoles (Property.getHoles c), typ)), #2 (Property.getNumFunction "occurrences" c))
+            end
+        fun printLTTN ((label,tokens,(_,_)),i) = print (label ^ ", [" ^ String.concat tokens ^ "], " ^ (Real.toString i) ^ "\n")
+        val patternClause = (makeTypeListFromHoles (Property.getHoles p), map toLTTN C)
+        val _ = if String.isPrefix "pattern-$equality" (Property.toString p) then (print "h"; map printLTTN (#2 patternClause)) else [()]
+    in satisfyTypeDNF [patternClause] handle Unsatisfiable => ([],0)
+    end
+
 
 fun maxWithOmegaPlus (x,y) =
     if (x < 0 andalso y < 0) then Int.min (x,y)

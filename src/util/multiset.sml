@@ -10,6 +10,7 @@ sig
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
     val toList : t multiset -> t list;
+    val toListHandlingNegatives : (int -> int) -> t multiset -> t list;
     val toPairList : t multiset -> (t * int) list;
     val toString : t multiset -> string;
 
@@ -61,6 +62,11 @@ type 'a multiset = ('a, int) D.dict;
 exception NegativeCount of (t * int);
 
 
+fun fromCountPairsHF' f ans [] = List.rev ans
+  | fromCountPairsHF' f ans ((x, 0)::xs) = fromCountPairsHF' f ans xs
+  | fromCountPairsHF' f ans ((x, i)::xs) = if i > 0 then fromCountPairsHF' f (x::ans) ((x, i-1)::xs) else fromCountPairsHF' f ans ((x, f i)::xs);
+fun fromCountPairsHF f xs = fromCountPairsHF' f [] xs;
+
 fun fromCountPairs' ans [] = List.rev ans
   | fromCountPairs' ans ((x, 0)::xs) = fromCountPairs' ans xs
   | fromCountPairs' ans ((x, i)::xs) = if i > 0 then fromCountPairs' (x::ans) ((x, i-1)::xs) else raise NegativeCount (x,i);
@@ -80,6 +86,7 @@ val fromPairList = D.fromPairList;
 val toPairList = D.toPairList;
 val fromList = fromPairList o toCountPairs;
 val toList = fromCountPairs o toPairList;
+fun toListHandlingNegatives f m = fromCountPairsHF f (toPairList m);
 
 fun toString items =
     let
