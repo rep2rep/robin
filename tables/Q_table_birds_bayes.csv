@@ -7,31 +7,31 @@ instrumental_tokens,"\Pr : {type := event * event -> real;
                              occurrences := 1},
                      \bar : {type := event -> event;
                              occurrences := 2},
-                     | : {type := event * event -> event;
+                     | : {type := delimiter;
                           occurrences := 2},
                      = : {type := real * real -> formula;
                           occurrences := 3}"
 instrumental_types,"event"
-instrumental_patterns,"$conditional_Pr : {type := real;
-                                          holes := [event => 2];
+instrumental_patterns,"$conditional_Pr : {type := formula;
+                                          holes := [event => 2. real => 1];
                                           occurrences := 2;
                                           tokens := [Pr. |];
                                           token_registration := 2},
-                       $joint_Pr : {type := event;
-                                    holes := [event => 2];
+                       $joint_Pr : {type := formula;
+                                    holes := [event => 2. real => 1];
                                     occurrences := 1;
                                     tokens := [Pr. \cap];
                                     token_registration := 2},
-                       $simple_Pr : {type := real;
-                                     holes := [event => 1];
+                       $simple_Pr : {type := formula;
+                                     holes := [event => 1. real => 1];
                                      occurrences := 1;
                                      tokens := [Pr];
                                      token_registration := 2},
-                       $equality : {type := formula;
-                                    holes := [real => 2];
-                                    occurrences := 3;
-                                    tokens := [=];
-                                    token_registration := 2}"
+                        $equality_chain : {type := formula;
+                                            holes := [real => -1];
+                                            occurrences := 0;
+                                            tokens := [=];
+                                            token_registration := 2}"
 instrumental_laws, "$Bayes'_theorem : {description := foundational theorem of conditional probability},
                     $law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
                     $unit_measure : {description := probability values over an exhaustive event set add up to 1}"
