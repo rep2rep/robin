@@ -235,14 +235,14 @@ fun satisfyPattern p C P =
                            Type.getInOutTypes (Property.getTypeOfValue c)),
                           Real.floor (occurrences c))
         fun getLTTNP x = (([Property.LabelOf x],
-                           Property.getTokens x,
+                           Property.LabelOf x :: Property.getTokens x,
                            (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
                           Real.floor (occurrences x))
 
         fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
           | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
-            if isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t
-            then (print (String.concat (l @ l') ^ "\n"); ((l @ l',ls',(ts,t)),i+i')::L)
+            if isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
+            then ((l @ l',ls',(ts,t)),i+i')::L
             else ((l',ls',(ts',t')),i') :: findAndUpdateByTypes ((l,ls,(ts,t)),i) L;
         fun clusterByTypes [] = []
           | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
@@ -250,7 +250,7 @@ fun satisfyPattern p C P =
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = getLTTNP p
-        fun patternClause () = (typs, (diminish tks C') @ (map getLTTNP P))
+        fun patternClause () = (typs, diminish tks (C' @ (map getLTTNP P)))
     in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],0)
     end
 
