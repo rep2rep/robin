@@ -4,34 +4,29 @@ answer_type, real
 instrumental_tokens,""
 instrumental_types,"region"
 instrumental_patterns, "$rectangle : {type := region;
-                                      holes := [segment => 4. shade => 1];
+                                      holes := [segment => 4. texture => 1];
                                       occurrences := 7;
                                       tokens := [];
                                       token_registration := 1},
-                        $size : {type := real;
+                        $size : {type := measurement;
                                  holes := [region => 1. real => 1];
                                  occurrences := 15;
                                  tokens := [];
                                  token_registration := 1},
-                        $region : {type := region;
-                                  holes := [segment => 4];
-                                  occurrences := 15;
-                                  tokens := [];
-                                  token_registration := 1},
-                        $relative_size : {type := real;
+                        $relative_size : {type := measurement;
                                           holes := [region => 2. real => 1];
                                           occurrences := 105;
-                                          tokens := [$segment];
+                                          tokens := [];
                                           token_registration := 1},
                         $intersection : {type := region;
                                          holes := [region => 2];
-                                         occurrences := 105;
-                                         tokens := [$segment];
+                                         occurrences := 5;
+                                         tokens := [];
                                          token_registration := 1},
                         $labelled_region : {type := figure;
                                             holes := [region=>1. label=>1];
                                             occurrences := 5;
-                                            tokens := [$segment];
+                                            tokens := [];
                                             token_registration := 1},
                         $label_reference : {type := reference;
                                             holes := [label=>1];
@@ -65,6 +60,8 @@ relevant_tokens,"1 : {type := real;
                  $shade_1 : {type := texture;
                            occurrences := 1},
                  $shade_2 : {type := texture;
+                           occurrences := 1},
+                 $shade_3 : {type := texture;
                            occurrences := 1},
                  calculate : {type := instruction;
                               occurrences := 1},
