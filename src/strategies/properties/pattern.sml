@@ -11,12 +11,15 @@ sig
   val baseTokens : expression_tree -> string list;
   val baseDepth : expression_tree -> real;
 
-  val unfoldTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list
+  val unfoldTypeDNF : (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list
+                        -> (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list;
+  val satisfyTypeDNF : (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list
+                        -> ((Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list * int);
+(*)  val unfoldPattern : Property.property -> Property.property list -> Property.property list
                         -> (Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list;
-  val satisfyTypeDNF : (Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list
-                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list * int);
-  val satisfyPattern : Property.property -> Property.property list
-                        -> ((Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list * int)
+*)
+  val satisfyPattern : Property.property -> Property.property list -> Property.property list
+                        -> ((Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list * int);
 
   val listMaxWithOmegaPlus : int list -> int;
 
@@ -131,36 +134,42 @@ fun treesFromPattern tokens p =
 
 
 fun getChildrenOptions _ [] = []
-  | getChildrenOptions t (((label,tokens,(tL,t')),i)::K) =
+  | getChildrenOptions t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
-    then (label,tokens,(tL,t')) :: getChildrenOptions t K
+    then (labels,tokens,(tL,t')) :: getChildrenOptions t K
     else getChildrenOptions t K;
 
 exception Unsatisfiable;
 
 (* takes a list of token labels and diminishes their multiplicity in the knowledge base *)
 fun diminish L [] = if null L then [] else raise Unsatisfiable
-  | diminish L (((label,tokens,typeinfo),i)::K) =
-    if List.exists (fn x => x = label) L
-    then let val L' = List.remove label L
-             val K' = diminish L' K
-         in (if i = 1 then K' else ((label,tokens,typeinfo),i-1)::K')
-         end
-    else ((label,tokens,typeinfo),i) :: diminish L K;
+  | diminish L (((labels,tokens,typeinfo),i)::K) =
+    case List.find (fn x => List.exists (fn y => x = y) L) labels of
+        SOME label => let val L' = List.remove label L
+                          val K' = diminish L' K
+                      in (if i = 1 then K' else ((labels,tokens,typeinfo),i-1)::K')
+                      end
+      | NONE => ((labels,tokens,typeinfo),i) :: diminish L K;
+
 
 (* tF ~ [([a,b],K1),([c],K2),([a,c,d,e],K3)]*)
 fun unfoldTypeDNF [] = []
   | unfoldTypeDNF (cl::dnf) = (* HERE *)
     let fun distribute [] LL' = []
-          | distribute ((label,tokens,(tL,t))::LL) LL' =
+          | distribute ((_,tokens,(tL,t))::LL) LL' =
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L
-                fun conjAndDist (l,K) = SOME (tL @ l, diminish tokens K) handle Unsatisfiable => NONE
-            in (removeNONEs (map conjAndDist LL')) @ distribute LL LL'
+                fun conjAndDim (l,K) = let val (K',b) = (diminish tokens K,true) handle Unsatisfiable => ([],false)
+                                       in if b then SOME (tL @ l, K') else NONE
+                                       end
+            in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
             end
         fun unfoldClause ([],K) = [([],K)]
           | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
+    (*)    fun remove_satisfied [] = []
+          | remove_satisfied (x::L) = if null (#1 x) then remove_satisfied L else x :: remove_satisfied L
+        val ff = remove_satisfied (unfoldClause cl) *)
     in unfoldClause cl @ (unfoldTypeDNF dnf)
     end;
 
@@ -178,7 +187,7 @@ fun sameTypeDNF (tF, tF') =
 fun satisfyTypeDNF tF =
     let fun iterate x i =
             let val x' = unfoldTypeDNF x
-            in (print ("\n length of DNF: " ^ Int.toString (length x') ^ "");
+            in (print ("\n         length of DNF: " ^ Int.toString (length x) ^ "");
                 if null x' then raise Unsatisfiable
                 else (if sameTypeDNF (x,x')
                        then (x', i)
@@ -187,28 +196,62 @@ fun satisfyTypeDNF tF =
             end
     in iterate tF 0
     end;
+(*)
+fun unfoldPattern p C P =
+    let val occurrences = #2 o (Property.getNumFunction "occurrences")
+        val nt = List.sumIndexed occurrences C
+        fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
+                      else if x = ~2 then Real.floor (Math.sqrt nt)
+                      else if x = ~3 then Real.floor (nt / 2.0)
+                      else if x >= 0 then x else raise Match
+        fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
+        fun getLTTNC c = ((Property.LabelOf c,
+                           [Property.LabelOf c],
+                           Type.getInOutTypes (Property.getTypeOfValue c)),
+                          Real.floor (occurrences c))
+        fun getLTTNP x = ((Property.LabelOf x,
+                           Property.getTokens x,
+                           (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
+                          Real.floor (occurrences x))
+        fun clusterByTypes [] = []
+          | clusterByTypes (x::L) = x
 
+        fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
+        val ((_,tks,(typs,_)),_) = getLTTNP p
+        fun patternClause () = (typs, (diminish tks (map getLTTNC C)) @ (map getLTTNP P))
+    in unfoldTypeDNF [patternClause ()]
+    end*)
 
-fun satisfyPattern p C =
-    let val nt = (List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) C) / 2.0
-        fun makeTypeListFromHoles M =
-            let fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
-                        else if x = ~2 then Real.floor (Math.sqrt nt)
-                        else if x = ~3 then Real.floor nt else raise Match
-            in Property.toListHandlingNegatives fneg M
-            end
-        fun toLTTN c =
-            let val label = Property.LabelOf c
-                val typ = Property.getTypeOfValue c
-            in if Property.kindOf c = Kind.Token
-               then ((label, [label], Type.getInOutTypes typ),
-                      Real.floor (#2 (Property.getNumFunction "occurrences" c)))
-               else ((label, Property.getTokens c, (makeTypeListFromHoles (Property.getHoles c), typ)),
-                      Real.floor (#2 (Property.getNumFunction "occurrences" c)))
-            end
-        fun printLTTN ((label,tokens,(_,_)),i) = print (label ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
-        val patternClause = (makeTypeListFromHoles (Property.getHoles p), map toLTTN C)
-    in satisfyTypeDNF [patternClause] handle Unsatisfiable => ([],0)
+fun satisfyPattern p C P =
+    let val occurrences = #2 o (Property.getNumFunction "occurrences")
+        val nt = List.sumIndexed occurrences C
+        fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
+                      else if x = ~2 then Real.floor (Math.sqrt nt)
+                      else if x = ~3 then Real.floor (nt / 2.0)
+                      else if x >= 0 then x else raise Match
+        fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
+        fun getLTTNC c = (([Property.LabelOf c],
+                           [Property.LabelOf c],
+                           Type.getInOutTypes (Property.getTypeOfValue c)),
+                          Real.floor (occurrences c))
+        fun getLTTNP x = (([Property.LabelOf x],
+                           Property.getTokens x,
+                           (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
+                          Real.floor (occurrences x))
+
+        fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
+          | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
+            if isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t
+            then (print (String.concat (l @ l') ^ "\n"); ((l @ l',ls',(ts,t)),i+i')::L)
+            else ((l',ls',(ts',t')),i') :: findAndUpdateByTypes ((l,ls,(ts,t)),i) L;
+        fun clusterByTypes [] = []
+          | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
+        val C' = clusterByTypes (map getLTTNC C)
+
+        fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
+        val ((_,tks,(typs,_)),_) = getLTTNP p
+        fun patternClause () = (typs, (diminish tks C') @ (map getLTTNP P))
+    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],0)
     end
 
 

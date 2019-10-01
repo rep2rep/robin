@@ -175,7 +175,8 @@ fun expressionRegistration qT rT =
 
 (* Cognitive property 7 *)
 fun expressionComplexity qT (*rT *)=
-    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
+    let val P' = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
+        val P = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) P'
         val C' = PropertySet.toList (QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Token)) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
         val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" x)) >= 1.0) C'
         val n = numberOfTokens qT
@@ -183,8 +184,8 @@ fun expressionComplexity qT (*rT *)=
             let val x = QProperty.withoutImportance p
               (*)  val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)*)
                 val _ = print ("\n    " ^ (Property.toString x))
-                val (t,d) = Pattern.satisfyPattern x (C @ List.filter (fn x => (#2 (Property.getNumFunction "occurrences" x)) >= 1.0) (map QProperty.withoutImportance P))
-                val depth = (print (" " ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
+                val (t,d) = Pattern.satisfyPattern x C (map QProperty.withoutImportance P)
+                val depth = (print ("\n          depth:" ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
                 val breadth = 1.0 (*let val b = Pattern.listMaxWithOmegaPlus (map Pattern.maxBreadth trees)
                               in if b = ~3 then n else
                                  if b = ~2 then Math.sqrt n else

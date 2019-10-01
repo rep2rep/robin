@@ -6,13 +6,18 @@ instrumental_types,"region"
 instrumental_patterns, "$rectangle : {type := region;
                                       holes := [segment => 4. shade => 1];
                                       occurrences := 7;
-                                      tokens := [$segment];
+                                      tokens := [];
                                       token_registration := 1},
                         $size : {type := real;
                                  holes := [region => 1. real => 1];
                                  occurrences := 15;
-                                 tokens := [$segment];
+                                 tokens := [];
                                  token_registration := 1},
+                        $region : {type := region;
+                                  holes := [segment => 4];
+                                  occurrences := 15;
+                                  tokens := [];
+                                  token_registration := 1},
                         $relative_size : {type := real;
                                           holes := [region => 2. real => 1];
                                           occurrences := 105;
