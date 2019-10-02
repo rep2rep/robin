@@ -1,6 +1,6 @@
 import "util.logging";
 import "util.configuration";
-(* import "strategies.discover_correspondences"; *)
+import "strategies.properties.discover_correspondences";
 
 (* To see a full trace of the algorithm, we enable logging.
    If this seems too 'noisy', you can use `Logging.disable ()`.
