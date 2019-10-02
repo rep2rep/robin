@@ -134,7 +134,7 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+fun flatmap f xs = concat (map f xs);
 
 fun toString fmt items = "[" ^ String.concatWith ", " (map fmt items) ^ "]";
 
