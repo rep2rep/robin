@@ -10,6 +10,9 @@ import "strategies.properties.discover_correspondences";
    you can just comment out the following line.)
 *)
 Logging.enable ();
+val _ = registerPropertyReaders
+            PropertyTables.setQGenerators
+            PropertyTables.setRSGenerators;
 
 structure FindCorrs = DiscoverCorrespondences;
 
