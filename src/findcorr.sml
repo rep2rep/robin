@@ -1,5 +1,7 @@
 import "util.logging";
 import "util.configuration";
+
+import "strategies.properties.tables";
 import "strategies.properties.discover_correspondences";
 
 (* To see a full trace of the algorithm, we enable logging.
@@ -9,7 +11,7 @@ import "strategies.properties.discover_correspondences";
 *)
 Logging.enable ();
 
-(* structure FindCorrs = DiscoverCorrespondences; *)
+structure FindCorrs = DiscoverCorrespondences;
 
 fun filesMatchingPrefix dir prefix =
     let
@@ -52,6 +54,12 @@ fun repl state =
           | NONE => ()
     end;
 
+fun requestInput prompt =
+    let val _ = print prompt;
+        val read = TextIO.inputLine TextIO.stdIn;
+    in case read of SOME v => v
+                  | NONE => "" end;
+
 fun main () =
     let
         val rss = [];
@@ -62,8 +70,17 @@ fun main () =
         val corrFiles = if List.null corrs
                         then filesMatchingPrefix "tables/" "correspondences_"
                         else map (fn c => "tables/correspondences_" ^ c ^ ".csv") corrs;
-        val state = (rsFiles, corrFiles);
+        val correspondences = List.concat (map PropertyTables.loadCorrespondenceTable
+                                               corrFiles);
+        val allRSs = PropertyTables.FileDict.unionAll
+                         (map PropertyTables.loadRepresentationTable rsFiles);
+        val newRSName = requestInput "Which is the new RS? ";
+        val newRS = PropertyTables.FileDict.get allRSs newRSName;
+        val _ = PropertyTables.FileDict.remove allRSs newRSName;
+        val oldRSs = PropertyTables.FileDict.values allRSs;
+        val state = (correspondences, oldRSs, newRS);
     in
-        repl state;
+        (* repl state; *)
+        FindCorrs.discover state;
         0
      end;
