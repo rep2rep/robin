@@ -224,3 +224,27 @@ fun lookaheadN (istr, count) =
     end;
 
 end;
+
+
+
+
+signature OPTION =
+sig
+
+    include OPTION;
+
+    val oneOf : ('a -> 'b option) list -> 'a -> 'b option;
+
+end;
+
+structure Option : OPTION =
+struct
+
+open Option;
+
+fun oneOf [] _ = NONE
+  | oneOf (f::fs) x = case f x of
+                          SOME y => SOME y
+                        | NONE => oneOf fs x;
+
+end;
