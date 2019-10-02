@@ -12,6 +12,7 @@ signature STREAM = sig
     val toList : 'a stream -> 'a list; (* Finite only! *)
 
     val map : ('a -> 'b) -> 'a stream -> 'b stream;
+    val mapPartial : ('a -> 'b option) -> 'a stream -> 'b stream;
     val flatmap : ('a -> 'b stream) -> 'a stream -> 'b stream;
     val filter : ('a -> bool) -> 'a stream -> 'a stream;
     val fold : ('b * 'a -> 'b) -> 'b -> 'a stream -> 'b; (* Finite only! *)
@@ -24,6 +25,7 @@ signature STREAM = sig
     val exists: 'a -> 'a stream -> bool; (* Finite only! *)
 
     val interleave : 'a stream -> 'a stream -> 'a stream;
+    val interleaveAll : 'a stream list -> 'a stream;
 
     val length : 'a stream -> int; (* Finite only! *)
 
@@ -53,6 +55,9 @@ fun interleave EMPTY y = y
   | interleave x EMPTY = x
   | interleave (CONS(x, xf)) y = CONS(x, fn () => interleave y (force xf));
 
+fun interleaveAll [] = EMPTY
+  | interleaveAll (s::ss) = interleave s (interleaveAll ss);
+
 fun fromList [] = EMPTY
   | fromList (x::xs) = CONS(x, fn () => fromList xs);
 
@@ -66,6 +71,12 @@ fun toList s =
 
 fun map f EMPTY = EMPTY
   | map f (CONS(x, xf)) = CONS(f x, fn () => map f (force xf));
+
+fun mapPartial f EMPTY = EMPTY
+  | mapPartial f (CONS(x, xf)) =
+    case f x of
+        SOME v => CONS(v, fn () => mapPartial f (force xf))
+      | NONE => mapPartial f (force xf);
 
 fun flatmap f EMPTY = EMPTY
   | flatmap f (CONS(x, xf)) = interleave (f x) (flatmap f (force xf));
