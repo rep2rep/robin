@@ -1,36 +1,31 @@
 birds,probabilitytrees
 error_allowed, 0
 answer_type, real
-instrumental_tokens, "$node : {type := node;
-                                content := label;
+instrumental_tokens, "$node : {type := class -> node;
+                                content := class;
                                 occurrences := 20},
                       $arrow : {type := arrow;
                                  occurrences := 16}"
 instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
-                                  holes := [node => -1. arrow => -1];
+                                  holes := [node => log(#t)];
                                   occurrences := 24;
-                                  tokens := [$node. $arrow];
+                                  tokens := [];
                                   token_registration := 2},
-                        $binary_tree : {type := tree;
-                                         holes := [node => -3. arrows => -3];
-                                         occurrences := 2;
-                                         tokens := [$node. $arrow];
-                                         token_registration := 2},
                         $path_comparison : {type := reference;
-                                             holes := [node => -1. arrow => -1];
+                                             holes := [node => log(#t)];
                                              occurrences := 576;
-                                             tokens := [$node];
+                                             tokens := [];
                                              token_registration := 3},
                         $non-explicit_reference : {type := reference;
                                                    holes := [class => 1. node => 1];
                                                    occurrences := 2;
-                                                   tokens := [$node. $arrow];
+                                                   tokens := [];
                                                    token_registration := 3},
-                        $subtree : {type := tree set;
-                                    holes := [node =>-3. arrows =>-3];
+                        $subtree : {type := tree;
+                                    holes := [node => #t];
                                     occurrences := 6;
-                                    tokens := [$node. $arrow];
+                                    tokens := [];
                                     token_registration := 3}"
 instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
                     $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
@@ -51,13 +46,13 @@ relevant_tokens,"1 : {type := real;
                       occurrences := 1},
                  \div : {type := real * real -> real;
                          occurrences := 3},
-                 bird : {type := label;
+                 bird : {type := class;
                           occurrences := 6},
-                 flying : {type := label;
+                 flying : {type := class;
                            occurrences := 6},
-                 animal : {type := label;
+                 animal : {type := class;
                            occurrences := 2},
-                 non : {type := label -> label;
+                 non : {type := class -> class;
                         occurrences := 6},
                  calculate : {type := instruction;
                               occurrences := 1},

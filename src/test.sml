@@ -210,9 +210,9 @@ fun cognitiveScores qL crunch =
     end;
 
 val B = loadQs "birds";
-val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Token);
+val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Token);
 val C' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) C
-val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,1))) Kind.Pattern);
+val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Pattern);
 val P' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) P
 val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);

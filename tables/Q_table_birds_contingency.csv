@@ -1,27 +1,27 @@
 birds,contingency
 error_allowed, 0
 answer_type, real
-instrumental_tokens, "$cell_r : {type := cell;
+instrumental_tokens, "$cell_r : {type := real -> cell;
                                   content := real;
                                   occurrences := 16},
-                      $cell_s : {type := cell;
-                                 content := string;
-                                 occurrences := 16}"
+                      $cell_c : {type := class -> cell;
+                                 content := class;
+                                 occurrences := 8}"
 instrumental_types,"cell"
 instrumental_patterns, "$column : {type := column;
                                     holes := [cell => -2];
                                     occurrences := 4;
-                                    tokens := [$cell];
+                                    tokens := [];
                                     token_registration := 1},
                         $row : {type := row;
                                 holes := [cell => -2];
                                 occurrences := 4;
-                                tokens := [$cell];
+                                tokens := [];
                                 token_registration := 1},
                         $intersection : {type := cell;
                                          holes := [column => 1. row => 1];
                                          occurrences := 16;
-                                         tokens := [$segment];
+                                         tokens := [];
                                          token_registration := 2},
                         $relative_value : {type := real;
                                            holes := [cell => 2. real => 2];

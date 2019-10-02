@@ -31,7 +31,7 @@ instrumental_patterns,"$conditional_Pr : {type := formula;
                                      udepth := 2;
                                      token_registration := 2},
                         $equality_chain : {type := formula;
-                                            holes := [real => -1];
+                                            holes := [real => #t];
                                             occurrences := 0;
                                             tokens := [=];
                                             udepth := 1;

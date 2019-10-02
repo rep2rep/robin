@@ -167,10 +167,23 @@ fun unfoldTypeDNF [] = []
             end
         fun unfoldClause ([],K) = [([],K)]
           | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
-    (*)    fun remove_satisfied [] = []
-          | remove_satisfied (x::L) = if null (#1 x) then remove_satisfied L else x :: remove_satisfied L
-        val ff = remove_satisfied (unfoldClause cl) *)
-    in unfoldClause cl @ (unfoldTypeDNF dnf)
+
+        (* The following functions are not used but could potentially simplify the search if used properly *)
+        (* begin *)
+        fun remove_satisfied [] = []
+          | remove_satisfied ((x,_)::L) = if null x then remove_satisfied L else x :: remove_satisfied L
+
+        fun countAndRemoveType _ [] = (0,[])
+          | countAndRemoveType t' ((t,i)::C) = let val (s,L) = countAndRemoveType t' C
+                                               in if t' = t then (s+i,L) else (s,(t,i)::L)
+                                               end;
+        fun simplifyClause [] = []
+          | simplifyClause ((lt,count)::C) = let val (s,L) = countAndRemoveType lt ((lt,count) :: C)
+                                              in (lt,s) :: simplifyClause L
+                                              end;
+        (* end *)
+
+    in (unfoldClause cl) @ (unfoldTypeDNF dnf)
     end;
 
 exception Length;
@@ -196,38 +209,13 @@ fun satisfyTypeDNF tF =
             end
     in iterate tF 0
     end;
-(*)
-fun unfoldPattern p C P =
-    let val occurrences = #2 o (Property.getNumFunction "occurrences")
-        val nt = List.sumIndexed occurrences C
-        fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
-                      else if x = ~2 then Real.floor (Math.sqrt nt)
-                      else if x = ~3 then Real.floor (nt / 2.0)
-                      else if x >= 0 then x else raise Match
-        fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
-        fun getLTTNC c = ((Property.LabelOf c,
-                           [Property.LabelOf c],
-                           Type.getInOutTypes (Property.getTypeOfValue c)),
-                          Real.floor (occurrences c))
-        fun getLTTNP x = ((Property.LabelOf x,
-                           Property.getTokens x,
-                           (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
-                          Real.floor (occurrences x))
-        fun clusterByTypes [] = []
-          | clusterByTypes (x::L) = x
-
-        fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
-        val ((_,tks,(typs,_)),_) = getLTTNP p
-        fun patternClause () = (typs, (diminish tks (map getLTTNC C)) @ (map getLTTNP P))
-    in unfoldTypeDNF [patternClause ()]
-    end*)
 
 fun satisfyPattern p C P =
     let val occurrences = #2 o (Property.getNumFunction "occurrences")
-        val nt = List.sumIndexed occurrences C
+        val nt = List.sumIndexed occurrences C / 2.0
         fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
                       else if x = ~2 then Real.floor (Math.sqrt nt)
-                      else if x = ~3 then Real.floor (nt / 2.0)
+                      else if x = ~3 then Real.floor (nt / 3.0)
                       else if x >= 0 then x else raise Match
         fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
         fun getLTTNC c = (([Property.LabelOf c],
