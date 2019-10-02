@@ -83,6 +83,8 @@ sig
 
     val rotate : int -> 'a list -> 'a list;
 
+    val product : 'a list -> 'b list -> ('a * 'b) list;
+
 end;
 
 structure List : LIST =
@@ -167,6 +169,11 @@ fun rotate 0 xs = xs
     in
         b @ a
     end;
+
+fun product [] _ = []
+  | product _ [] = []
+  | product [x] (y::ys) = (x, y)::(product [x] ys)
+  | product (x::xs) (ys) = (product [x] ys) @ (product xs ys);
 
 end;
 
