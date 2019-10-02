@@ -42,12 +42,10 @@ fun parseArgs () =
 
 fun repl state =
     let
-        val prompt = "? ";
         fun eval s i = case i of
-                           SOME i => (SOME s, "beep boop, you said '" ^ (Parser.stripSpaces i) ^ "'!\n")
-                         | NONE => (NONE, "Bye!\n");
+                           SOME i => (SOME (Stream.tail s),  (Correspondence.toString (Stream.head s)))
+                         | NONE => (NONE, "\nBye!\n");
 
-        val _ = print prompt;
         val read = TextIO.inputLine TextIO.stdIn;
         val (newState, output) = eval state read;
         val _ = print output;
@@ -65,6 +63,11 @@ fun requestInput prompt =
 
 fun main () =
     let
+        fun loadRS name =
+            let val _ = print ("Loading RS table " ^ name ^ "... \n");
+            in
+                PropertyTables.loadRepresentationTable name
+            end;
         val rss = [];
         val corrs = [];
         val rsFiles = if List.null rss
@@ -76,14 +79,17 @@ fun main () =
         val correspondences = List.concat (map PropertyTables.loadCorrespondenceTable
                                                corrFiles);
         val allRSs = PropertyTables.FileDict.unionAll
-                         (map PropertyTables.loadRepresentationTable rsFiles);
-        val newRSName = requestInput "Which is the new RS? ";
-        val newRS = PropertyTables.FileDict.get allRSs newRSName;
+                         (map loadRS rsFiles);
+        val _ = print ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
+        val newRSName = Parser.stripSpaces (requestInput "Which is the new RS? ");
+        val newRS = PropertyTables.FileDict.get allRSs newRSName
+                    handle PropertyTables.FileDict.KeyError =>
+                           (print ("No RS named "^newRSName^"!\n"); PropertySet.empty ());
         val _ = PropertyTables.FileDict.remove allRSs newRSName;
         val oldRSs = PropertyTables.FileDict.values allRSs;
         val state = (correspondences, oldRSs, newRS);
+        val _ = print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
     in
-        (* repl state; *)
-        FindCorrs.discover state;
+        repl (FindCorrs.discover state);
         0
-     end;
+    end;

@@ -1,4 +1,5 @@
 import "util.stream";
+import "util.random";
 
 import "strategies.properties.correspondence";
 
@@ -21,7 +22,7 @@ type state = Correspondence.correspondence list *
              PropertySet.t PropertySet.set list *
              PropertySet.t PropertySet.set;
 
-fun corrExists c cs = List.exists (fn c' => Correspondence.matchingProperties c c') cs;
+fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
 
 fun makeCorr (p, q) =
     (Correspondence.F.Atom p, Correspondence.F.Atom q, 1.0);
@@ -91,11 +92,12 @@ fun discover state' =
         fun extractCorr (corr, _, _) = corr;
         fun generator (corr, rules, state) =
             let
-                val newCorr = Option.oneOf rules state;
+                val state' = addCorr corr state;
+                val newCorr = Option.oneOf rules state';
             in
                 case newCorr of
                     (* We shuffle the rules to guarantee some variety *)
-                    SOME c => SOME (SOME c, Random.shuffle rules, addCorr corr state)
+                    SOME c => SOME (SOME c, Random.shuffle rules, state')
                   | NONE => NONE
             end;
     in
