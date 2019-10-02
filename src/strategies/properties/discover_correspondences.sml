@@ -26,6 +26,16 @@ fun corrExists c cs = List.exists (fn c' => Correspondence.matchingProperties c 
 fun makeCorr (p, q) =
     (Correspondence.F.Atom p, Correspondence.F.Atom q, 1.0);
 
+fun atomOnly (Correspondence.F.Atom x, Correspondence.F.Atom y, z) = true
+  | atomOnly _ = false;
+
+fun findMatches cs rs =
+    let
+        val matchChecker = fn m => not o PropertySet.isEmpty o (m rs);
+        val leftMatches = List.filter (matchChecker Correspondence.leftMatches) cs;
+        val rightMatches = List.filter (matchChecker Correspondence.rightMatches) cs;
+    in (leftMatches, rightMatches) end;
+
 
 (** Discovery rules **)
 (*  All of these have type state -> correspondence option *)
@@ -35,19 +45,14 @@ fun discoverIdentity (cs, rss, rs') = NONE;
 
 fun discoverReversal (cs, rss, rs') =
     let
-        fun atomOnly (Correspondence.F.Atom x, Correspondence.F.Atom y, z) = true
-          | atomOnly _ = false;
         fun flipCorr (a, b, c) = (b, a, c);
-        val matchChecker = fn m => not o PropertySet.isEmpty o (m rs');
-        val leftMatches = List.filter (matchChecker Correspondence.leftMatches) cs;
-        val rightMatches = List.filter (matchChecker Correspondence.rightMatches) cs;
-        val corrs = List.filter atomOnly (leftMatches @ rightMatches);
-        val corr = Random.choose corrs;
-
+        val (leftMatches, rightMatches) = findMatches cs rs';
+        (* val corrs = List.filter atomOnly (leftMatches @ rightMatches); *)
+        (* val corr = Random.choose corrs; *)
+        val corr = Random.choose (leftMatches @ rightMatches);
     in
         SOME (flipCorr corr)
-    end
-    handle List.Empty => NONE;
+    end handle List.Empty => NONE;
 
 fun discoverComposition (cs, rss, rs') = NONE;
 
