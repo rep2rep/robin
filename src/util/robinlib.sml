@@ -81,6 +81,8 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
+    val rotate : int -> 'a list -> 'a list;
+
 end;
 
 structure List : LIST =
@@ -155,6 +157,15 @@ fun takeWhile pred list =
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
+    end;
+
+fun rotate 0 xs = xs
+  | rotate n xs =
+    let
+        val a = take (xs, n);
+        val b = drop (xs, n);
+    in
+        b @ a
     end;
 
 end;
