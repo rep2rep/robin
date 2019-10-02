@@ -37,6 +37,18 @@ fun findMatches cs rs =
         val rightMatches = List.filter (matchChecker Correspondence.rightMatches) cs;
     in (leftMatches, rightMatches) end;
 
+fun chooseNew [] _ = NONE
+  | chooseNew options existing =
+    let
+        val option = Random.choose options;
+    in
+        if corrExists option existing
+        then chooseNew
+                 (List.filter (not o (Correspondence.matchingProperties option)) options)
+                 existing
+        else SOME option
+    end;
+
 
 (** Discovery rules **)
 (*  All of these have type state -> correspondence option *)
@@ -48,11 +60,9 @@ fun discoverReversal (cs, rss, rs') =
     let
         fun flipCorr (a, b, c) = (b, a, c); (* c needs to be changed too *)
         val (leftMatches, rightMatches) = findMatches cs rs';
-        (* val corrs = List.filter atomOnly (leftMatches @ rightMatches); *)
-        (* val corr = Random.choose corrs; *)
-        val corr = Random.choose (leftMatches @ rightMatches);
+        val corrs = map flipCorr (leftMatches @ rightMatches);
     in
-        SOME (flipCorr corr)
+        chooseNew corrs cs
     end handle List.Empty => NONE;
 
 fun discoverComposition (cs, rss, rs') =
@@ -60,12 +70,13 @@ fun discoverComposition (cs, rss, rs') =
         fun doCompose ((_, x, _), (y, _, _)) = Correspondence.F.equal
                                                 (Property.match)
                                                 (x, y);
+        fun compose ((x, _, xs), (_, z, zs)) = (x, z, xs * zs);
         val (leftMatches, rightMatches) = findMatches cs rs';
         val corrPairs = (List.product leftMatches cs) @ (List.product cs rightMatches);
-        val corrs = List.filter doCompose corrPairs;
-        val ((x, _, xs), (_, z, zs)) = Random.choose corrs;
+        val validCorrPairs = List.filter doCompose corrPairs;
+        val corrs = map compose validCorrPairs;
     in
-        SOME (x, z, xs * zs)
+        chooseNew corrs cs
     end handle List.Empty => NONE;
 
 (* fun discoverKind (cs, rss, rs') = NONE; *)
