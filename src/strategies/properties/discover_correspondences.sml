@@ -45,7 +45,7 @@ fun discoverIdentity (cs, rss, rs') = NONE;
 
 fun discoverReversal (cs, rss, rs') =
     let
-        fun flipCorr (a, b, c) = (b, a, c);
+        fun flipCorr (a, b, c) = (b, a, c); (* c needs to be changed too *)
         val (leftMatches, rightMatches) = findMatches cs rs';
         (* val corrs = List.filter atomOnly (leftMatches @ rightMatches); *)
         (* val corr = Random.choose corrs; *)
@@ -67,6 +67,8 @@ fun discoverComposition (cs, rss, rs') =
         SOME (x, z, xs * zs)
     end handle List.Empty => NONE;
 
+(* fun discoverKind (cs, rss, rs') = NONE; *)
+
 fun discoverAttribute (cs, rss, rs') = NONE;
 
 fun discoverValue (cs, rss, rs') = NONE;
@@ -79,6 +81,7 @@ fun discover state' =
         val rules' = [discoverIdentity,
                       discoverReversal,
                       discoverComposition,
+                      (* discoverKind, *)
                       discoverAttribute,
                       discoverValue];
         fun addCorr c (cs, rss, rs') = case c of
