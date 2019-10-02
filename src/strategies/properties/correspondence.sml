@@ -9,21 +9,21 @@ import "strategies.properties.importance";
 signature CORRESPONDENCE =
 sig
 
-    structure S: SET;
-    structure D: DICTIONARY;
+    structure F : FORMULA;
 
-    exception ParseError
+    exception ParseError;
 
+    type propertyset = PropertySet.t PropertySet.set;
     type 'a corrformula;
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
-    val match : S.t S.set -> S.t S.set -> correspondence -> bool;
+    val match : propertyset -> propertyset -> correspondence -> bool;
 
-    val leftMatches : S.t S.set -> correspondence -> S.t S.set;
-    val rightMatches : S.t S.set -> correspondence -> S.t S.set;
+    val leftMatches : propertyset -> correspondence -> propertyset;
+    val rightMatches : propertyset -> correspondence -> propertyset;
 
     val identity : Property.property -> correspondence;
 
@@ -49,6 +49,7 @@ structure F = Formula(struct
 
 exception ParseError;
 
+type propertyset = PropertySet.t PropertySet.set;
 type 'a corrformula = 'a F.formula;
 type correspondence = Property.property corrformula * Property.property corrformula * real;
 
