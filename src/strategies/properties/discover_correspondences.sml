@@ -54,7 +54,18 @@ fun discoverReversal (cs, rss, rs') =
         SOME (flipCorr corr)
     end handle List.Empty => NONE;
 
-fun discoverComposition (cs, rss, rs') = NONE;
+fun discoverComposition (cs, rss, rs') =
+    let
+        fun doCompose ((_, x, _), (y, _, _)) = Correspondence.F.equal
+                                                (Property.match)
+                                                (x, y);
+        val (leftMatches, rightMatches) = findMatches cs rs';
+        val corrPairs = (List.product leftMatches cs) @ (List.product cs rightMatches);
+        val corrs = List.filter doCompose corrPairs;
+        val ((x, _, xs), (_, z, zs)) = Random.choose corrs;
+    in
+        SOME (x, z, xs * zs)
+    end handle List.Empty => NONE;
 
 fun discoverAttribute (cs, rss, rs') = NONE;
 
