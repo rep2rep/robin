@@ -13,8 +13,8 @@ instrumental_patterns, "$path : {type := path;
                                   udepth : = 0;
                                   tokens := [];
                                   token_registration := 2},
-                        $path_comparison : {type := reference;
-                                             holes := [node => log(#t)];
+                        $path_equivalence : {type := observation;
+                                             holes := [path => 2];
                                              occurrences := 190;
                                              udepth : = 1;
                                              tokens := [];
@@ -32,7 +32,7 @@ instrumental_patterns, "$path : {type := path;
                                                      tokens := [];
                                                      token_registration := 3},
                         $subtree : {type := tree;
-                                    holes := [arrow => #t];;
+                                    holes := [node => #t];;
                                     udepth : = 1;
                                     occurrences := 6;
                                     tokens := [];

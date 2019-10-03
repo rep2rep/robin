@@ -16,12 +16,12 @@ instrumental_patterns, "$set_ratio : {holes := [set => 2. real => 1];
                                                        token_registration := 1},
                         $intersection : {type := zone;
                                          holes := [zone => 2];
-                                         occurrences := 4; comment := cannot handle larger numbers;
+                                         occurrences := 1; comment := cannot handle larger numbers;
                                          tokens := [];
                                          token_registration := 1},
                         $complement: {type := zone;
                                       holes := [zone => 1];
-                                      occurrences := 3; comment := cannot handle larger numbers;
+                                      occurrences := 1; comment := cannot handle larger numbers;
                                       udepth : = 1;
                                       tokens := [$contour];
                                       token_registration := 1},
@@ -99,7 +99,7 @@ relevant_tokens,"1 : {type := real;
                                      occurrences := 3}"
 relevant_patterns, "$union: {type := zone;
                              holes := [zone => 2];
-                             occurrences := 3; comment := cannot handle larger numbers;
+                             occurrences := 1; comment := cannot handle larger numbers;
                              tokens := [];
                              token_registration := 1}"
 noise_tokens,""
