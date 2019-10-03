@@ -1,36 +1,35 @@
 birds,contingency
 error_allowed, 0
 answer_type, real
-instrumental_tokens, "$cell_r : {type := real -> cell;
+instrumental_tokens, "$cell_r : {type := cell;
                                   content := real;
-                                  occurrences := 16},
-                      $cell_c : {type := class -> cell;
+                                  occurrences := 9},
+                      $cell_c : {type := cell;
                                  content := class;
-                                 occurrences := 8}"
+                                 occurrences := 7}"
 instrumental_types,"cell"
 instrumental_patterns, "$column : {type := column;
-                                    holes := [cell => -2];
-                                    occurrences := 4;
+                                    holes := [cell => sqrt(#t)];
+                                    occurrences := 1;;
+                                    udepth : = 0;
                                     tokens := [];
                                     token_registration := 1},
                         $row : {type := row;
-                                holes := [cell => -2];
-                                occurrences := 4;
+                                holes := [cell => sqrt(#t)];
+                                occurrences := 1;
+                                udepth : = 0;
                                 tokens := [];
                                 token_registration := 1},
-                        $intersection : {type := cell;
-                                         holes := [column => 1. row => 1];
-                                         occurrences := 16;
-                                         tokens := [];
-                                         token_registration := 2},
-                        $relative_value : {type := real;
+                        $relative_value : {type := observation;
                                            holes := [cell => 2. real => 2];
                                            occurrences := 36;
-                                           tokens := [$cell];
+                                           udepth : = 1;
+                                           tokens := [];
                                            token_registration := 2},
-                        $label_reference : {type := reference;
-                                            holes := [cell => 1. label => 1];
+                        $reference_by_label : {type := reference;
+                                            holes := [class => 1];
                                             occurrences := 6;
+                                            udepth : = 1;
                                             tokens := [];
                                             token_registration := 3}"
 instrumental_laws, "$row_total, $column_total"

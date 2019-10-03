@@ -6,30 +6,36 @@ instrumental_types,"region"
 instrumental_patterns, "$rectangle : {type := region;
                                       holes := [segment => 4];
                                       occurrences := 3;
+                                      udepth : = 0;
                                       tokens := [];
                                       token_registration := 1},
-                        $size : {type := measurement;
-                                 holes := [region => 1. real => 1];
+                        $size : {type := real measurement;
+                                 holes := [region => 1];
                                  occurrences := 7;
+                                 udepth : = 1;
                                  tokens := [];
                                  token_registration := 1},
-                        $relative_size : {type := measurement;
-                                          holes := [region => 2. real => 1];
+                        $relative_size : {type := real measurement;
+                                          holes := [region => 2];
                                           occurrences := 6;
+                                          udepth : = 1;
                                           tokens := [];
                                           token_registration := 1},
                         $intersection : {type := region;
                                          holes := [region => 2];
                                          occurrences := 6;
+                                         udepth : = 1;
                                          tokens := [];
                                          token_registration := 1},
                         $labelled_region : {type := figure;
-                                            holes := [region=>1. label=>1];
+                                            holes := [region=>1. class=>1];
+                                            udepth : = 1;
                                             occurrences := 5;
-                                            tokens := [];
+                                            tokens := [$label_container];
                                             token_registration := 1},
-                        $label_reference : {type := reference;
-                                            holes := [label=>1. 'a => 1];
+                        $reference_by_label : {type := reference;
+                                            holes := [class => 1];
+                                            udepth : = 1;
                                             occurrences := 1;
                                             tokens := [];
                                             token_registration := 3}"
@@ -47,14 +53,12 @@ relevant_tokens,"1 : {type := real;
                       occurrences := 1},
                  \div : {type := real * real -> real;
                          occurrences := 2},
-                 birds : {type := label;
+                 birds : {type := class;
                           occurrences := 2},
-                 flying : {type := label;
+                 flying : {type := class;
                            occurrences := 2},
-                 animals : {type := label;
+                 animals : {type := class;
                            occurrences := 2},
-                 x : {type := label;
-                      occurrences := 2},
                  $segment : {type := segment;
                              occurrences := 17},
                  $shade_1 : {type := texture;
@@ -71,10 +75,12 @@ relevant_tokens,"1 : {type := real;
                          occurrences := 1},
                  of : {type := class * class -> class;
                         occurrences := 1},
-                 region : {type := label -> class;
+                 region : {type := class;
                             occurrences := 1},
-                 x : {type := label;
-                      occurrences := 1}"
+                 x : {type := class;
+                       occurrences := 2},
+                 $label_container : {type := class -> label;
+                                    occurrences := 5}"
 relevant_patterns, "$union: {type := region;
                              holes := [region => 2];
                              occurrences := 6;

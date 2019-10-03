@@ -2,6 +2,7 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
+(*)
   type branch;
   type expression_tree;
 
@@ -10,19 +11,20 @@ sig
   val treesFromPattern : Property.property list -> Property.property -> expression_tree list;
   val baseTokens : expression_tree -> string list;
   val baseDepth : expression_tree -> real;
-
-  val unfoldTypeDNF : (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list
-                        -> (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list;
-  val satisfyTypeDNF : (Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list
-                        -> ((Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list * int);
-(*)  val unfoldPattern : Property.property -> Property.property list -> Property.property list
-                        -> (Type.T list * (((string * string list * (Type.T list * Type.T)) * int) list)) list;
 *)
+  type data = int * int;
+  type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
+  type clause = (Type.T list * (data * resources));
+
+  val unfoldTypeDNF : clause list -> clause list;
+
+  val satisfyTypeDNF : clause list -> clause list * data;
+
   val satisfyPattern : Property.property -> Property.property list -> Property.property list
-                        -> ((Type.T list * (((string list * string list * (Type.T list * Type.T)) * int) list)) list * int);
+                        -> (clause list * data);
 
   val listMaxWithOmegaPlus : int list -> int;
-
+(*)
   val maxBreadth : expression_tree -> int;
   val maxDepth : expression_tree -> int;
 
@@ -30,7 +32,7 @@ sig
   val maxBranchBreadth : branch * int -> int;
   val avgDepth : expression_tree list -> real;
   val avgBreadth : expression_tree list -> real;
-
+*)
   val depth : Property.property list -> Property.property -> real;
   val breadth : Property.property list -> Property.property -> real;
   val arity : Property.property -> int;
@@ -39,6 +41,10 @@ end;
 
 structure Pattern : PATTERN =
 struct
+
+  type data = int * int;
+  type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
+  type clause = (Type.T list * (data * resources));
 
 datatype branch = Branch of (string * branch list);
 datatype expression_tree = Root of ((string list * int) * ((branch * int) list))
@@ -133,6 +139,20 @@ fun treesFromPattern tokens p =
     end
 
 
+(*)
+exception Length;
+fun zipLists [] [] = []
+  | zipLists (x::xL) (y::yL) = (x,y) :: zipLists xL yL
+  | zipLists _ _ = raise Length;*)
+
+fun sameTypeDNF (tF, tF') =
+    let (*fun sameK ((k,i),(k',i')) = (#1 tK = #1 tK') andalso (#2 tK = #2 tK')*)
+        fun same [] [] = true
+          | same ((cl,(_,K))::L) ((cl',(_,K'))::L') = (cl = cl') andalso (K = K') andalso (same L L')
+          | same _ _ = false
+    in same tF tF'
+    end
+
 fun getChildrenOptions _ [] = []
   | getChildrenOptions t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
@@ -147,7 +167,7 @@ fun diminish L [] = if null L then [] else raise Unsatisfiable
     case List.find (fn x => List.exists (fn y => x = y) L) labels of
         SOME label => let val L' = List.remove label L
                           val K' = diminish L' K
-                      in (if i = 1 then K' else ((labels,tokens,typeinfo),i-1)::K')
+                      in (if i <= 1 then K' else ((labels,tokens,typeinfo),i-1)::K')
                       end
       | NONE => ((labels,tokens,typeinfo),i) :: diminish L K;
 
@@ -160,13 +180,11 @@ fun unfoldTypeDNF [] = []
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L
-                fun conjAndDim (l,K) = let val (K',b) = (diminish tokens K,true) handle Unsatisfiable => ([],false)
-                                       in if b then SOME (tL @ l, K') else NONE
-                                       end
+                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,Int.max(b,length (tL @ l))),diminish tokens K)) handle Unsatisfiable => NONE
             in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
             end
-        fun unfoldClause ([],K) = [([],K)]
-          | unfoldClause ((lt::C),K) = distribute (getChildrenOptions lt K) (unfoldClause (C,K));
+        fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
+          | unfoldClause ((lt::C),((d,b),K)) = distribute (getChildrenOptions lt K) (unfoldClause (C,((d,b),K)));
 
         (* The following functions are not used but could potentially simplify the search if used properly *)
         (* begin *)
@@ -181,33 +199,36 @@ fun unfoldTypeDNF [] = []
           | simplifyClause ((lt,count)::C) = let val (s,L) = countAndRemoveType lt ((lt,count) :: C)
                                               in (lt,s) :: simplifyClause L
                                               end;
-        (* end *)
 
-    in (unfoldClause cl) @ (unfoldTypeDNF dnf)
+
+        (*val unchangedCheck = sameTypeDNF ([cl],unfoldedCl)*)
+        (* end *)(*
+        fun updDepth (C,(d,K)) = if null cl andalso null C then (C,(d,K)) else (C,(d+1,K))*)
+        val unfoldedCl = if null (#1 cl) then [cl] else unfoldClause cl
+
+    in unfoldedCl @ (unfoldTypeDNF dnf)
     end;
 
-exception Length;
-fun zipLists [] [] = []
-  | zipLists (x::xL) (y::yL) = (x,y) :: zipLists xL yL
-  | zipLists _ _ = raise Length;
-
-fun sameTypeDNF (tF, tF') =
-    let fun sameK (tK,tK') = (#1 tK = #1 tK') andalso (#2 tK = #2 tK')
-        fun same (t,t') = (#1 t = #1 t') andalso (List.all sameK (zipLists (#2 t) (#2 t')))
-    in List.all same (zipLists tF tF') handle Length => false
-    end
 
 fun satisfyTypeDNF tF =
-    let fun iterate x i =
+    let fun iterate x =
             let val x' = unfoldTypeDNF x
-            in (print ("\n         length of DNF: " ^ Int.toString (length x) ^ "");
+            in (print ("\n       length of DNF: " ^ Int.toString (length x) ^ "");
                 if null x' then raise Unsatisfiable
                 else (if sameTypeDNF (x,x')
-                       then (x', i)
-                       else iterate x' (i+1))
+                       then x
+                       else iterate x')
                 )
             end
-    in iterate tF 0
+        fun maxdepth [] = 0 | maxdepth ((_,((d,_),_))::L) = Int.max (d, maxdepth L)
+        fun maxbreadth [] = 0 | maxbreadth ((_,((_,b),_))::L) = Int.max (b, maxbreadth L)
+        fun maxDepthAndBreadth [] = (0,0)
+          | maxDepthAndBreadth ((_,((d,b),_))::L) =
+            let val (d',b') = maxDepthAndBreadth L
+            in (Int.max (d,d'), Int.max (b,b'))
+            end
+        val sattF = iterate tF
+    in (sattF, maxDepthAndBreadth sattF)
     end;
 
 fun satisfyPattern p C P =
@@ -238,8 +259,9 @@ fun satisfyPattern p C P =
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = getLTTNP p
-        fun patternClause () = (typs, diminish tks (C' @ (map getLTTNP P)))
-    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],0)
+        val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
+        fun patternClause () = (typs, ((udepth,length typs), diminish tks (C' @ (map getLTTNP P))))
+    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0,0))
     end
 
 

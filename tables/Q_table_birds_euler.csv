@@ -4,31 +4,51 @@ answer_type, real
 instrumental_tokens,"$contour: {type := contour;
                                 occurrences := 2}"
 instrumental_types,"zone"
-instrumental_patterns, "$set_ratio : {holes := [label => 2. real => 1];
+instrumental_patterns, "$set_ratio : {holes := [set => 2. real => 1];
                                                 tokens := [=. ||];
                                                 type := formula;
                                                 occurrences := 3;
-                                                token_registration := 2},
-                        $intersection : {type := region;
+                                                token_registration := 1},
+                        $zone_determined_by_contour : {type := zone;
+                                                       holes := [contour => 1];
+                                                       occurrences := 3;
+                                                       tokens := [];
+                                                       token_registration := 1},
+                        $intersection : {type := zone;
                                          holes := [zone => 2];
-                                         occurrences := 120;
-                                         tokens := [$contour];
+                                         occurrences := 4; comment := cannot handle larger numbers;
+                                         tokens := [];
                                          token_registration := 1},
+                        $complement: {type := zone;
+                                      holes := [zone => 1];
+                                      occurrences := 3; comment := cannot handle larger numbers;
+                                      udepth : = 1;
+                                      tokens := [$contour];
+                                      token_registration := 1},
                         $labelled_zone : {type := figure;
-                                          holes := [zone=>1. label=>1];
+                                          holes := [zone=>1. class=>1];
                                           occurrences := 3;
-                                          tokens := [$contour];
+                                          udepth : = 1;
+                                          tokens := [$label_container];
                                           token_registration := 1},
+                        $description : {type := statement;
+                                        holes := [class => log(#t)];
+                                        udepth : = 1;
+                                        occurrences := 2;
+                                        tokens := [];
+                                        token_registration := 3},
                         $shaded_zone : {type := figure;
                                          holes := [colour=>1. zone=>1];
                                          occurrences := 1;
-                                         tokens := [$contour];
+                                         udepth : = 1;
+                                         tokens := [];
                                          token_registration := 1},
-                         $label_reference : {type := reference;
-                                             holes := [label=>1. 'a => 1];
-                                             occurrences := 1;
-                                             tokens := [];
-                                             token_registration := 3}"
+                        $reference_by_description : {type := reference;
+                                                     holes := [statement => 1];
+                                                     occurrences := 1;
+                                                     udepth : = 1;
+                                                     tokens := [];
+                                                     token_registration := 3}"
 instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
                     $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
 instrumental_tactics,"rewrite : {laws := 1;
@@ -47,13 +67,17 @@ relevant_tokens,"1 : {type := real;
                          occurrences := 2},
                  \cdot : {type := real * real -> real;
                           occurrences := 3},
-                 || : {type := class -> real;
+                 \cap : {type := class * class -> class;
+                           occurrences := 2},
+                 = : {type := real * real -> formula;
+                         occurrences := 4},
+                 || : {type := set -> real;
                        occurrences := 7},
-                 birds : {type := class;
+                 birds : {type := set;
                           occurrences := 5},
-                 flying : {type := class;
+                 flying : {type := set;
                            occurrences := 4},
-                 animals : {type := class;
+                 animals : {type := set;
                            occurrences := 3},
                  $shade : {type := colour;
                            occurrences := 1},
@@ -69,18 +93,13 @@ relevant_tokens,"1 : {type := real;
                             occurrences := 1},
                  shaded : {type := class -> class;
                       occurrences := 1},
-                 zone : {type := class;
+                 region : {type := class;
                          occurrences := 1},
                  $label_container : {type := class -> label;
                                      occurrences := 3}"
 relevant_patterns, "$union: {type := zone;
                              holes := [zone => 2];
-                             occurrences := 120;
-                             tokens := [$contour];
-                             token_registration := 1},
-                    $difference: {type := zone;
-                                  holes := [zone => 2];
-                                  occurrences := 120;
-                                  tokens := [$contour];
-                                  token_registration := 1}"
+                             occurrences := 3; comment := cannot handle larger numbers;
+                             tokens := [];
+                             token_registration := 1}"
 noise_tokens,""

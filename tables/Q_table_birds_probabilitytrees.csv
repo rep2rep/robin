@@ -1,29 +1,39 @@
 birds,probabilitytrees
 error_allowed, 0
 answer_type, real
-instrumental_tokens, "$node : {type := class -> node;
+instrumental_tokens, "$node : {type := node;
                                 content := class;
-                                occurrences := 20},
+                                occurrences := 14},
                       $arrow : {type := arrow;
-                                 occurrences := 16}"
+                                 occurrences := 12}"
 instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
                                   holes := [node => log(#t)];
-                                  occurrences := 24;
+                                  occurrences := 20;
+                                  udepth : = 0;
                                   tokens := [];
                                   token_registration := 2},
                         $path_comparison : {type := reference;
                                              holes := [node => log(#t)];
-                                             occurrences := 576;
+                                             occurrences := 190;
+                                             udepth : = 1;
                                              tokens := [];
                                              token_registration := 3},
-                        $non-explicit_reference : {type := reference;
-                                                   holes := [class => 1. node => 1];
-                                                   occurrences := 2;
-                                                   tokens := [];
-                                                   token_registration := 3},
+                        $description : {type := statement;
+                                         holes := [class => log(#t)];
+                                         udepth : = 1;
+                                         occurrences := 2;
+                                         tokens := [];
+                                         token_registration := 3},
+                        $reference_by_description : {type := reference;
+                                                     holes := [statement => 1];
+                                                     udepth : = 1;
+                                                     occurrences := 2;
+                                                     tokens := [];
+                                                     token_registration := 3},
                         $subtree : {type := tree;
-                                    holes := [node => #t];
+                                    holes := [arrow => #t];;
+                                    udepth : = 1;
                                     occurrences := 6;
                                     tokens := [];
                                     token_registration := 3}"

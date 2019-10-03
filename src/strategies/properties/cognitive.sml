@@ -183,25 +183,20 @@ fun expressionComplexity qT (*rT *)=
         fun f p =
             let val x = QProperty.withoutImportance p
               (*)  val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)*)
-                val _ = print ("\n    " ^ (Property.toString x))
-                val (t,d) = Pattern.satisfyPattern x C (map QProperty.withoutImportance P)
-                val depth = (print ("\n          depth:" ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
-                val breadth = 1.0 (*let val b = Pattern.listMaxWithOmegaPlus (map Pattern.maxBreadth trees)
-                              in if b = ~3 then n else
-                                 if b = ~2 then Math.sqrt n else
-                                 if b = ~1 then Math.ln n else
-                                    Pattern.avgBreadth trees
-                              end*)
+                val _ = print ("\n   " ^ (Property.toString x))
+                val (_,(d,b)) = Pattern.satisfyPattern x C (map QProperty.withoutImportance P)
+                val depth = (print ("\n       depth:" ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
+                val breadth = (print ("\n       breadth:" ^ (Int.toString b) ^ " "); real b)
                 val arity = let val i = Pattern.arity x
                             in if i = ~3 then n else
                                if i = ~2 then Math.sqrt n else
                                if i = ~1 then Math.ln n else
                                   real i
                             end
-            in Math.ln (arity + Math.sqrt (depth * breadth))
+            in (*arity +*) Math.sqrt (depth * breadth)
             end
-        fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
-                          * (Importance.weight (QProperty.importanceOf x))
+        fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+                          **) (Importance.weight (QProperty.importanceOf x))
     in List.weightedAvgIndexed weighing f P
     end;
 
