@@ -22,6 +22,7 @@ sig
     exception NegativeCount of Type.T * int;
 
     exception Error of string;
+    exception NoAttribute of string;
 
     val kindOf : property -> Kind.kind;
     val valueOf : property -> value;
@@ -176,7 +177,7 @@ fun kindValuePairMatch (k,v) (k',v') =
   without the need to have type or attribute information, and type-matching when
   there is type information *)
 fun match (p,p') =
-    let val M = (Type.match (getTypeOfValue p, getTypeOfValue p') handle Match => true)
+    let val M = (Type.match (getTypeOfValue p, getTypeOfValue p') handle NoAttribute _ => true)
     in M andalso (kindValuePairMatch (toKindValuePair p) (toKindValuePair p'))
     end
 

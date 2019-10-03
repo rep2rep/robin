@@ -218,9 +218,9 @@ val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);
 val p3 = List.nth (P,2);
 
-(*)
+
 val _ = cognitiveScores B crunch_norm;
 val _ = print "\n"
-val _ = cognitiveScores B crunch_rank;*)
+val _ = cognitiveScores B crunch_rank;
 (*)
 val S = quantityScale_score B crunch_raw;*)

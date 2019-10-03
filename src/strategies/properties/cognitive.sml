@@ -123,9 +123,9 @@ fun tokenRegistration qT =
         val C4 = importance_filter Importance.Zero C
         val C5 = importance_filter Importance.Noise C*)
         fun tokensFromPattern x = (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Match => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getTokens x,1.0))
+                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getTokens x,1.0))
         fun typesFromPattern x = (Property.getHoles x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Match => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getHoles x,1.0))
+                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getHoles x,1.0))
         val tokenswithreg = PropertySet.map tokensFromPattern P
         val typeswithreg = PropertySet.map typesFromPattern P
         fun typereg [] t = 1.0
@@ -179,7 +179,7 @@ fun expressionComplexity qT (*rT *)=
         val P = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) P'
         val C' = PropertySet.toList (QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Token)) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
         val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" x)) >= 1.0) C'
-        val n = numberOfTokens qT
+        val n = numberOfTokens qT / 2.0
         fun f p =
             let val x = QProperty.withoutImportance p
               (*)  val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)*)
@@ -188,12 +188,12 @@ fun expressionComplexity qT (*rT *)=
                 val depth = (print ("\n       depth:" ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
                 val breadth = (print ("\n       breadth:" ^ (Int.toString b) ^ " "); real b)
                 val arity = let val i = Pattern.arity x
-                            in if i = ~3 then n else
+                            in if i = ~3 then n/2.0 else
                                if i = ~2 then Math.sqrt n else
                                if i = ~1 then Math.ln n else
                                   real i
                             end
-            in (*arity +*) Math.sqrt (depth * breadth)
+            in arity + Math.sqrt (depth * breadth)
             end
         fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
                           **) (Importance.weight (QProperty.importanceOf x))
@@ -373,8 +373,8 @@ fun problemSpaceBranchingFactor qT rT =
     let val T = PropertySet.collectOfKind rT Kind.Tactic;
         val L = PropertySet.collectOfKind rT Kind.Law;
         val P = QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Pattern);
-        fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Match => 1.0
-        fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Match => 1.0
+        fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Property.NoAttribute _ => 1.0
+        fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Property.NoAttribute _ => 1.0
         val bl = PropertySet.size L
         val bp = List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) (PropertySet.toList P)
         fun dotProduct [] [] = 0.0

@@ -236,7 +236,7 @@ fun satisfyPattern p C P =
         val nt = List.sumIndexed occurrences C / 2.0
         fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
                       else if x = ~2 then Real.floor (Math.sqrt nt)
-                      else if x = ~3 then Real.floor (nt / 3.0)
+                      else if x = ~3 then Real.floor (nt / 2.0)
                       else if x >= 0 then x else raise Match
         fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
         fun getLTTNC c = (([Property.LabelOf c],
