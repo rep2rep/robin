@@ -23,28 +23,30 @@ instrumental_patterns, "$rectangle : {type := region;
                                           token_registration := 1},
                         $difference: {type := region;
                                        holes := [region => 2];
-                                       occurrences := 2; comment := cannot handle larger numbers;
+                                       occurrences := 3; comment := cannot handle larger numbers;
                                        udepth : = 1;
                                        tokens := [];
                                        token_registration := 1},
                         $intersection : {type := region;
                                          holes := [region => 2];
-                                         occurrences := 2; comment := cannot handle much larger numbers;
+                                         occurrences := 3; comment := cannot handle much larger numbers;
                                          udepth : = 1;
                                          tokens := [];
                                          token_registration := 1},
                         $labelled_region : {type := figure;
+                                            description := a region with a label;
                                             holes := [region=>1. class=>1];
                                             udepth : = 1;
                                             occurrences := 5;
                                             tokens := [$label_container];
                                             token_registration := 1},
                         $reference_by_label : {type := reference;
-                                            holes := [class => 1];
-                                            udepth : = 1;
-                                            occurrences := 1;
-                                            tokens := [];
-                                            token_registration := 3}"
+                                                description := a label referencing something (a region in this case);
+                                                holes := [class => 1];
+                                                udepth : = 1;
+                                                occurrences := 1;
+                                                tokens := [];
+                                                token_registration := 3}"
 instrumental_laws, "$scale_independence_of_ratio : {description := the ratio of two areas is independent of the scale},
                     $area_additivity : {description := the area of a region is the sum of the areas of its parts}"
 instrumental_tactics,"measure : {patterns := 1;
@@ -73,7 +75,7 @@ relevant_tokens,"1 : {type := real;
                            occurrences := 1},
                  $shade_3 : {type := texture;
                            occurrences := 1},
-                 calculate : {type := instruction;
+                 calculate : {type := 'a -> instruction;
                               occurrences := 1},
                  the : {type := class -> class;
                         occurrences := 2},
@@ -89,7 +91,7 @@ relevant_tokens,"1 : {type := real;
                                     occurrences := 5}"
 relevant_patterns, "$union: {type := region;
                              holes := [region => 2];
-                             occurrences := 6;
+                             occurrences := 3; comment := cannot handle much larger numbers;
                              tokens := [];
                              token_registration := 1}"
 noise_tokens,""

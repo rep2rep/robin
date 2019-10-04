@@ -9,6 +9,11 @@ instrumental_patterns, "$set_ratio : {holes := [set => 2. real => 1];
                                                 type := formula;
                                                 occurrences := 3;
                                                 token_registration := 1},
+                        $whole : {type := zone;
+                                   holes := [];
+                                   occurrences := 1;
+                                   tokens := [$rectangle];
+                                   token_registration := 1},
                         $zone_determined_by_contour : {type := zone;
                                                        holes := [contour => 1];
                                                        occurrences := 3;
@@ -16,14 +21,15 @@ instrumental_patterns, "$set_ratio : {holes := [set => 2. real => 1];
                                                        token_registration := 1},
                         $intersection : {type := zone;
                                          holes := [zone => 2];
-                                         occurrences := 2; comment := cannot handle much larger numbers;
+                                         occurrences := 3; comment := cannot handle much larger numbers;
+                                         udepth : = 1;
                                          tokens := [];
                                          token_registration := 1},
-                        $complement: {type := zone;
-                                      holes := [zone => 1];
-                                      occurrences := 2; comment := cannot handle larger numbers;
+                        $difference: {type := zone;
+                                      holes := [zone => 2];
+                                      occurrences := 3; comment := cannot handle larger numbers;
                                       udepth : = 1;
-                                      tokens := [$contour];
+                                      tokens := [];
                                       token_registration := 1},
                         $labelled_zone : {type := figure;
                                           holes := [zone=>1. class=>1];
@@ -81,7 +87,7 @@ relevant_tokens,"1 : {type := real;
                            occurrences := 3},
                  $shade : {type := colour;
                            occurrences := 1},
-                 calculate : {type := instruction;
+                 calculate : {type := 'a -> instruction;
                               occurrences := 1},
                  the : {type := class -> class;
                         occurrences := 2},
@@ -96,7 +102,8 @@ relevant_tokens,"1 : {type := real;
                  region : {type := class;
                          occurrences := 1},
                  $label_container : {type := class -> label;
-                                     occurrences := 3}"
+                                     occurrences := 3},
+                $rectangle : {type := contour; occurrences := 1}"
 relevant_patterns, "$union: {type := zone;
                              holes := [zone => 2];
                              occurrences := 1; comment := cannot handle larger numbers;

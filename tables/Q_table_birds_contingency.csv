@@ -10,28 +10,34 @@ instrumental_tokens, "$cell_r : {type := cell;
 instrumental_types,"cell"
 instrumental_patterns, "$column : {type := column;
                                     holes := [cell => sqrt(#t)];
-                                    occurrences := 1;;
-                                    udepth : = 0;
+                                    occurrences := 4;
+                                    udepth : = 1;
                                     tokens := [];
                                     token_registration := 1},
                         $row : {type := row;
                                 holes := [cell => sqrt(#t)];
-                                occurrences := 1;
-                                udepth : = 0;
+                                occurrences := 4;
+                                udepth : = 1;
                                 tokens := [];
                                 token_registration := 1},
-                        $relative_value : {type := observation;
-                                           holes := [cell => 2. real => 2];
-                                           occurrences := 36;
+                        $cells_column_row : {type := column * row;
+                                              holes := [cell => 1];
+                                              occurrences := 16;
+                                              udepth : = 1;
+                                              tokens := [];
+                                              token_registration := 2},
+                        $relative_value : {type := real observation;
+                                           holes := [real => 2];
+                                           occurrences := 8;
                                            udepth : = 1;
-                                           tokens := [];
+                                           tokens := [$cell_r. $cell_r];
                                            token_registration := 2},
                         $reference_by_label : {type := reference;
-                                            holes := [class => 1];
-                                            occurrences := 6;
-                                            udepth : = 1;
-                                            tokens := [];
-                                            token_registration := 3}"
+                                                holes := [class => 1];
+                                                occurrences := 6;
+                                                udepth : = 1;
+                                                tokens := [];
+                                                token_registration := 3}"
 instrumental_laws, "$row_total, $column_total"
 instrumental_tactics,"fill_cell : {patterns := 1;
                                    laws := 1},
@@ -47,6 +53,8 @@ relevant_tokens,"1 : {type := real;
                       occurrences := 1},
                  \div : {type := real * real -> real;
                          occurrences := 3},
+                 - : {type := real * real -> real;
+                        occurrences := 0},
                  birds : {type := class;
                           occurrences := 2},
                  flying : {type := class;
@@ -61,7 +69,7 @@ relevant_tokens,"1 : {type := real;
                         occurrences := 1},
                  $gray_shade : {type := colour;
                                 occurrences := 1},
-                 calculate : {type := instruction;
+                 calculate : {type := 'a -> instruction;
                               occurrences := 1},
                  x : {type := label;
                       occurrences := 1}"
