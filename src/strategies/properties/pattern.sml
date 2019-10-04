@@ -16,7 +16,7 @@ sig
   type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
   type clause = (Type.T list * (data * resources));
 
-  val unfoldTypeDNF : clause list -> clause list;
+  val unfoldTypeDNF : clause list -> (bool * clause list);
 
   val satisfyTypeDNF : clause list -> clause list * data;
 
@@ -173,7 +173,7 @@ fun diminish L [] = if null L then [] else raise Unsatisfiable
 
 
 (* tF ~ [([a,b],K1),([c],K2),([a,c,d,e],K3)]*)
-fun unfoldTypeDNF [] = []
+fun unfoldTypeDNF [] = (false,[])
   | unfoldTypeDNF (cl::dnf) = (* HERE *)
     let fun distribute [] LL' = []
           | distribute ((_,tokens,(tL,t))::LL) LL' =
@@ -201,23 +201,24 @@ fun unfoldTypeDNF [] = []
                                               end;
 
 
-        (*val unchangedCheck = sameTypeDNF ([cl],unfoldedCl)*)
+        (**)
         (* end *)(*
         fun updDepth (C,(d,K)) = if null cl andalso null C then (C,(d,K)) else (C,(d+1,K))*)
         val unfoldedCl = if null (#1 cl) then [cl] else unfoldClause cl
-
-    in unfoldedCl @ (unfoldTypeDNF dnf)
+        val clChanged = not (sameTypeDNF ([cl],unfoldedCl))
+        val (dnfChanged, unfoldedDNF) = unfoldTypeDNF dnf
+    in (clChanged orelse dnfChanged, unfoldedCl @ unfoldedDNF)
     end;
 
 
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let val x' = unfoldTypeDNF x
+            let val (changed,x') = unfoldTypeDNF x
             in (print ("\n       length of DNF: " ^ Int.toString (length x) ^ "");
                 if null x' then raise Unsatisfiable
-                else (if sameTypeDNF (x,x')
-                       then x
-                       else iterate x')
+                else (if changed
+                       then iterate x'
+                       else x)
                 )
             end
         fun maxdepth [] = 0 | maxdepth ((_,((d,_),_))::L) = Int.max (d, maxdepth L)
