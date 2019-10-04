@@ -48,7 +48,13 @@ fun RS_order (x,y) =
     end;
 
 fun crunch_raw L =
-    let val normL = map (fn (x,v) => (x, 1000.0 * v)) L
+    let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
+        val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
+        val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
+                                          then 1000.0 * (max+0.001)
+                                          else if Real.== (v, Real.negInf)
+                                                then 1000.0 * (min-0.001)
+                                                else  1000.0 * v)) L
         val sorted = List.mergesort RS_order normL
     in sorted
     end;
@@ -219,8 +225,7 @@ val p2 = List.nth (P,1);
 val p3 = List.nth (P,2);
 
 
-val _ = cognitiveScores B crunch_norm;
 val _ = print "\n"
-val _ = cognitiveScores B crunch_rank;
+val _ = cognitiveScores B crunch_raw;
 (*)
 val S = quantityScale_score B crunch_raw;*)

@@ -382,7 +382,8 @@ fun problemSpaceBranchingFactor qT rT =
           | dotProduct  _ _ = raise Match;
         val l = PropertySet.map (fn x => Math.pow(real bl, lawParams x)) T
         val p = PropertySet.map (fn x => Math.pow(bp, patternParams x)) T
-    in dotProduct l p
+        val result = dotProduct l p
+    in if Real.==(result,0.0) then Real.posInf else result
     end;
 
 
