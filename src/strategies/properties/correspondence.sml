@@ -21,6 +21,7 @@ sig
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
     val match : propertyset -> propertyset -> correspondence -> bool;
+    val matchExists : propertyset -> propertyset -> correspondence list -> bool;
 
     val leftMatches : propertyset -> correspondence -> propertyset;
     val rightMatches : propertyset -> correspondence -> propertyset;
@@ -103,7 +104,9 @@ fun leftMatches ps (p, _, _) = collectMatches ps p;
 
 fun rightMatches ps (_, p, _) = collectMatches ps p;
 
-fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r)
+fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r);
+
+fun matchExists qs rs cs = List.exists (match qs rs) cs;
 
 fun matchingProperties (q, r, _) (q', r', _) =
     let
