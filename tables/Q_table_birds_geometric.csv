@@ -11,19 +11,25 @@ instrumental_patterns, "$rectangle : {type := region;
                                       token_registration := 1},
                         $size : {type := real measurement;
                                  holes := [region => 1];
-                                 occurrences := 7;
+                                 occurrences := 3; comment := cannot handle much larger numbers;
                                  udepth : = 1;
                                  tokens := [];
                                  token_registration := 1},
                         $relative_size : {type := real measurement;
                                           holes := [region => 2];
-                                          occurrences := 6;
+                                          occurrences := 3; comment := cannot handle much larger numbers;
                                           udepth : = 1;
                                           tokens := [];
                                           token_registration := 1},
+                        $difference: {type := region;
+                                       holes := [region => 2];
+                                       occurrences := 2; comment := cannot handle larger numbers;
+                                       udepth : = 1;
+                                       tokens := [];
+                                       token_registration := 1},
                         $intersection : {type := region;
                                          holes := [region => 2];
-                                         occurrences := 6;
+                                         occurrences := 2; comment := cannot handle much larger numbers;
                                          udepth : = 1;
                                          tokens := [];
                                          token_registration := 1},
