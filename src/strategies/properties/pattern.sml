@@ -258,17 +258,20 @@ fun satisfyPattern p C P =
         fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
           | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
             if isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
+                andalso (List.tl ls handle Empty => []) = (List.tl ls' handle Empty => [])
+                (* this last condition makes sure that the patterns are only clustered together if they have the same tokens*)
             then ((l @ l',ls',(ts,t)),i+i')::L
             else ((l',ls',(ts',t')),i') :: findAndUpdateByTypes ((l,ls,(ts,t)),i) L;
         fun clusterByTypes [] = []
           | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
         val C' = clusterByTypes (map getLTTNC C)
         val P' = clusterByTypes (map getLTTNP P)
+        val CP = clusterByTypes ((map getLTTNC C) @ map getLTTNP P)
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = getLTTNP p
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun patternClause () = (typs, ((udepth,length typs), diminish tks (C' @ P')))
+        fun patternClause () = (typs, ((udepth,length typs), diminish tks CP))
     in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0.0,0.0))
     end
 
