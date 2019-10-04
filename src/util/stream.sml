@@ -7,6 +7,7 @@ signature STREAM = sig
 
     val head : 'a stream -> 'a;
     val tail : 'a stream -> 'a stream;
+    val step : 'a stream -> ('a * 'a stream);
 
     val fromList : 'a list -> 'a stream;
     val toList : 'a stream -> 'a list; (* Finite only! *)
@@ -50,6 +51,9 @@ fun head EMPTY = raise Subscript
 
 fun tail EMPTY = raise Subscript
   | tail (CONS(x, xf)) = force xf;
+
+fun step EMPTY = raise Subscript
+  | step (CONS(x, xf)) = (x, force xf);
 
 fun interleave EMPTY y = y
   | interleave x EMPTY = x

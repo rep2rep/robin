@@ -42,8 +42,12 @@ fun parseArgs () =
 
 fun repl state =
     let
+        fun fmt c r = (Correspondence.toString c)
+                      ^ "\n\t"
+                      ^ (FindCorrs.reasonString r);
         fun eval s i = case i of
-                           SOME i => (SOME (Stream.tail s),  (Correspondence.toString (Stream.head s)))
+                           SOME i => let val ((c, r), t) = Stream.step s
+                                     in (SOME t,  fmt c r) end
                          | NONE => (NONE, "\nBye!\n");
 
         val read = TextIO.inputLine TextIO.stdIn;

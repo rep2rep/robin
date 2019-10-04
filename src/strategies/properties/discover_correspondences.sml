@@ -11,7 +11,15 @@ signature DISCOVERCORRESPONDENCES = sig
                  PropertySet.t PropertySet.set list *
                  PropertySet.t PropertySet.set;
 
-    val discover : state -> Correspondence.correspondence Stream.stream;
+    datatype reason = IDENTITY of Property.property
+                    | REVERSAL of Correspondence.correspondence
+                    | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
+                    (* | KIND of Property.property * Property.property *)
+                    | ATTRIBUTE of Property.property * Property.property
+                    | VALUE of Property.property * Property.property;
+
+    val reasonString : reason -> string;
+    val discover : state -> (Correspondence.correspondence * reason) Stream.stream;
 
 end;
 
@@ -22,6 +30,18 @@ type state = Correspondence.correspondence list *
              PropertySet.t PropertySet.set list *
              PropertySet.t PropertySet.set;
 
+datatype reason = IDENTITY of Property.property
+                | REVERSAL of Correspondence.correspondence
+                | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
+                (* | KIND of Property.property * Property.property *)
+                | ATTRIBUTE of Property.property * Property.property
+                | VALUE of Property.property * Property.property;
+
+fun reasonString (IDENTITY p) = "The property " ^ (Property.toString p) ^ " corresponds to itself"
+  | reasonString (REVERSAL c) = "Reversed from " ^ (Correspondence.toString c)
+  | reasonString (COMPOSITION (c1, c2)) = "Composed from " ^ (Correspondence.toString c1) ^ " and " ^ (Correspondence.toString c2)
+  | reasonString (ATTRIBUTE (p1, p2)) = "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
+  | reasonString (VALUE (p1, p2)) = "Is a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2);
 fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
 
 fun makeCorr (p, q) =
@@ -40,25 +60,28 @@ fun findMatches cs rs =
 fun chooseNew [] _ = NONE
   | chooseNew options existing =
     let
-        val option = Random.choose options;
+        val (option, reason) = Random.choose options;
     in
         if corrExists option existing
         then chooseNew
-                 (List.filter (not o (Correspondence.matchingProperties option)) options)
+                 (List.filter (not o (fn (opt, r) =>
+                                         Correspondence.matchingProperties option opt))
+                              options)
                  existing
-        else SOME option
+        else SOME (option, reason)
     end;
 
 
 (** Discovery rules **)
-(*  All of these have type state -> correspondence option *)
+(*  All of these have type state -> (correspondence * reason) option *)
 
 (* Identity is handled elsewhere in the code, so ignore it here *)
 fun discoverIdentity (cs, rss, rs') = NONE;
 
 fun discoverReversal (cs, rss, rs') =
     let
-        fun flipCorr (a, b, c) = (b, a, c); (* c needs to be changed too *)
+        fun flipCorr (a, b, c) = ((b, a, c), (* c needs to be changed too *)
+                                  REVERSAL (a, b, c));
         val (leftMatches, rightMatches) = findMatches cs rs';
         val corrs = map flipCorr (leftMatches @ rightMatches);
     in
@@ -70,7 +93,8 @@ fun discoverComposition (cs, rss, rs') =
         fun doCompose ((_, x, _), (y, _, _)) = Correspondence.F.equal
                                                 (Property.match)
                                                 (x, y);
-        fun compose ((x, _, xs), (_, z, zs)) = (x, z, xs * zs);
+        fun compose ((x, y, xs), (y', z, zs)) = ((x, z, xs * zs),
+                                               COMPOSITION ((x, y, xs), (y', z, zs)));
         val (leftMatches, rightMatches) = findMatches cs rs';
         val corrPairs = (List.product leftMatches cs) @ (List.product cs rightMatches);
         val validCorrPairs = List.filter doCompose corrPairs;
@@ -97,8 +121,7 @@ fun discover state' =
                       discoverAttribute,
                       discoverValue];
         fun addCorr c (cs, rss, rs') = case c of
-                                           (* TODO: no duplicates *)
-                                           SOME c' => (c'::cs, rss, rs')
+                                           SOME (c', _) => (c'::cs, rss, rs')
                                          | NONE => (cs, rss, rs');
         fun extractCorr (corr, _, _) = corr;
         fun generator (corr, rules, state) =
