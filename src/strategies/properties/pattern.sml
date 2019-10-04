@@ -12,9 +12,9 @@ sig
   val baseTokens : expression_tree -> string list;
   val baseDepth : expression_tree -> real;
 *)
-  type data = int * int;
+  type data = real * real;
   type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-  type clause = (Type.T list * (data * resources));
+  type clause = (Type.T list * ((int * int) * resources));
 
   val unfoldTypeDNF : clause list -> (bool * clause list);
 
@@ -23,8 +23,8 @@ sig
   val satisfyPattern : Property.property -> Property.property list -> Property.property list
                         -> (clause list * data);
 
+                        (*
   val listMaxWithOmegaPlus : int list -> int;
-(*)
   val maxBreadth : expression_tree -> int;
   val maxDepth : expression_tree -> int;
 
@@ -33,8 +33,10 @@ sig
   val avgDepth : expression_tree list -> real;
   val avgBreadth : expression_tree list -> real;
 *)
+(*
   val depth : Property.property list -> Property.property -> real;
   val breadth : Property.property list -> Property.property -> real;
+  *)
   val arity : Property.property -> int;
   val distinctArity : Property.property -> real;
 end;
@@ -42,19 +44,21 @@ end;
 structure Pattern : PATTERN =
 struct
 
-  type data = int * int;
+  type data = real * real;
   type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-  type clause = (Type.T list * (data * resources));
+  type clause = (Type.T list * ((int * int) * resources));
 
+  (*
 datatype branch = Branch of (string * branch list);
 datatype expression_tree = Root of ((string list * int) * ((branch * int) list))
 
 fun baseTokens (Root ((L,_),_)) = L
 fun baseDepth (Root ((_,r),_)) = real r
 
-
 fun inList f x [] = false
   | inList f x (y::L) = if f (x,y) then true else inList f x L;
+
+*)
 
 fun findAndRemove _ _ [] = (false,[])
   | findAndRemove f x (a::L) =
@@ -70,6 +74,7 @@ fun isPermutationOf _ [] [] = true
                                  end
   | isPermutationOf _ _ _ = false;
 
+(*
 fun selectTokensWithOutputType C t =
     let fun f x = let val outType = (#2 o Type.getInOutTypes o Property.getTypeOfValue) x
                   in Type.match (t, outType)
@@ -138,7 +143,7 @@ fun treesFromPattern tokens p =
     in map mkTree treeListOptions
     end
 
-
+*)
 (*)
 exception Length;
 fun zipLists [] [] = []
@@ -221,23 +226,24 @@ fun satisfyTypeDNF tF =
                        else x)
                 )
             end
-        fun maxdepth [] = 0 | maxdepth ((_,((d,_),_))::L) = Int.max (d, maxdepth L)
-        fun maxbreadth [] = 0 | maxbreadth ((_,((_,b),_))::L) = Int.max (b, maxbreadth L)
+        fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
+                                    List.avgIndexed (fn (_,((_,b),_)) => real b) L)
         fun maxDepthAndBreadth [] = (0,0)
           | maxDepthAndBreadth ((_,((d,b),_))::L) =
             let val (d',b') = maxDepthAndBreadth L
             in (Int.max (d,d'), Int.max (b,b'))
             end
         val sattF = iterate tF
-    in (sattF, maxDepthAndBreadth sattF)
+    in (sattF, avgDepthAndBreadth sattF)
     end;
 
 fun satisfyPattern p C P =
     let val occurrences = #2 o (Property.getNumFunction "occurrences")
-        val nt = List.sumIndexed occurrences C / 2.0
+        val nty = real (List.length (List.removeDuplicates (map Property.getTypeOfValue C)))
+        val nt = List.sumIndexed occurrences C / nty
         fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
                       else if x = ~2 then Real.floor (Math.sqrt nt)
-                      else if x = ~3 then Real.floor (nt / 2.0)
+                      else if x = ~3 then Real.floor nt
                       else if x >= 0 then x else raise Match
         fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
         fun getLTTNC c = (([Property.LabelOf c],
@@ -257,15 +263,16 @@ fun satisfyPattern p C P =
         fun clusterByTypes [] = []
           | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
         val C' = clusterByTypes (map getLTTNC C)
+        val P' = clusterByTypes (map getLTTNP P)
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = getLTTNP p
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun patternClause () = (typs, ((udepth,length typs), diminish tks (C' @ (map getLTTNP P))))
-    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0,0))
+        fun patternClause () = (typs, ((udepth,length typs), diminish tks (C' @ P')))
+    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0.0,0.0))
     end
 
-
+(*)
 fun maxWithOmegaPlus (x,y) =
     if (x < 0 andalso y < 0) then Int.min (x,y)
     else if x < 0 then x
@@ -298,6 +305,7 @@ fun avgBreadth L = if null L then 1.0 else List.avgIndexed (real o maxBreadth) L
 fun depth C p = avgDepth (treesFromPattern C p)
 fun breadth C p = avgBreadth (treesFromPattern C p)
 
+*)
 fun arity p = (Property.size (Property.getHoles p))
 fun distinctArity p = real (Property.countUnique (Property.getHoles p))
 

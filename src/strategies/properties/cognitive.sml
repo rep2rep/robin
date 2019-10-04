@@ -179,21 +179,22 @@ fun expressionComplexity qT (*rT *)=
         val P = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) P'
         val C' = PropertySet.toList (QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Token)) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
         val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" x)) >= 1.0) C'
-        val n = numberOfTokens qT / 2.0
+        val n = numberOfTokens qT / numberOfTokenTypes qT
         fun f p =
             let val x = QProperty.withoutImportance p
               (*)  val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)*)
                 val _ = print ("\n   " ^ (Property.toString x))
                 val (_,(d,b)) = Pattern.satisfyPattern x C (map QProperty.withoutImportance P)
-                val depth = (print ("\n       depth:" ^ (Int.toString d) ^ " "); real d) (*Pattern.avgDepth trees*)
-                val breadth = (print ("\n       breadth:" ^ (Int.toString b) ^ " "); real b)
+                val depth = (print ("\n       depth:" ^ (Real.toString d) ^ " "); d) (*Pattern.avgDepth trees*)
+                val breadth = (print ("\n       breadth:" ^ (Real.toString b) ^ " "); b)
                 val arity = let val i = Pattern.arity x
-                            in if i = ~3 then n/2.0 else
+                            in if i = ~3 then n else
                                if i = ~2 then Math.sqrt n else
                                if i = ~1 then Math.ln n else
-                                  real i
+                                   real i
                             end
-            in arity + Math.sqrt (depth * breadth)
+                val _ = print ("\n       arity:" ^ (Real.toString arity) ^ " ")
+            in Math.sqrt (Math.pow(arity,2.0) + (depth * breadth))
             end
         fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
                           **) (Importance.weight (QProperty.importanceOf x))
