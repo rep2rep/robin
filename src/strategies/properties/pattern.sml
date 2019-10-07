@@ -2,16 +2,6 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
-(*)
-  type branch;
-  type expression_tree;
-
-  val decreaseMultiplicityOf : string -> Property.property list -> Property.property list;
-  val treesFromToken : Property.property list -> Property.property -> branch list;
-  val treesFromPattern : Property.property list -> Property.property -> expression_tree list;
-  val baseTokens : expression_tree -> string list;
-  val baseDepth : expression_tree -> real;
-*)
   type data = real * real;
   type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
   type clause = (Type.T list * ((int * int) * resources));
@@ -23,20 +13,6 @@ sig
   val satisfyPattern : Property.property -> Property.property list -> Property.property list
                         -> (clause list * data);
 
-                        (*
-  val listMaxWithOmegaPlus : int list -> int;
-  val maxBreadth : expression_tree -> int;
-  val maxDepth : expression_tree -> int;
-
-  val maxBranchDepth : branch -> int;
-  val maxBranchBreadth : branch * int -> int;
-  val avgDepth : expression_tree list -> real;
-  val avgBreadth : expression_tree list -> real;
-*)
-(*
-  val depth : Property.property list -> Property.property -> real;
-  val breadth : Property.property list -> Property.property -> real;
-  *)
   val arity : Property.property -> int;
   val distinctArity : Property.property -> real;
 end;
@@ -48,110 +24,8 @@ struct
   type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
   type clause = (Type.T list * ((int * int) * resources));
 
-  (*
-datatype branch = Branch of (string * branch list);
-datatype expression_tree = Root of ((string list * int) * ((branch * int) list))
-
-fun baseTokens (Root ((L,_),_)) = L
-fun baseDepth (Root ((_,r),_)) = real r
-
-fun inList f x [] = false
-  | inList f x (y::L) = if f (x,y) then true else inList f x L;
-
-*)
-
-fun findAndRemove _ _ [] = (false,[])
-  | findAndRemove f x (a::L) =
-      if f (x, a) then (true,L)
-      else let val (found,L') = findAndRemove f x L
-           in (found,a::L')
-           end;
-
-fun isPermutationOf _ [] [] = true
-  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemove f a B
-                                 in if found then isPermutationOf f A B'
-                                    else false
-                                 end
-  | isPermutationOf _ _ _ = false;
-
-(*
-fun selectTokensWithOutputType C t =
-    let fun f x = let val outType = (#2 o Type.getInOutTypes o Property.getTypeOfValue) x
-                  in Type.match (t, outType)
-                  end
-        val L = List.filter f C
-    in L
-    end;
-
-(*
-[["a1","b1","c1"],["a2","b2"],["a3"]] ->
-    [["a1", "a2", "a3"], ["a1", "b2", "a3"], ["b1", "a2", "a3"],
-     ["b1", "b2", "a3"], ["c1", "a2", "a3"], ["c1", "b2", "a3"]] *)
-fun listCombChoices [] = [[]]
-  | listCombChoices ([]::L') = []
-  | listCombChoices ((a::L)::L') = (map (fn x => a::x) (listCombChoices L')) @ (listCombChoices (L::L'));
-
-
-fun decreaseMultiplicityOf c [] = []
-  | decreaseMultiplicityOf c (c'::L) =
-      if c = Property.LabelOf c'
-      then
-           (if #2 (Property.getNumFunction "occurrences" c') <= 1.0 then L
-            else (Property.updateNumFunction "occurrences" (fn x => x - 1.0) c') :: L)
-              handle Match => (print ("no attribute \"occurrences\" for token" ^ Property.toString c'); raise Match)
-      else c' :: decreaseMultiplicityOf c L
-
-(* returns a list of possible trees that can be constructing by applying a token
-   to some arguments, if the token has a function type. *)
-fun treesFromToken tokens c = if null tokens then [] else
-  let
-    val C = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) tokens
-  (*)  val _ = print (Property.LabelOf c ^ " " ^ (Real.toString (#2 (Property.getNumFunction "occurrences" c)))^ "\n")*)
-    fun makeTrees_rec CC (cc::LL) = let val CC' = (decreaseMultiplicityOf (Property.LabelOf cc) CC)
-                                     in (treesFromToken CC' cc) :: (makeTrees_rec CC' LL)
-                                     end
-      | makeTrees_rec _ [] = [];
-    val t = Property.getTypeOfValue c
-    val (iT,_) = Type.getInOutTypes t
-    val C' = decreaseMultiplicityOf (Property.LabelOf c) C
-    val cL = listCombChoices (map (selectTokensWithOutputType C') iT) (* list of lists of tokens e.g., in [[t,s],[u,v]] you have to select one from each list
-                                                                        e.g., [t,u] or [t,v], thus the application of listCombChoices.
-                                                                        Each element of cL is a potential set of children *)
-  (*)  val _ = print (Property.toString (hd (hd cL)) ^ "\n" handle _ => "none") *)
-
-    fun ch' L = listCombChoices (makeTrees_rec C' L)
-    val ch = List.hd (map ch' cL) handle Empty => []
-
-  in
-    map (fn x => Branch (Property.LabelOf c,x)) ch
-  end;
-
-
-fun treesFromType C t = List.concat (map (treesFromToken C) (selectTokensWithOutputType C t))
-
-fun treesFromPattern tokens p =
-    let val C = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) tokens
-        val tkL = Property.getTokens p
-        fun dec (x::L) X = dec L (decreaseMultiplicityOf x X) | dec [] X = X
-        val C' = dec tkL C
-        val ud = #2 (Property.getNumFunction "udepth" p) handle Match => 1.0
-        val H = Property.toPairList (Property.getHoles p)
-        fun branchesFromHoles [] = []
-          | branchesFromHoles ((t,n)::L) = (map (fn x => (x,n)) (treesFromType C' (t))) :: branchesFromHoles L
-        val treeListOptions = listCombChoices (branchesFromHoles H)
-        fun mkTree L = Root ((tkL, Real.toInt IEEEReal.TO_NEAREST ud), L)
-    in map mkTree treeListOptions
-    end
-
-*)
-(*)
-exception Length;
-fun zipLists [] [] = []
-  | zipLists (x::xL) (y::yL) = (x,y) :: zipLists xL yL
-  | zipLists _ _ = raise Length;*)
-
 fun sameTypeDNF (tF, tF') =
-    let (*fun sameK ((k,i),(k',i')) = (#1 tK = #1 tK') andalso (#2 tK = #2 tK')*)
+    let (* compares everything except the current depth *)
         fun same [] [] = true
           | same ((cl,(_,K))::L) ((cl',(_,K'))::L') = (cl = cl') andalso (K = K') andalso (same L L')
           | same _ _ = false
@@ -191,8 +65,9 @@ fun unfoldTypeDNF [] = (false,[])
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
           | unfoldClause ((lt::C),((d,b),K)) = distribute (getChildrenOptions lt K) (unfoldClause (C,((d,b),K)));
 
-        (* The following functions are not used but could potentially simplify the search if used properly *)
-        (* begin *)
+(* The following functions are not used but could potentially simplify the search if used properly *)
+(* begin *)
+(*
         fun remove_satisfied [] = []
           | remove_satisfied ((x,_)::L) = if null x then remove_satisfied L else x :: remove_satisfied L
 
@@ -204,11 +79,8 @@ fun unfoldTypeDNF [] = (false,[])
           | simplifyClause ((lt,count)::C) = let val (s,L) = countAndRemoveType lt ((lt,count) :: C)
                                               in (lt,s) :: simplifyClause L
                                               end;
+*)(* end *)
 
-
-        (**)
-        (* end *)(*
-        fun updDepth (C,(d,K)) = if null cl andalso null C then (C,(d,K)) else (C,(d+1,K))*)
         val unfoldedCl = if null (#1 cl) then [cl] else unfoldClause cl
         val clChanged = not (sameTypeDNF ([cl],unfoldedCl))
         val (dnfChanged, unfoldedDNF) = unfoldTypeDNF dnf
@@ -228,7 +100,7 @@ fun satisfyTypeDNF tF =
             end
         fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
                                     List.avgIndexed (fn (_,((_,b),_)) => real b) L)
-        fun maxDepthAndBreadth [] = (0,0)
+        fun maxDepthAndBreadth [] = (1,1)
           | maxDepthAndBreadth ((_,((d,b),_))::L) =
             let val (d',b') = maxDepthAndBreadth L
             in (Int.max (d,d'), Int.max (b,b'))
@@ -257,7 +129,7 @@ fun satisfyPattern p C P =
 
         fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
           | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
-            if isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
+            if List.isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
                 andalso (List.tl ls handle Empty => []) = (List.tl ls' handle Empty => [])
                 (* this last condition makes sure that the patterns are only clustered together if they have the same tokens*)
             then ((l @ l',ls',(ts,t)),i+i')::L
@@ -269,9 +141,9 @@ fun satisfyPattern p C P =
         val CP = clusterByTypes ((map getLTTNC C) @ map getLTTNP P)
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
-        val ((_,tks,(typs,_)),_) = getLTTNP p
+        val ((_,tks,(typs,_)),_) = if Property.kindOf p = Kind.Pattern then getLTTNP p else getLTTNC p
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun patternClause () = (typs, ((udepth,length typs), diminish tks CP))
+        fun patternClause () = (typs, ((udepth,1), diminish tks CP))
     in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0.0,0.0))
     end
 
@@ -285,31 +157,12 @@ fun maxWithOmegaPlus (x,y) =
 fun listMaxWithOmegaPlus [] = 0
   | listMaxWithOmegaPlus (h::t) = maxWithOmegaPlus (h,listMaxWithOmegaPlus t);
 
-fun maxBranchDepth (Branch (_,[])) = 0
-  | maxBranchDepth (Branch (_,h::L)) = maxWithOmegaPlus (maxBranchDepth h, listMaxWithOmegaPlus (map maxBranchDepth L)) + 1;
-
-fun maxBranchBreadth ((Branch (_,[])),i) = i
-  | maxBranchBreadth ((Branch (_,h::L)),i) =
-      listMaxWithOmegaPlus ((maxBranchBreadth (h,1))
-                            :: (1 + List.length L)
-                            :: (map (maxBranchBreadth o (fn x => (x,1))) L));
-
-fun maxDepth ((Root ((s,ud),L))) = listMaxWithOmegaPlus ((map (maxBranchDepth o #1) L)) + ud
-fun maxBreadth ((Root ((s,_),L))) = listMaxWithOmegaPlus (map maxBranchBreadth L)
-
-fun typeCount (t,n) = n;
-
-
-(* tree list functions *)
-fun avgDepth L = if null L then 1.0 else List.avgIndexed (real o maxDepth) L
-fun avgBreadth L = if null L then 1.0 else List.avgIndexed (real o maxBreadth) L
-
 (* Pattern functions *)
 fun depth C p = avgDepth (treesFromPattern C p)
 fun breadth C p = avgBreadth (treesFromPattern C p)
 
 *)
-fun arity p = (Property.size (Property.getHoles p))
+fun arity p = if Property.kindOf p = Kind.Pattern then Property.size (Property.getHoles p) else List.length (#1 (Type.getInOutTypes (Property.getTypeOfValue p)))
 fun distinctArity p = real (Property.countUnique (Property.getHoles p))
 
 

@@ -87,8 +87,10 @@ fun numberOfTokenTypes qT =
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfExpressionTypes qT =
     let val P = QPropertySet.collectOfKind qT Kind.Pattern
-        val T = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) P
-    in real (List.length (List.removeDuplicates T))
+        val C = QPropertySet.collectOfKind qT Kind.Token
+        val Tc = QPropertySet.map (fn x => #2 (Type.getInOutTypes (Property.getTypeOfValue (QProperty.withoutImportance x)))) C
+        val Tp = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) P
+    in real (List.length (List.removeDuplicates (Tc @ Tp)))
     end;
 
 (* Cognitive property 3b *)
@@ -177,14 +179,13 @@ fun expressionRegistration qT rT =
 fun expressionComplexity qT (*rT *)=
     let val P' = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
         val P = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) P'
-        val C' = PropertySet.toList (QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Token)) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
-        val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" x)) >= 1.0) C'
+        val C' = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
+        val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) C'
         val n = numberOfTokens qT / numberOfTokenTypes qT
         fun f p =
             let val x = QProperty.withoutImportance p
-              (*)  val trees = Pattern.treesFromPattern C (QProperty.withoutImportance p)*)
                 val _ = print ("\n   " ^ (Property.toString x))
-                val (_,(d,b)) = Pattern.satisfyPattern x C (map QProperty.withoutImportance P)
+                val (_,(d,b)) = Pattern.satisfyPattern x (map QProperty.withoutImportance C) (map QProperty.withoutImportance P)
                 val depth = (print ("\n       depth:" ^ (Real.toString d) ^ " "); d) (*Pattern.avgDepth trees*)
                 val breadth = (print ("\n       breadth:" ^ (Real.toString b) ^ " "); b)
                 val arity = let val i = Pattern.arity x
@@ -198,7 +199,7 @@ fun expressionComplexity qT (*rT *)=
             end
         fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
                           **) (Importance.weight (QProperty.importanceOf x))
-    in List.weightedAvgIndexed weighing f P
+    in List.weightedAvgIndexed weighing f (C @ P)
     end;
 
 

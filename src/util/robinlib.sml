@@ -73,6 +73,8 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
 
+    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool
+
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
     val cartesianProduct : 'a list -> 'b list -> ('a * 'b) list;
@@ -150,6 +152,23 @@ fun enumerateFrom start list =
     end;
 
 fun enumerate xs = enumerateFrom 0 xs;
+
+
+
+fun findAndRemove _ _ [] = (false,[])
+  | findAndRemove f x (a::L) =
+      if f (x, a) then (true,L)
+      else let val (found,L') = findAndRemove f x L
+           in (found,a::L')
+           end;
+
+fun isPermutationOf _ [] [] = true
+  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemove f a B
+                                 in if found then isPermutationOf f A B'
+                                    else false
+                                 end
+  | isPermutationOf _ _ _ = false;
+
 
 fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
 

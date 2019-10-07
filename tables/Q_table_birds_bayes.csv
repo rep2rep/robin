@@ -2,7 +2,9 @@ birds,bayes
 error_allowed, 0
 answer_type, real
 instrumental_tokens,"\Pr : {type := event * event -> real;
-                            occurrences := 4},
+                            occurrences := 2},
+                     \Pr : {type := event -> real;
+                            occurrences := 2},
                      \cap : {type := event * event -> event;
                              occurrences := 1},
                      \bar : {type := event -> event;
@@ -17,25 +19,25 @@ instrumental_patterns,"$conditional_Pr : {type := formula;
                                           occurrences := 2;
                                           tokens := [\Pr. |. =];
                                           udepth := 3;
-                                          token_registration := 2},
+                                          token_registration := 1},
                        $joint_Pr : {type := formula;
                                     holes := [event => 2. real => 1];
                                     occurrences := 1;
                                     tokens := [\Pr. \cap. =];
                                     udepth := 3;
-                                    token_registration := 2},
+                                    token_registration := 1},
                        $simple_Pr : {type := formula;
                                      holes := [event => 1. real => 1];
                                      occurrences := 1;
                                      tokens := [\Pr. =];
                                      udepth := 2;
-                                     token_registration := 2},
+                                     token_registration := 1},
                         $equality_chain : {type := formula;
                                             holes := [real => #t];
                                             occurrences := 0;
                                             tokens := [=];
                                             udepth := 1;
-                                            token_registration := 2}"
+                                            token_registration := 1}"
 instrumental_laws, "$Bayes'_theorem : {description := foundational theorem of conditional probability},
                     $law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
                     $unit_measure : {description := probability values over an exhaustive event set add up to 1}"
