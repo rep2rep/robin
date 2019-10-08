@@ -88,7 +88,12 @@ fun numberOfTokenTypes qT =
 fun numberOfExpressionTypes qT =
     let val P = QPropertySet.collectOfKind qT Kind.Pattern
         val C = QPropertySet.collectOfKind qT Kind.Token
-        val Tc = QPropertySet.map (fn x => #2 (Type.getInOutTypes (Property.getTypeOfValue (QProperty.withoutImportance x)))) C
+        fun getNonTrivialExpressionTypes [] = []
+          | getNonTrivialExpressionTypes (x::X) =
+            let val (typs,t) = Type.getInOutTypes (Property.getTypeOfValue x)
+            in if null typs then getNonTrivialExpressionTypes X else t :: getNonTrivialExpressionTypes X
+            end
+        val Tc = getNonTrivialExpressionTypes (QPropertySet.map QProperty.withoutImportance C)
         val Tp = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) P
     in real (List.length (List.removeDuplicates (Tc @ Tp)))
     end;
@@ -125,7 +130,7 @@ fun tokenRegistration qT =
         val C4 = importance_filter Importance.Zero C
         val C5 = importance_filter Importance.Noise C*)
         fun tokensFromPattern x = (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getTokens x,1.0))
+                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); ([],1.0))
         fun typesFromPattern x = (Property.getHoles x, #2 (Property.getNumFunction "token_registration" x))
                                     handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getHoles x,1.0))
         val tokenswithreg = PropertySet.map tokensFromPattern P
