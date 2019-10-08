@@ -37,18 +37,57 @@ datatype reason = IDENTITY of Property.property
                 | ATTRIBUTE of Property.property * Property.property
                 | VALUE of Property.property * Property.property;
 
-fun reasonString (IDENTITY p) = "The property " ^ (Property.toString p) ^ " corresponds to itself"
-  | reasonString (REVERSAL c) = "Reversed from " ^ (Correspondence.toString c)
-  | reasonString (COMPOSITION (c1, c2)) = "Composed from " ^ (Correspondence.toString c1) ^ " and " ^ (Correspondence.toString c2)
-  | reasonString (ATTRIBUTE (p1, p2)) = "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
-  | reasonString (VALUE (p1, p2)) = "Is a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2);
+fun reasonString (IDENTITY p) =
+    "The property " ^ (Property.toString p) ^ " corresponds to itself"
+  | reasonString (REVERSAL c) =
+    "Reversed from " ^ (Correspondence.toString c)
+  | reasonString (COMPOSITION (c1, c2)) =
+    "Composed from " ^ (Correspondence.toString c1) ^ " and " ^ (Correspondence.toString c2)
+  | reasonString (ATTRIBUTE (p1, p2)) =
+    "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
+  | reasonString (VALUE (p1, p2)) =
+    "Is a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2);
+
 fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
+
+fun anyCommonCorrs cs cs' = List.exists (fn c => corrExists c cs') cs;
+
+fun doCorrespond cs (p1, p2) = Correspondence.matchExists (PropertySet.fromList [p1]) (PropertySet.fromList [p2]) cs;
 
 fun makeCorr (p, q) =
     (Correspondence.F.Atom p, Correspondence.F.Atom q, 1.0);
 
 fun atomOnly (Correspondence.F.Atom x, Correspondence.F.Atom y, z) = true
   | atomOnly _ = false;
+
+fun checkAttrCorr cs (a, b) =
+    let
+        fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
+        fun unifyGround (Type.Ground x, Type.Ground y) = [(Type.Ground x, Type.Ground y)]
+          | unifyGround (Type.Var x, Type.Var y) = []
+          | unifyGround (Type.Pair (a, b), Type.Pair (x, y)) = (unifyGround (a, x)) @ (unifyGround (b, y))
+          | unifyGround (Type.Function (a, b), Type.Function (x, y)) = (unifyGround (a, x)) @ (unifyGround (b, y))
+          | unifyGround (Type.Constructor (s, x), Type.Constructor (s', y)) = (Type.Ground s, Type.Ground s')::(unifyGround (x, y))
+          | unifyGround _ = raise Match;
+        val (at, bt) = spread Attribute.getType (a, b);
+        val unified = unifyGround (at, bt) handle Match => [];
+        val typePairs = map (spread propertyFromType) unified;
+        val success = List.all (doCorrespond cs) typePairs;
+    in
+        success andalso not (List.null unified)
+    end handle Match =>
+    let
+        fun propertyFromString s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
+        val (at, bt) = spread Attribute.getTokens (a, b);
+        val tokPairs = List.product at bt;
+        val propPairs = map (spread propertyFromString) tokPairs;
+        val success = List.all (doCorrespond cs) propPairs;
+    in
+        success andalso not (List.null tokPairs)
+    (* end handle Match => *)
+    (* let *)
+    (* in *)
+    end handle Match => false;
 
 fun findMatches cs rs =
     let
@@ -105,7 +144,22 @@ fun discoverComposition (cs, rss, rs') =
 
 (* fun discoverKind (cs, rss, rs') = NONE; *)
 
-fun discoverAttribute (cs, rss, rs') = NONE;
+fun discoverAttribute (cs, rss, rs') =
+    let
+        fun matchAttrs (p, q) =
+            let
+                val pAttrs = Property.attributesOf p;
+                val qAttrs = Property.attributesOf q;
+                val corrAttrs = List.filter (checkAttrCorr cs) (List.product pAttrs qAttrs);
+            in
+                not (List.null corrAttrs)
+            end;
+        val potentialCorrs = List.flatmap (fn rs => PropertySet.product rs rs') rss;
+        val matchingAttrs = List.filter matchAttrs potentialCorrs;
+        val corrs = map (fn pq => (makeCorr pq, ATTRIBUTE pq)) matchingAttrs;
+    in
+        chooseNew corrs cs
+    end handle List.Empty => NONE;
 
 fun discoverValue (cs, rss, rs') = NONE;
 
