@@ -94,11 +94,11 @@ fun fold f a EMPTY = a
   | fold f a (CONS(x, xf)) = fold f (f a x) (force xf);
 
 fun take 0 _ = EMPTY
-  | take _ EMPTY = raise Subscript
+  | take _ EMPTY = EMPTY
   | take n (CONS(x, xf)) = CONS(x, fn () => take (n-1) (force xf));
 
 fun drop 0 x = x
-  | drop _ EMPTY = raise Subscript
+  | drop _ EMPTY = EMPTY
   | drop n (CONS(x, xf)) = drop (n-1) (force xf);
 
 fun takeWhile f EMPTY = EMPTY
