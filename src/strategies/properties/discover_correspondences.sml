@@ -103,6 +103,14 @@ fun checkAttrCorr cs (a, b) =
         success andalso not (List.null tokPairs)
     end handle Match => false;
 
+fun potentialAttrCorr (a, b) =
+    let
+        val _ = print ("(" ^ (Property.toString a) ^ ", " ^ (Property.toString b) ^ ")\n");
+    in
+        []
+    end;
+end;
+
 fun findMatches cs rs =
     let
         val matchChecker = fn m => not o PropertySet.isEmpty o (m rs);
@@ -175,7 +183,15 @@ fun discoverAttribute (cs, rss, rs') =
         chooseNew corrs cs
     end handle List.Empty => NONE;
 
-fun discoverValue (cs, rss, rs') = NONE;
+fun discoverValue (cs, rss, rs') =
+    let
+        val potentialMatchingValues = List.flatmap (fn rs => PropertySet.product rs rs') rss;
+        val matchingValues = List.filter (doCorrespond cs) potentialMatchingValues;
+        val attrOptions = List.flatmap potentialAttrCorr matchingValues;
+        val corrs = map (fn pq => (makeCorr pq, VALUE pq)) attrOptions;
+    in
+        chooseNew corrs cs
+    end handle List.Empty => NONE;
 
 
 (* All together now... *)

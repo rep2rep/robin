@@ -78,6 +78,7 @@ fun requestInput prompt =
     in case read of SOME v => v
                   | NONE => "" end;
 
+exception Return of int;
 fun main () =
     let
         fun loadRS name =
@@ -106,18 +107,21 @@ fun main () =
                           | NONE => Parser.stripSpaces (requestInput "Which is the new RS? ");
         val newRS = PropertyTables.FileDict.get allRSs newRSName
                     handle PropertyTables.FileDict.KeyError =>
-                           (print ("No RS named "^newRSName^"!\n"); PropertySet.empty ());
+                           (Logging.error ("No RS named "^newRSName^"!\n"); PropertySet.empty (); raise Return 1);
         val _ = PropertyTables.FileDict.remove allRSs newRSName;
         val oldRSs = PropertyTables.FileDict.values allRSs;
         val state = (correspondences, oldRSs, newRS);
+        val _ = if Option.isSome rscount then ()
+                else print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
         val suggestions = FindCorrs.discover state;
     in
         case rscount of
-            NONE => (print ("Press <enter> to view suggestions, ctrl-D to exit.\n"); repl suggestions)
+            NONE => repl suggestions
           | SOME k => showAll (Stream.take k suggestions);
         0
     end
-    handle exn =>
+    handle Return i => i
+         | exn =>
            let
                fun printError exn (SOME {file,startLine,startPosition,endLine,endPosition}) =
                    Logging.error ("Exception at " ^ file
