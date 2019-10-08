@@ -1,5 +1,4 @@
 import "util.logging";
-import "util.configuration";
 
 import "strategies.properties.tables";
 import "strategies.properties.discover_correspondences";
@@ -34,11 +33,11 @@ fun parseArgs () =
         val args = CommandLine.arguments ();
         val configuration =
             case args of
-                [fname] => Configuration.configFromFile fname
-              | _ => Configuration.configFromCommandLine args;
-    in configuration end
-    handle Configuration.ArgumentError s => (Logging.error(s);
-                                             raise Configuration.ArgumentError s);
+                [] => (NONE, NONE)
+              | [rs] => (SOME rs, NONE)
+              | [rs, count] => (SOME rs, Int.fromString count)
+              | (rs::count::_) => (Logging.error ("Ignoring extra arguments..."); (SOME rs, Int.fromString count));
+    in configuration end;
 
 fun repl state =
     let
@@ -58,6 +57,19 @@ fun repl state =
         case newState of
             SOME newState => repl newState
           | NONE => ()
+    end;
+
+fun showAll stream =
+    let
+        fun fmt c r = (Correspondence.toString c)
+                      ^ "\n\t"
+                      ^ (FindCorrs.reasonString r);
+        fun next s =
+            let val ((c, r), t) = Stream.step s
+            in print (fmt c r); next t end
+            handle Subscript => ();
+    in
+        next stream
     end;
 
 fun requestInput prompt =
@@ -86,16 +98,23 @@ fun main () =
         val allRSs = PropertyTables.FileDict.unionAll
                          (map loadRS rsFiles);
         val _ = print ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
-        val newRSName = Parser.stripSpaces (requestInput "Which is the new RS? ");
+
+        val (rsname, rscount) = parseArgs ();
+
+        val newRSName = case rsname of
+                            SOME name => (print ("Taking " ^ name ^ " as the new RS.\n"); name)
+                          | NONE => Parser.stripSpaces (requestInput "Which is the new RS? ");
         val newRS = PropertyTables.FileDict.get allRSs newRSName
                     handle PropertyTables.FileDict.KeyError =>
                            (print ("No RS named "^newRSName^"!\n"); PropertySet.empty ());
         val _ = PropertyTables.FileDict.remove allRSs newRSName;
         val oldRSs = PropertyTables.FileDict.values allRSs;
         val state = (correspondences, oldRSs, newRS);
-        val _ = print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
+        val suggestions = FindCorrs.discover state;
     in
-        repl (FindCorrs.discover state);
+        case rscount of
+            NONE => (print ("Press <enter> to view suggestions, ctrl-D to exit.\n"); repl suggestions)
+          | SOME k => showAll (Stream.take k suggestions);
         0
     end
     handle exn =>
