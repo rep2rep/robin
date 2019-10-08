@@ -4,7 +4,11 @@ import "util.parser";
 signature TYPE =
 sig
     exception ParseError;
-    type T;
+    datatype T = Ground of string
+               | Var of string
+               | Pair of T * T
+               | Function of T * T
+               | Constructor of string * T;
     val getInOutTypes : T -> (T list * T list);
     val outputArity : T -> int;
     val inputArity : T -> int;
