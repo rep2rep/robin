@@ -46,8 +46,9 @@ fun repl state =
                       ^ "\n\t"
                       ^ (FindCorrs.reasonString r);
         fun eval s i = case i of
-                           SOME i => let val ((c, r), t) = Stream.step s
-                                     in (SOME t,  fmt c r) end
+                           SOME i => (let val ((c, r), t) = Stream.step s
+                                      in (SOME t,  fmt c r) end
+                                      handle Subscript => (NONE, "\nAll out of suggestions!\n"))
                          | NONE => (NONE, "\nBye!\n");
 
         val read = TextIO.inputLine TextIO.stdIn;
@@ -96,4 +97,17 @@ fun main () =
     in
         repl (FindCorrs.discover state);
         0
-    end;
+    end
+    handle exn =>
+           let
+               fun printError exn (SOME {file,startLine,startPosition,endLine,endPosition}) =
+                   Logging.error ("Exception at " ^ file
+                                  ^ ":" ^ (Int.toString startLine) ^ ":" ^ (Int.toString startPosition)
+                                  ^ "-" ^ (Int.toString endLine) ^ ":" ^ (Int.toString endPosition) ^ "\n"
+                                  ^ (exnMessage exn) ^ "\n")
+                 | printError exn NONE = Logging.error ("An exception occurred at an unknown location.\n"
+                                                        ^ (exnMessage exn) ^ "\n");
+           in
+               printError exn (PolyML.Exception.exceptionLocation exn);
+               PolyML.Exception.reraise exn
+           end;
