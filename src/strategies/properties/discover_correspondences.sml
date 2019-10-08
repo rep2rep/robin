@@ -107,7 +107,7 @@ fun potentialAttrCorr (a, b) =
     let
         val _ = print ("(" ^ (Property.toString a) ^ ", " ^ (Property.toString b) ^ ")\n");
     in
-        []
+        Stream.empty
     end;
 end;
 
@@ -118,18 +118,31 @@ fun findMatches cs rs =
         val rightMatches = List.filter (matchChecker Correspondence.rightMatches) cs;
     in (leftMatches, rightMatches) end;
 
-fun chooseNew [] _ = NONE
-  | chooseNew options existing =
+fun chooseNew options existing =
     let
-        val (option, reason) = Random.choose options;
+        fun maybeUse (option, reason) (a, f) =
+            if corrExists option existing
+            then f a
+            else SOME (option, reason);
+        fun listChoose (xs, s) =
+            let
+                val (x, r) = Random.choose xs;
+                val xs' = List.filter (fn (y, _) => not (Correspondence.matchingProperties x y)) xs;
+            in
+                maybeUse (x, r) ((xs', s), listChoose)
+            end handle List.Empty => NONE;
+        fun streamChoose (rest, s) =
+            let
+                val (x, xf) = Stream.step s;
+                val r = Random.random ();
+            in
+                if r < 0.5
+                then maybeUse x ((rest, s), streamChoose)
+                else streamChoose ((x::rest), xf)
+            end
+            handle Subscript => listChoose (rest, Stream.empty);
     in
-        if corrExists option existing
-        then chooseNew
-                 (List.filter (not o (fn (opt, r) =>
-                                         Correspondence.matchingProperties option opt))
-                              options)
-                 existing
-        else SOME (option, reason)
+        streamChoose ([], options)
     end;
 
 
@@ -146,7 +159,7 @@ fun discoverReversal (cs, rss, rs') =
         val (leftMatches, rightMatches) = findMatches cs rs';
         val corrs = map flipCorr (leftMatches @ rightMatches);
     in
-        chooseNew corrs cs
+        chooseNew (Stream.fromList corrs) cs
     end handle List.Empty => NONE;
 
 fun discoverComposition (cs, rss, rs') =
@@ -161,7 +174,7 @@ fun discoverComposition (cs, rss, rs') =
         val validCorrPairs = List.filter doCompose corrPairs;
         val corrs = map compose validCorrPairs;
     in
-        chooseNew corrs cs
+        chooseNew (Stream.fromList corrs) cs
     end handle List.Empty => NONE;
 
 (* fun discoverKind (cs, rss, rs') = NONE; *)
@@ -176,19 +189,19 @@ fun discoverAttribute (cs, rss, rs') =
             in
                 not (List.null corrAttrs)
             end;
-        val potentialCorrs = List.flatmap (fn rs => PropertySet.product rs rs') rss;
-        val matchingAttrs = List.filter matchAttrs potentialCorrs;
-        val corrs = map (fn pq => (makeCorr pq, ATTRIBUTE pq)) matchingAttrs;
+        val potentialCorrs = (Stream.interleaveAll o List.map (fn rs => Stream.fromList (PropertySet.product rs rs'))) rss;
+        val matchingAttrs = Stream.filter matchAttrs potentialCorrs;
+        val corrs = Stream.map (fn pq => (makeCorr pq, ATTRIBUTE pq)) matchingAttrs;
     in
         chooseNew corrs cs
     end handle List.Empty => NONE;
 
 fun discoverValue (cs, rss, rs') =
     let
-        val potentialMatchingValues = List.flatmap (fn rs => PropertySet.product rs rs') rss;
-        val matchingValues = List.filter (doCorrespond cs) potentialMatchingValues;
-        val attrOptions = List.flatmap potentialAttrCorr matchingValues;
-        val corrs = map (fn pq => (makeCorr pq, VALUE pq)) attrOptions;
+        val potentialMatchingValues = (Stream.interleaveAll o List.map (fn rs => Stream.fromList (PropertySet.product rs rs'))) rss;
+        val matchingValues = Stream.filter (doCorrespond cs) potentialMatchingValues;
+        val attrOptions = Stream.flatmap potentialAttrCorr matchingValues;
+        val corrs = Stream.map (fn pq => (makeCorr pq, VALUE pq)) attrOptions;
     in
         chooseNew corrs cs
     end handle List.Empty => NONE;
