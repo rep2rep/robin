@@ -63,7 +63,8 @@ fun showAll stream =
     let
         fun fmt c r = (Correspondence.toString c)
                       ^ "\n\t"
-                      ^ (FindCorrs.reasonString r);
+                      ^ (FindCorrs.reasonString r)
+                      ^ "\n";
         fun next s =
             let val ((c, r), t) = Stream.step s
             in print (fmt c r); next t end
@@ -82,7 +83,7 @@ exception Return of int;
 fun main () =
     let
         fun loadRS name =
-            let val _ = print ("Loading RS table " ^ name ^ "... \n");
+            let val _ = Logging.write ("Loading RS table " ^ name ^ "... \n");
             in
                 PropertyTables.loadRepresentationTable name
             end;
@@ -98,12 +99,12 @@ fun main () =
                                                corrFiles);
         val allRSs = PropertyTables.FileDict.unionAll
                          (map loadRS rsFiles);
-        val _ = print ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
+        val _ = Logging.write ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
 
         val (rsname, rscount) = parseArgs ();
 
         val newRSName = case rsname of
-                            SOME name => (print ("Taking " ^ name ^ " as the new RS.\n"); name)
+                            SOME name => (Logging.write ("Taking " ^ name ^ " as the new RS.\n"); name)
                           | NONE => Parser.stripSpaces (requestInput "Which is the new RS? ");
         val newRS = PropertyTables.FileDict.get allRSs newRSName
                     handle PropertyTables.FileDict.KeyError =>
@@ -117,7 +118,9 @@ fun main () =
     in
         case rscount of
             NONE => repl suggestions
-          | SOME k => showAll (Stream.take k suggestions);
+          | SOME k => if k = ~1
+                      then showAll suggestions
+                      else showAll (Stream.take k suggestions);
         0
     end
     handle Return i => i
