@@ -60,33 +60,47 @@ fun makeCorr (p, q) =
 fun atomOnly (Correspondence.F.Atom x, Correspondence.F.Atom y, z) = true
   | atomOnly _ = false;
 
+local
+    fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
+    fun propertyFromToken s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
+    fun unifyish (Type.Ground x, Type.Ground y) = [(Type.Ground x, Type.Ground y)]
+      | unifyish (Type.Var x, Type.Var y) = []
+      | unifyish (Type.Pair (a, b), Type.Pair (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
+      | unifyish (Type.Function (a, b), Type.Function (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
+      | unifyish (Type.Constructor (s, x), Type.Constructor (s', y)) = (Type.Ground s, Type.Ground s')::(unifyish (x, y))
+      | unifyish _ = raise Match;
+in
 fun checkAttrCorr cs (a, b) =
-    let
-        fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
-        fun unifyGround (Type.Ground x, Type.Ground y) = [(Type.Ground x, Type.Ground y)]
-          | unifyGround (Type.Var x, Type.Var y) = []
-          | unifyGround (Type.Pair (a, b), Type.Pair (x, y)) = (unifyGround (a, x)) @ (unifyGround (b, y))
-          | unifyGround (Type.Function (a, b), Type.Function (x, y)) = (unifyGround (a, x)) @ (unifyGround (b, y))
-          | unifyGround (Type.Constructor (s, x), Type.Constructor (s', y)) = (Type.Ground s, Type.Ground s')::(unifyGround (x, y))
-          | unifyGround _ = raise Match;
+    let (*  Type * Type  *)
         val (at, bt) = spread Attribute.getType (a, b);
-        val unified = unifyGround (at, bt) handle Match => [];
+        val unified = unifyish (at, bt) handle Match => [];
         val typePairs = map (spread propertyFromType) unified;
         val success = List.all (doCorrespond cs) typePairs;
     in
         success andalso not (List.null unified)
     end handle Match =>
-    let
-        fun propertyFromString s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
+    let (*  Content * Content  *)
+        val (ac, bc) = spread Attribute.getContent (a, b);
+        val (at, bt) = spread propertyFromType (ac, bc);
+    in
+        doCorrespond cs (at, bt)
+    end handle Match =>
+    let (*  (Holes * Type) * (Holes * Type)  *)
+        val (ah, bh) = spread (Attribute.M.toPairList o Attribute.getHoles) (a, b);
+        val holePairs = List.map (fn ((a, _), (b, _)) => (a, b)) (List.filter (fn ((_, c), (_, c')) => c = c') (List.product ah bh));
+        val (at, bt) = spread Attribute.getType (a, b);
+        val typePairs = map (spread propertyFromType) ((at, bt) :: (List.flatmap unifyish holePairs));
+        val success = List.all (doCorrespond cs) typePairs;
+    in
+        success andalso not (List.null holePairs)
+    end handle Match =>
+    let (*  Tokens * Tokens  *)
         val (at, bt) = spread Attribute.getTokens (a, b);
         val tokPairs = List.product at bt;
-        val propPairs = map (spread propertyFromString) tokPairs;
+        val propPairs = map (spread propertyFromToken) tokPairs;
         val success = List.all (doCorrespond cs) propPairs;
     in
         success andalso not (List.null tokPairs)
-    (* end handle Match => *)
-    (* let *)
-    (* in *)
     end handle Match => false;
 
 fun findMatches cs rs =
