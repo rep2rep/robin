@@ -1,4 +1,4 @@
-euler,
+expeuler,
 mode,"containment"
 types,"diagram, contour, zone, abc_string"
 tokens,"$contour : {type := contour}, $shade : {type := zone -> zone}"
