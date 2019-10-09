@@ -31,8 +31,7 @@ instrumental_laws, "$Bayes'_theorem,
                     $non_negative_probability,
                     $unit_measure,
                     $sigma_additivity"
-instrumental_tactics, "deduction : {laws := 1; patterns := 2},
-                       arithmetic_calculation : {laws := 0; patterns := 1}"
+instrumental_tactics,""
 relevant_tokens, "one : {type := quantity; occurrences := 1},
                   quarter : {type := quantity -> ratio; occurrences := 1},
                   of : {type := ratio * class -> class; occurrences := 2},
