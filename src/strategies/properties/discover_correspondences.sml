@@ -138,7 +138,6 @@ fun potentialAttrCorr (a, b) =
             end handle Match => Stream.empty;
         val tokens =
             let
-                fun uncurry f (a, b) = f a b;
                 val getTokens = getAttr Attribute.getTokens;
                 val tokenStream = Stream.fromList (uncurry List.product (getTokens (a,b) handle Match => ([], [])));
                 val propStream = Stream.map (spread propertyFromToken) tokenStream;

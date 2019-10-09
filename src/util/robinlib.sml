@@ -15,6 +15,8 @@ sig
     val imported__asFilenames__ : unit -> string list;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val flip : ('a * 'b) -> ('b * 'a);
+    val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
+    val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
 end;
 
 
@@ -52,6 +54,10 @@ fun import filename =
 fun spread f (a, b) = (f a, f b);
 
 fun flip (a, b) = (b, a);
+
+fun curry f a b = f (a, b);
+
+fun uncurry f (a, b) = f a b;
 
 end;
 
