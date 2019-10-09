@@ -19,23 +19,26 @@ signature STREAM = sig
     val fold : ('b * 'a -> 'b) -> 'b -> 'a stream -> 'b; (* Finite only! *)
 
     val take : int -> 'a stream -> 'a stream;
+    val takeList : int -> 'a stream -> 'a list;
     val drop : int -> 'a stream -> 'a stream;
     val takeWhile : ('a -> bool) -> 'a stream -> 'a stream;
+    val takeListWhile : ('a -> bool) -> 'a stream -> 'a list;
     val dropWhile : ('a -> bool) -> 'a stream -> 'a stream;
 
-    val exists: 'a -> 'a stream -> bool; (* Finite only! *)
+    val all : ('a -> bool) -> 'a stream -> bool;
+    val exists: ('a -> bool) -> 'a stream -> bool; (* Finite only! *)
 
     val interleave : 'a stream -> 'a stream -> 'a stream;
     val interleaveAll : 'a stream list -> 'a stream;
 
     val length : 'a stream -> int; (* Finite only! *)
 
-    val nats : 'a stream;
-    val unfold : ('a -> 'b option) -> 'a -> 'b stream;
+    val nats : int stream;
+    val unfold : ('a -> 'a option) -> 'a -> 'a stream;
 
 end;
 
-structure Stream = struct
+structure Stream : STREAM = struct
 
 datatype 'a stream = EMPTY
                    | CONS of 'a * (unit -> 'a stream);
@@ -91,11 +94,13 @@ fun filter f EMPTY = EMPTY
                              else filter f (force xf);
 
 fun fold f a EMPTY = a
-  | fold f a (CONS(x, xf)) = fold f (f a x) (force xf);
+  | fold f a (CONS(x, xf)) = fold f (f (a, x)) (force xf);
 
 fun take 0 _ = EMPTY
   | take _ EMPTY = EMPTY
   | take n (CONS(x, xf)) = CONS(x, fn () => take (n-1) (force xf));
+
+fun takeList i xs = toList (take i xs);
 
 fun drop 0 x = x
   | drop _ EMPTY = EMPTY
@@ -106,10 +111,15 @@ fun takeWhile f EMPTY = EMPTY
                                 then CONS(x, fn () => takeWhile f (force xf))
                                 else EMPTY;
 
+fun takeListWhile f xs = toList (takeWhile f xs);
+
 fun dropWhile f EMPTY = EMPTY
   | dropWhile f (CONS(x, xf)) = if f x
                                 then dropWhile f (force xf)
                                 else CONS(x, xf);
+
+fun all f EMPTY = true
+  | all f (CONS(x, xf)) = f x andalso all f (force xf);
 
 fun exists f EMPTY = false
   | exists f (CONS(x, xf)) = f x orelse exists f (force xf);
