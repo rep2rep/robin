@@ -61,6 +61,7 @@ val _ = registerPropertyReaders
    from the User Profile. *)
 fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
+fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0) (QPropertySet.collectOfKind qS k)
 
 (* Cognitive property 1a *)
 fun numberOfTokens qT =
@@ -78,7 +79,7 @@ fun varietyOfTokens qT =
 
 (* Cognitive property 2 *)
 fun numberOfTokenTypes qT =
-    let val C = QPropertySet.collectOfKind qT Kind.Token
+    let val C = collectOfKindPresentInQ qT Kind.Token
         val T = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) C
     in real (List.length (List.removeDuplicates T))
     end;
@@ -86,8 +87,8 @@ fun numberOfTokenTypes qT =
 (* Cognitive property 3a *)
 (* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
 fun numberOfExpressionTypes qT =
-    let val P = QPropertySet.collectOfKind qT Kind.Pattern
-        val C = QPropertySet.collectOfKind qT Kind.Token
+    let val P = collectOfKindPresentInQ qT Kind.Pattern
+        val C = collectOfKindPresentInQ qT Kind.Token
         fun getNonTrivialExpressionTypes [] = []
           | getNonTrivialExpressionTypes (x::X) =
             let val (typs,t) = Type.getInOutTypes (Property.getTypeOfValue x)
@@ -107,9 +108,8 @@ fun numberOfPatterns qT =
 
 (* Cognitive property 3 *)
 fun varietyOfExpressions qT =
-    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
-        fun f x = if #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 then 1.0 else 0.0
-    in List.sumIndexed f P
+    let val P = collectOfKindPresentInQ qT Kind.Pattern
+    in real (QPropertySet.size P)
     end;
 
 (* Cognitive property 4 *)
@@ -120,8 +120,8 @@ fun subRSVariety rT = real (PropertySet.size (PropertySet.collectOfKind rT Kind.
 Registration is linearly influenced by number of tokens, because each token's
 registration is multiplied by its number of occurrences  *)
 fun tokenRegistration qT =
-    let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
-        val P = QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Pattern)
+    let val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+        val P = QPropertySet.withoutImportances (collectOfKindPresentInQ qT Kind.Pattern)
   (*    fun importance_filter i X =
             map QProperty.withoutImportance (List.filter (fn x => QProperty.importanceOf x = i) X)
         val C1 = importance_filter Importance.High C
@@ -182,10 +182,8 @@ fun expressionRegistration qT rT =
 
 (* Cognitive property 7 *)
 fun expressionComplexity qT (*rT *)=
-    let val P' = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
-        val P = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) P'
-        val C' = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token) (* IMPORTANT: FOR THE MOMENT I'LL KEEP IT AS qT, BUT IT MIGHT BE rT*)
-        val C = List.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) >= 1.0) C'
+    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
         val n = numberOfTokens qT / numberOfTokenTypes qT
         fun f p =
             let val x = QProperty.withoutImportance p
@@ -204,7 +202,8 @@ fun expressionComplexity qT (*rT *)=
             end
         fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
                           **) (Importance.weight (QProperty.importanceOf x))
-    in List.weightedAvgIndexed weighing f (C @ P)
+        val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
+    in List.weightedAvgIndexed weighing f (nonTrivialTokens @ P)
     end;
 
 
@@ -254,16 +253,10 @@ fun quantityScale qT =
     end;
 
 fun tokenConceptMapping qT rT =
-    let val C = QPropertySet.collectOfKind qT Kind.Token
-        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
-        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
-        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
+    let val C = collectOfKindPresentInQ qT Kind.Token
+        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
+        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
+        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -313,18 +306,12 @@ This is debatable for overload, as it does have q properties. *)
        + oe
     end;
 
-
+(*  *)
 fun expressionConceptMapping qT rT =
-    let val C = QPropertySet.collectOfKind qT Kind.Pattern
-        val C1 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
-        val C2 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
-        val C3 = (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low
-                                                andalso #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0)
-                                       C)
+    let val C = collectOfKindPresentInQ qT Kind.Pattern
+        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
+        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
+        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
         fun filesMatchingPrefix dir prefix =
             let
                 fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -377,11 +364,12 @@ This is debatable for overload, as it does have q properties. *)
     end;
 
 fun problemSpaceBranchingFactor qT rT =
-    let val T = PropertySet.collectOfKind rT Kind.Tactic;
-        val L = PropertySet.collectOfKind rT Kind.Law;
+    let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
+        val _ = print (Int.toString (PropertySet.size T))
+        val L = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Law;
         val P = QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Pattern);
-        fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Property.NoAttribute _ => 1.0
-        fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Property.NoAttribute _ => 1.0
+        fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Property.NoAttribute _ => 0.0
+        fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Property.NoAttribute _ => 0.0
         val bl = PropertySet.size L
         val bp = List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) (PropertySet.toList P)
         fun dotProduct [] [] = 0.0

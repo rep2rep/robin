@@ -42,7 +42,8 @@ fun RS_order (x,y) =
                        if r = "contingency" then 4 else
                        if r = "probabilitytrees" then 5 else
                        if r = "euler" then 6 else
-                       if r = "expnatlang" then 7 else raise Match;
+                       if r = "expnatlang" then 8 else
+                       if r = "expeuler" then 7 else raise Match;
         val (((_,rx),_),_) = x
         val (((_,ry),_),_) = y
     in Int.compare (numify rx, numify ry)
