@@ -81,15 +81,17 @@ fun checkAttrCorr cs (a, b) =
     end handle Match =>
     let (*  Content * Content  *)
         val (ac, bc) = spread Attribute.getContent (a, b);
-        val (at, bt) = spread propertyFromType (ac, bc);
+        val unified = unifyish (ac, bc) handle Match => [];
+        val typePairs = map (spread propertyFromType) unified;
+        val success = List.all (doCorrespond cs) typePairs;
     in
-        doCorrespond cs (at, bt)
+        success andalso not (List.null unified)
     end handle Match =>
     let (*  (Holes * Type) * (Holes * Type)  *)
         val (ah, bh) = spread (Attribute.M.toPairList o Attribute.getHoles) (a, b);
         val holePairs = List.map (fn ((a, _), (b, _)) => (a, b)) (List.filter (fn ((_, c), (_, c')) => c = c') (List.product ah bh));
         val (at, bt) = spread Attribute.getType (a, b);
-        val typePairs = map (spread propertyFromType) ((at, bt) :: (List.flatmap unifyish holePairs));
+        val typePairs = map (spread propertyFromType) ((at, bt) :: (List.flatmap unifyish holePairs) handle Match => []);
         val success = List.all (doCorrespond cs) typePairs;
     in
         success andalso not (List.null holePairs)
