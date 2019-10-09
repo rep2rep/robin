@@ -46,7 +46,7 @@ fun reasonString (IDENTITY p) =
   | reasonString (ATTRIBUTE (p1, p2)) =
     "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
   | reasonString (VALUE (p1, p2)) =
-    "Is a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2);
+    "Is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
 fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
 
@@ -107,9 +107,46 @@ fun checkAttrCorr cs (a, b) =
 
 fun potentialAttrCorr (a, b) =
     let
-        val _ = print ("(" ^ (Property.toString a) ^ ", " ^ (Property.toString b) ^ ")\n");
+        fun getAttr' f [] = raise Match
+          | getAttr' f (a::attrs) = f a handle Match => getAttr' f attrs;
+        fun getAttr f = spread ((getAttr' f) o Property.attributesOf);
+        val types =
+            let
+                val getTypes = getAttr Attribute.getType;
+                val typeStream = Stream.fromList (unifyish (getTypes (a, b)) handle Match => []);
+                val propStream = Stream.map (spread propertyFromType) typeStream;
+            in
+                propStream
+            end;
+        val content =
+            let
+                val getContent = getAttr Attribute.getContent;
+                val contentStream = Stream.fromList (unifyish (getContent (a, b)) handle Match => []);
+                val propStream = Stream.map (spread propertyFromType) contentStream;
+            in
+                propStream
+            end;
+        val holes =
+            let
+                val getHoles = getAttr Attribute.getHoles;
+                val (ah, bh) = spread ((map (fn (k, _) => k)) o Attribute.M.toPairList) (getHoles (a, b));
+                val holeStream = Stream.fromList (List.product ah bh);
+                val typeStream = Stream.flatmap (Stream.fromList o unifyish) holeStream;
+                val propStream = Stream.map (spread propertyFromType) typeStream;
+            in
+                propStream
+            end handle Match => Stream.empty;
+        val tokens =
+            let
+                fun uncurry f (a, b) = f a b;
+                val getTokens = getAttr Attribute.getTokens;
+                val tokenStream = Stream.fromList (uncurry List.product (getTokens (a,b) handle Match => ([], [])));
+                val propStream = Stream.map (spread propertyFromToken) tokenStream;
+            in
+                propStream
+            end;
     in
-        Stream.empty
+        Stream.interleaveAll [types, content, holes, tokens]
     end;
 end;
 
