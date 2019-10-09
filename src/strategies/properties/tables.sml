@@ -104,6 +104,7 @@ fun loadCorrespondenceTable filename =
                                (List.toString (fn s => s) r));
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
+        val _ = CSVLiberal.closeIn csvFile;
     in
         List.flatmap makeRow csvData
     end
@@ -165,6 +166,7 @@ fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
                              (fn (r, xs) => setUnion (genProps r) xs)
                              (setEmpty ())
                              (map parseRow csvData);
+        val _ = CSVLiberal.closeIn csvFile;
     in
         (csvHeader, properties)
     end
