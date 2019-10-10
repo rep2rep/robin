@@ -110,7 +110,7 @@ fun potentialAttrCorr (a, b) =
         fun getAttr' f [] = raise Match
           | getAttr' f (a::attrs) = f a handle Match => getAttr' f attrs;
         fun getAttr f = spread ((getAttr' f) o Property.attributesOf);
-        val types =
+        val types = fn () =>
             let
                 val getTypes = getAttr Attribute.getType;
                 val typeStream = Stream.fromList (unifyish (getTypes (a, b)) handle Match => []);
@@ -118,7 +118,7 @@ fun potentialAttrCorr (a, b) =
             in
                 propStream
             end;
-        val content =
+        val content = fn () =>
             let
                 val getContent = getAttr Attribute.getContent;
                 val contentStream = Stream.fromList (unifyish (getContent (a, b)) handle Match => []);
@@ -126,7 +126,7 @@ fun potentialAttrCorr (a, b) =
             in
                 propStream
             end;
-        val holes =
+        val holes = fn () =>
             let
                 val getHoles = getAttr Attribute.getHoles;
                 val (ah, bh) = spread ((map (fn (k, _) => k)) o Attribute.M.toPairList) (getHoles (a, b));
@@ -136,7 +136,7 @@ fun potentialAttrCorr (a, b) =
             in
                 propStream
             end handle Match => Stream.empty;
-        val tokens =
+        val tokens = fn () =>
             let
                 val getTokens = getAttr Attribute.getTokens;
                 val tokenStream = Stream.fromList (uncurry List.product (getTokens (a,b) handle Match => ([], [])));
@@ -145,7 +145,7 @@ fun potentialAttrCorr (a, b) =
                 propStream
             end;
     in
-        Stream.interleaveAll [types, content, holes, tokens]
+        (Random.choose [types, content, holes, tokens])()
     end;
 end;
 
@@ -174,7 +174,7 @@ fun chooseNew options existing =
                 val (x, xf) = Stream.step s;
                 val r = Random.random ();
             in
-                if r < 0.5
+                if r < 0.2  (* Lower probabilities means it will walk further before finding something *)
                 then maybeUse x ((rest, s), streamChoose)
                 else streamChoose ((x::rest), xf)
             end
