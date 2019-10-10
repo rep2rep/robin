@@ -1,8 +1,19 @@
 contingency,
 mode,"sentential,grid"
 types,"string,real,formula,cell,column,row"
-tokens,"$cell : {type:= cell}, + : {type:= real * real -> real}, - : {type:= real * real -> real}, * : {type:= real * real -> real}, / : {type:= real * real -> real}, = : {type:= real * real -> bool}, SUM : {type:= cell set -> real}, PRODUCT: {type:= cell set -> real}"
-patterns,"$ordered_row : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $ordered_column : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $equal_values : {holes:=[real=>2]}, $column : {holes:=[cell=>sqrt(#t)]}, $row : {holes:=[cell=>sqrt(#t)]}"
+tokens,"$cell : {type:= cell},
+        + : {type:= real * real -> real},
+        - : {type:= real * real -> real},
+        * : {type:= real * real -> real},
+        / : {type:= real * real -> real},
+        = : {type:= real * real -> formula},
+        SUM : {type:= cell set -> real},
+        PRODUCT: {type:= cell set -> real}"
+patterns,"$equal_values : {holes:=[real=>2]},
+          $column : {holes:=[cell=>sqrt(#t)]},
+          $row : {holes:=[cell=>sqrt(#t)]},
+          $last_of_column : {holes := [column => 1]},
+          $last_of_row : {holes := [row => 1]}"
 token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE

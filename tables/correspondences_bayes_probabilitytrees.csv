@@ -2,6 +2,9 @@ type-event,type-node OR type-arrow,1
 token-\cap,pattern-$path,1
 token-\cup,pattern-$subtree,0.75
 token-\Omega,type-tree,0.75
-token-*,pattern-$path AND pattern-$path_multiplication,0.75
+token-* OR token-\prod,pattern-$path AND law-$path_multiplication,0.75
+token-+ OR token-\sum,pattern-$path AND law-$path_sum,0.75
+law-$unit_measure,law-$total_arrows_1 OR law-$total_leaves_1,1
+law-$law_of_total_probability,law-$path_sum,1
 token-\Pr,tactic-assign_value_to_node OR tactic-assign_value_to_arrow,1
 token-=,pattern-$path_comparison,0.25

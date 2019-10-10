@@ -1,4 +1,5 @@
 birds,bayes
+mode,"sentential"
 error_allowed, 0
 answer_type, real
 instrumental_tokens,"\Pr : {type := event * event -> real;

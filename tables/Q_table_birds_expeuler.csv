@@ -1,4 +1,5 @@
 birds,expeuler
+mode,"containment"
 error_allowed, 0
 answer_type, real
 instrumental_tokens,"$contour: {type := contour;
@@ -27,10 +28,10 @@ instrumental_patterns, "$whole : {type := zone;
                                       tokens := [];
                                       token_registration := 1},
                         $labelled_zone : {type := figure;
-                                          holes := [zone=>1. class=>1];
+                                          holes := [zone=>1. label=>1];
                                           occurrences := 3;
                                           udepth := 1;
-                                          tokens := [$label_container];
+                                          tokens := [];
                                           token_registration := 1},
                         $description : {type := statement;
                                         holes := [class => log(#t)];
@@ -38,14 +39,8 @@ instrumental_patterns, "$whole : {type := zone;
                                         occurrences := 2;
                                         tokens := [];
                                         token_registration := 1},
-                        $zone2set_reference : {type := reference;
-                                               holes := [set => 1. zone => 1];
-                                               occurrences := 11;
-                                               udepth := 1;
-                                               tokens := [];
-                                               token_registration := 3},
                         $reference_by_description : {type := reference;
-                                                     holes := [statement => 1];
+                                                     holes := [statement => 1. zone => 1];
                                                      occurrences := 1;
                                                      udepth := 1;
                                                      tokens := [];

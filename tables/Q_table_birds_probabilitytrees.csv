@@ -1,4 +1,5 @@
 birds,probabilitytrees
+mode,"connection"
 error_allowed, 0
 answer_type, real
 instrumental_tokens, "$node : {type := node;

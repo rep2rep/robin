@@ -13,9 +13,11 @@ tokens,"= : {type:= real * real -> formula},
         / : {type := real * real -> real},
         \div : {type := real * real -> real},
         ^ : {type := real * real -> real},
-        \sum : {type:= 'a set * ('a -> real) -> real}"
+        \sum : {type:= 'a set * ('a -> real) -> real},
+        \prod : {type:= 'a set * ('a -> real) -> real}"
 patterns,"$plus : {holes:= [real=>3]; tokens:= [+. =]},
-          $equality_chain : {holes:=[real=>#t]; tokens:=[=]},
+          $equality_chain : {type:= proof;
+                             holes:=[real=>#t]; tokens:=[=]},
           $sum : {holes := ['a set => 1. real => 1. 'a -> real => 1]; tokens := [\sum. =]}"
 token_imports,"base_10_real_numerals,latin_alphabet"
 grammatical_complexity,type-2

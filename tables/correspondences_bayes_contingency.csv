@@ -1,8 +1,8 @@
 type-event OR type-occurrence,type-cell,0.75
 token-\cup,token-SUM,0.25
+token-+,token-+,1
 token-\cap,token-PRODUCT,0.25
 token-\Pr,tactic-get_value OR tactic-compare_values,0.5
-token-\Omega,token-last_row AND token-last_column,1
-law-$law_of_total_probability,law-$row_total AND law-$column_total,1
-law-$sigma_additivity,law-$row_total OR law-$column_total,0.25
-law-$unit_measure,law-total-1,1
+token-\Omega,pattern-$last_of_row AND pattern-$last_of_column,1
+law-$law_of_total_probability OR law-$sigma_additivity,law-$row_total AND law-$column_total,1
+law-$unit_measure,law-$total_1,1

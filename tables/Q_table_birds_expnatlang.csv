@@ -1,4 +1,5 @@
 birds,expnatlang
+mode,"sentential"
 error_allowed,0
 answer_type,ratio
 instrumental_tokens, "probability : {type := N;
