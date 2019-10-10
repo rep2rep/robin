@@ -124,7 +124,7 @@ local
 
     fun qTagToTriple t =
         let val (p,_,k) = Parser.breakOn "_" t
-            val importance = if t = "error_allowed" then High else importanceOfPrefix p
+            val importance = if t = "error_allowed" then High else if t = "mode" then Zero else importanceOfPrefix p
             fun keywordToReaderKind s =
                 if String.isPrefix "type" s then (listOf typeR, Kind.Type) else
                 if String.isPrefix "token" s then (listOf labelR, Kind.Token) else
@@ -136,10 +136,7 @@ local
                   raise Match;
 
             val (reader,kind) =
-                if importance = Zero then
-                        (if t = "num_tokens" then (numberR, Kind.NumTokens)
-                         else if t = "num_distinct_tokens" then (numberR, Kind.NumDistinctTokens)
-                         else keywordToReaderKind k)
+                if t = "mode" then (listOf labelR, Kind.Mode)
                 else if t = "error_allowed" then (labelR, Kind.ErrorAllowed)
                 else keywordToReaderKind k handle Match => (Logging.error ("Error reading: "^ t); raise Match)
 
@@ -165,10 +162,10 @@ local
     (* now the available Q properties are generated systematically.
       No "related tactics" or "related laws", because it's nonsense.
       Also no "noise tactics" or "noise laws". *)
-    val QProperties = map (fn s => (s, qTagToTriple s)) (["error_allowed",
-                                                        "answer_type",
-                                                        "num_tokens",
-                                                        "num_distinct_tokens"] @ generate_property_names ());
+    val QProperties = map (fn s => (s, qTagToTriple s)) (["mode",
+                                                          "error_allowed",
+                                                          "answer_type"]
+                                                        @ generate_property_names ());
 
     val QandRSProperties = [
     ];

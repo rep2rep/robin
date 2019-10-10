@@ -53,10 +53,10 @@ fun crunch_raw L =
     let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
         val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
         val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
-                                          then 1000.0 * (max+0.001)
+                                          then 1.0 * (max+1.0)
                                           else if Real.== (v, Real.negInf)
-                                                then 1000.0 * (min-0.001)
-                                                else  1000.0 * v)) L
+                                                then 1.0 * (min-1.0)
+                                                else  1.0 * v)) L
         val sorted = List.mergesort RS_order normL
     in sorted
     end;
@@ -64,7 +64,7 @@ fun crunch_raw L =
 fun crunch_norm L =
     let val max = #2 (List.argmax #2 L)
         val min = #2 (List.argmin #2 L)
-        val normL = map (fn (x,v) => (x, 1000.0 * (v - min) / (max - min))) L
+        val normL = map (fn (x,v) => (x, 1.0 * (v - min) / (max - min))) L
         val sorted = List.mergesort RS_order normL
     in sorted
     end;
@@ -79,7 +79,7 @@ fun crunch_rank L =
 fun dummy_rank qL = List.mergesort RS_order (map (fn x => (x,0.0)) qL)
 
 fun subRSVariety_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.subRSVariety (#2(loadRS r)))
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.subRSVariety (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
@@ -96,14 +96,14 @@ fun expressionRegistration_score qL crunch=
 fun tokenConceptMapping_score qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = #2(loadQ q "bayes")
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (QPropertySet.withoutImportances x) (*)(#2(loadRS r))*))
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
 fun expressionConceptMapping_score qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = #2(loadQ q "bayes")
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (QPropertySet.withoutImportances x) (*)(#2(loadRS r))*))
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
@@ -154,6 +154,7 @@ fun vectorSum [] = raise Match
 end;
 
 fun printAsInteger r = Int.toString (Real.toInt IEEEReal.TO_NEAREST r) handle Domain => "NaN";
+fun printNumber r = Real.fmt (StringCvt.FIX (SOME 6)) r handle Domain => "NaN";
 
 fun cognitiveScores_latex qL crunch =
     let val w1 = 1.0
@@ -172,17 +173,17 @@ fun cognitiveScores_latex qL crunch =
         val c10 = map (fn (_,v) => w3 * v) (problemSpaceBranchingFactor_score qL crunch)
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10]
         val forLatex = (String.concat ("\n & w & \\textbf{":: List.intersperse "} & \\textbf{" rss) ^ "} \\\\ \\hline \n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{token registration}" :: (printAsInteger w1) :: map printAsInteger c1)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{expression registration}" :: (printAsInteger w1) :: map printAsInteger c2)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{token-concept mapping}" :: (printAsInteger w1) :: map printAsInteger c3)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{expression-concept mapping}" :: (printAsInteger w1) :: map printAsInteger c4)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{number of token types}" :: (printAsInteger w1) :: map printAsInteger c5)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{number of expression types}" :: (printAsInteger w1) :: map printAsInteger c6)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{quantity scale}" :: (printAsInteger w2) :: map printAsInteger c7)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{expression complexity}" :: (printAsInteger w2) :: map printAsInteger c8)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{subRS variety}" :: (printAsInteger w3) :: map printAsInteger c9)) ^ " \\\\ \\hline\n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{problem-space branching factor}" :: (printAsInteger w3) :: map printAsInteger c10)) ^ " \\\\ \\hline\\hline \n") ^
-                        (String.concat (List.intersperse " & " ("\\textbf{Total}" :: "" :: map printAsInteger totals)) ^ " \\\\ \n")
+                        (String.concat (List.intersperse " & " ("\\textbf{token registration}" :: (printNumber w1) :: map printNumber c1)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{expression registration}" :: (printNumber w1) :: map printNumber c2)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{token-concept mapping}" :: (printNumber w1) :: map printNumber c3)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{expression-concept mapping}" :: (printNumber w1) :: map printNumber c4)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{number of token types}" :: (printNumber w1) :: map printNumber c5)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{number of expression types}" :: (printNumber w1) :: map printNumber c6)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{quantity scale}" :: (printNumber w2) :: map printNumber c7)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{expression complexity}" :: (printNumber w2) :: map printNumber c8)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{subRS variety}" :: (printNumber w3) :: map printNumber c9)) ^ " \\\\ \\hline\n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{problem-space branching factor}" :: (printNumber w3) :: map printNumber c10)) ^ " \\\\ \\hline\\hline \n") ^
+                        (String.concat (List.intersperse " & " ("\\textbf{Total}" :: "" :: map printNumber totals)) ^ " \\\\ \n")
     in (print forLatex)
     end;
 
@@ -203,17 +204,17 @@ fun cognitiveScores qL crunch =
         val c10 = map (fn (_,v) => w3 * v) (problemSpaceBranchingFactor_score qL crunch)
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10]
         val forLatex = (String.concat ("\n , w , ":: List.intersperse " , " rss) ^ "   \n") ^
-                        (String.concat (List.intersperse " , " ("token registration" :: (printAsInteger w1) :: map printAsInteger c1)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("expression registration" :: (printAsInteger w1) :: map printAsInteger c2)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("token-concept mapping" :: (printAsInteger w1) :: map printAsInteger c3)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("expression-concept mapping" :: (printAsInteger w1) :: map printAsInteger c4)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("number of token types" :: (printAsInteger w1) :: map printAsInteger c5)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("number of expression types" :: (printAsInteger w1) :: map printAsInteger c6)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("quantity scale" :: (printAsInteger w2) :: map printAsInteger c7)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("expression complexity" :: (printAsInteger w2) :: map printAsInteger c8)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("subRS variety" :: (printAsInteger w3) :: map printAsInteger c9)) ^ "  \n") ^
-                        (String.concat (List.intersperse " , " ("problem-space branching factor" :: (printAsInteger w3) :: map printAsInteger c10)) ^ "   \n") ^
-                        (String.concat (List.intersperse " , " ("Total" :: "" :: map printAsInteger totals)) ^ "  \n")
+                        (String.concat (List.intersperse " , " ("token registration" :: (printNumber w1) :: map printNumber c1)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("expression registration" :: (printNumber w1) :: map printNumber c2)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("token-concept mapping" :: (printNumber w1) :: map printNumber c3)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("expression-concept mapping" :: (printNumber w1) :: map printNumber c4)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("number of token types" :: (printNumber w1) :: map printNumber c5)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("number of expression types" :: (printNumber w1) :: map printNumber c6)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("quantity scale" :: (printNumber w2) :: map printNumber c7)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("expression complexity" :: (printNumber w2) :: map printNumber c8)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("subRS variety" :: (printNumber w3) :: map printNumber c9)) ^ "  \n") ^
+                        (String.concat (List.intersperse " , " ("problem-space branching factor" :: (printNumber w3) :: map printNumber c10)) ^ "   \n") ^
+                        (String.concat (List.intersperse " , " ("Total" :: "" :: map printNumber totals)) ^ "  \n")
     in (print forLatex)
     end;
 
