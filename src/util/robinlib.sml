@@ -237,7 +237,7 @@ fun weightedSum w L = weightedSumIndexed w (fn x => x) L;
 fun sumIndexed f L = weightedSumIndexed (fn _ => 1.0) f L;
 fun sum L = weightedSumIndexed (fn _ => 1.0) (fn x => x) L;
 
-fun weightedAvgIndexed w f L = (weightedSumIndexed w f L) / (sumIndexed w L);
+fun weightedAvgIndexed w f L = if null L then raise Empty else (weightedSumIndexed w f L) / (sumIndexed w L)
 
 fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
 

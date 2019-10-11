@@ -130,9 +130,9 @@ fun tokenRegistration qT =
         val C4 = importance_filter Importance.Zero C
         val C5 = importance_filter Importance.Noise C*)
         fun tokensFromPattern x = (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); ([],1.0))
+                                    handle Property.NoAttribute _ => (([],1.0))
         fun typesFromPattern x = (Property.getHoles x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Property.NoAttribute _ => (print ("exception with pattern: " ^ (Property.toString x)); (Property.getHoles x,1.0))
+                                    handle Property.NoAttribute _ => ((Property.getHoles x,1.0))
         val tokenswithreg = PropertySet.map tokensFromPattern P
         val typeswithreg = PropertySet.map typesFromPattern P
         fun typereg [] t = 1.0
@@ -252,8 +252,9 @@ fun quantityScale qT =
     in s
     end;
 
-fun tokenConceptMapping qT idealT =
-    let val C = collectOfKindPresentInQ qT Kind.Token
+fun conceptMapping kind idealqT rT =
+    let fun present x = #2 (Property.getNumFunction "occurrences" (x)) > 0.0
+        val C = (*QPropertySet.filter (fn x => present x handle Property.NoAttribute _ => true)*) idealqT
         val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
         val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
         val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
@@ -276,96 +277,51 @@ fun tokenConceptMapping qT idealT =
         val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
         val corrT' = map (Correspondence.flip 1.0) corrT
 
+        val rT' = PropertySet.filter (fn x => Property.kindOf x = kind(*Property.kindOf x = Kind.Token orelse Property.kindOf x = Kind.Pattern*) andalso present x) rT
         fun assess_rd p =
-            let val T = PropertyTables.transformQProperty p idealT (corrT @ corrT')
+            let val T = PropertyTables.transformQProperty p rT' (corrT @ corrT')
                 val x = QPropertySet.size T
-            in if x = 1 then 1.0 else (* functional *)
-               if x > 1 then 3.0 else (* redundancy *)
-               if x < 1 then 4.0 else 0.0  (* deficit *)
+                val s = if x = 1 then 0.0 else (* functional *)
+                         if x > 1 then 2.0 else (* redundancy *)
+                         if x < 1 then 3.0 else 0.0  (* deficit *)
+            in s
             end;
 
-        fun assess_oe r =
-            let val C' = QPropertySet.withoutImportances C
-                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' (corrT @ corrT')
+        fun assess_oe C' r =
+            let val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) (QPropertySet.withoutImportances C') (corrT @ corrT')
                 val x = QPropertySet.size T
-            in if x = 1 then 0.0 else (* injetive & surjective *)
-               if x > 1 then 5.0 else (* overload *)
-               if x < 1 then 2.0 else 0.0 (* excess *)
+                val s = if x = 1 then 0.0 else (* injetive & surjective *)
+                         if x > 1 then 4.0 else (* overload *)
+                         if x < 1 then 1.0 else 0.0 (* excess *)
+            in s
             end;
-        val s1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
-        val s2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
-        val s3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
-        val oe = List.sumIndexed assess_oe (PropertySet.toList idealT)
-(* note that overload and excess don't take importance into account precisely
-because they are properties of the target RS and not of the source Q,
-so it's not possible to assess the improtance of such overload or excess.
-This is debatable for overload, as it does involve q properties. *)
-    in   (Importance.weight Importance.High) * s1
-       + (Importance.weight Importance.Medium) * s2
-       + (Importance.weight Importance.Low) * s3
-       + oe
+
+        val normFactor = real (QPropertySet.size C)
+        val rd1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
+        val rd2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
+        val rd3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
+        val _ = print ((Real.toString rd2) ^ " \n")
+
+        fun globalOE X = (List.avgIndexed (assess_oe X) (PropertySet.toList rT')) * normFactor handle Empty => 0.0
+        val oe1 = globalOE C1
+        val oe2 = globalOE C2
+        val oe3 = globalOE C3
+        val _ = print ((Real.toString oe2) ^ "\n")
+        val _ = print ("\n")
+
+    in   (Importance.weight Importance.High) * (rd1 + oe1)
+       + (Importance.weight Importance.Medium) * (rd2 + oe2)
+       + (Importance.weight Importance.Low) * (rd3 + oe3)
     end;
 
-(*  *)
-fun expressionConceptMapping qT idealT =
-    let val C = collectOfKindPresentInQ qT Kind.Pattern
-        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
-        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
-        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
-        fun filesMatchingPrefix dir prefix =
-            let
-                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
-                                              SOME f => getWholeDir direc (f::out)
-                                            | NONE => List.rev out;
-                val dirstream = OS.FileSys.openDir dir;
-                val filenames = getWholeDir dirstream [];
-                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
-                fun attachDir p = dir ^ p;
-            in
-                map (OS.FileSys.fullPath o attachDir) filteredFiles
-            end;
-        (* this will probably change one I incorporate these calculations
-        into the stream of representation selection and the tables are handed
-        over by the main function *)
-        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
-        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
-        val corrT' = map (Correspondence.flip 1.0) corrT
 
-        fun assess_rd p =
-            let val T = PropertyTables.transformQProperty p idealT (corrT @ corrT')
-                val x = QPropertySet.size T
-            in if x = 1 then 0.0 else (* functional *)
-               if x > 1 then 3.0 else (* redundancy *)
-               if x < 1 then 4.0 else (* deficit *)
-                  0.0
-            end;
+fun tokenConceptMapping idealqT rT = conceptMapping Kind.Token idealqT rT;
 
-        fun assess_oe r =
-            let val C' = QPropertySet.withoutImportances C
-                val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) C' (corrT @ corrT')
-                val x = QPropertySet.size T
-            in if x = 1 then 1.0 else (* injetive & surjective *)
-               if x > 1 then 5.0 else (* overload *)
-               if x < 1 then 2.0 else (* excess *)
-                  0.0
-            end;
-            val s1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
-            val s2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
-            val s3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
-        val oe = List.sumIndexed assess_oe (PropertySet.toList idealT)
-(* note that overload and excess don't take importance into account precisely
-because they are properties of the target RS and not of the source Q,
-so it's not possible to assess the improtance of such overload or excess.
-This is debatable for overload, as it does have q properties. *)
-    in   (Importance.weight Importance.High) * s1
-       + (Importance.weight Importance.Medium) * s2
-       + (Importance.weight Importance.Low) * s3
-       + oe
-    end;
+fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT;
+
 
 fun problemSpaceBranchingFactor qT rT =
     let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
-        val _ = print (Int.toString (PropertySet.size T))
         val L = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Law;
         val P = QPropertySet.withoutImportances (QPropertySet.collectOfKind qT Kind.Pattern);
         fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Property.NoAttribute _ => 0.0

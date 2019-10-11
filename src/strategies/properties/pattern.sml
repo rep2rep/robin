@@ -91,8 +91,8 @@ fun unfoldTypeDNF [] = (false,[])
 exception X of clause list;
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let val (changed,x') = if length x > 5000000
-                                    then (print "too large dnf"; (false,List.filter (fn d => null (#1 d)) x))
+            let val (changed,x') = if length x > 1000000
+                                    then (print "\n         DNF is too large!"; (false,List.filter (fn d => null (#1 d)) x))
                                     else unfoldTypeDNF x
             in (print ("\n       length of DNF: " ^ Int.toString (length x) ^ "");
                 if null x' then raise Unsatisfiable
