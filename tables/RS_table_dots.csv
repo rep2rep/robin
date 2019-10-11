@@ -1,13 +1,42 @@
 dots,
 mode,"grid"
-types,"unit,arrangement"
-tokens,"$dot : dot"
-patterns,"$square,$rectangle,$diagonal,$ell,$triangle"
-token_imports,NONE
-grammatical_complexity,type-3
-facts,"$count_invariant"
-fact_imports,NONE
 rigorous,TRUE
-tactics,"stack_horizontal, stack_vertical, cut_horizontal, cut_vertical, cut_diagonal, cut_ell, cut_square, count_equal, count_more, count_less, constructive_omega_rule"
+types,"unit,arrangement"
+tokens,"$dot : {type := unit}"
+patterns,"$square : {type := arrangement;
+                     holes := [unit => #t];
+                     token_registration := 1},
+          $rectangle : {type := arrangement;
+                        holes := [unit => #t];
+                        token_registration := 1},
+          $diagonal : {type := arrangement;
+                       holes := [unit => #t];
+                       token_registration := 1},
+          $ell : {type := arrangement;
+                  holes := [unit => #t];
+                  token_registration := 1},
+          $triangle: {type := arrangement;
+                      holes := [unit => #t];
+                      token_registration := 1}"
+token_imports,NONE
+laws,"$count_invariant : {description := arrangements are equivalent if the number of dots is the same regardless of appearance}"
+law_imports,NONE
+tactics,"stack_horizontal : {patterns := 2},
+         stack_vertical : {patterns := 2},
+         cut_horizontal : {patterns := 1;
+                           laws := 1},
+         cut_vertical : {patterns := 1;
+                         laws := 1},
+         cut_diagonal : {patterns := 1;
+                         laws := 1},
+         cut_ell : {patterns := 1;
+                    laws := 1},
+         cut_square : {patterns := 1;
+                       laws := 1},
+         count_equal : {laws := 1},
+         count_more : {laws := 1},
+         count_less : {laws := 1},
+         constructive_omega_rule"
+grammatical_complexity,type-3
 inferential_complexity,0
 physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
