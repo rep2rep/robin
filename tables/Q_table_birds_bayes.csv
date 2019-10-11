@@ -76,5 +76,10 @@ relevant_tokens,"1 : {type := real;
                          occurrences := 0},
                  0 : {type := real;
                       occurrences := 0}"
-relevant_patterns,""
+relevant_patterns,"$union_Pr : {type := formula;
+                     holes := [event => 2. real => 1];
+                     occurrences := 1;
+                     tokens := [\Pr. \cup. =];
+                     udepth := 3;
+                     token_registration := 1}"
 noise_tokens,""

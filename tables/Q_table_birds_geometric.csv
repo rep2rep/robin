@@ -43,10 +43,10 @@ instrumental_patterns, "$rectangle : {type := region;
                                             token_registration := 1},
                         $reference_by_label : {type := reference;
                                                 description := a label referencing something (a region in this case);
-                                                holes := [class => 1];
+                                                holes := [figure=>1. class => 1];
                                                 udepth : = 1;
                                                 occurrences := 1;
-                                                tokens := [];
+                                                tokens := [$label_container];
                                                 token_registration := 3}"
 instrumental_laws, "$scale_independence_of_ratio : {description := the ratio of two areas is independent of the scale},
                     $area_additivity : {description := the area of a region is the sum of the areas of its parts}"

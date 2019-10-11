@@ -27,7 +27,7 @@ instrumental_patterns, "$path : {type := path;
                                          tokens := [];
                                          token_registration := 3},
                         $reference_by_description : {type := reference;
-                                                     holes := [statement => 1];
+                                                     holes := [statement => 1. node=>1];
                                                      udepth : = 1;
                                                      occurrences := 2;
                                                      tokens := [];

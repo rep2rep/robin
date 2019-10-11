@@ -12,38 +12,50 @@ instrumental_types,"cell"
 instrumental_patterns, "$column : {type := column;
                                     holes := [cell => sqrt(#t)];
                                     occurrences := 4;
-                                    udepth : = 1;
                                     tokens := [];
                                     token_registration := 1},
                         $row : {type := row;
                                 holes := [cell => sqrt(#t)];
                                 occurrences := 4;
-                                udepth : = 1;
                                 tokens := [];
                                 token_registration := 1},
-                        $cells_column_row : {type := column * row;
-                                              holes := [cell => 1];
-                                              occurrences := 16;
-                                              udepth : = 1;
-                                              tokens := [];
-                                              token_registration := 2},
-                        $relative_value : {type := real observation;
-                                           holes := [real => 2];
-                                           occurrences := 8;
-                                           udepth : = 1;
-                                           tokens := [$cell_r. $cell_r];
-                                           token_registration := 2},
+                        $last_of_row : {type := cell;
+                                        holes := [row => 1];
+                                        occurrences := 3;
+                                        tokens := [];
+                                        token_registration := 1},
+                        $last_of_column : {type := cell;
+                                            holes := [column => 1];
+                                            occurrences := 3;
+                                            tokens := [];
+                                            token_registration := 1},
+                        $cells_column : {type := column;
+                                        holes := [cell => 1];
+                                        occurrences := 16;
+                                        tokens := [];
+                                        token_registration := 2},
+                        $cells_row : {type := row;
+                                        holes := [cell => 1];
+                                        occurrences := 16;
+                                        tokens := [];
+                                        token_registration := 2},
+                        $value_relative_to_total : {type := real observation;
+                                                   holes := [cell => 1];
+                                                   occurrences := 9;
+                                                   tokens := [];
+                                                   token_registration := 2},
                         $reference_by_label : {type := reference;
-                                                holes := [class => 1];
+                                                holes := [class => 1. real =>1];
                                                 occurrences := 6;
-                                                udepth : = 1;
-                                                tokens := [];
+                                                tokens := [$cell_r];
                                                 token_registration := 3}"
-instrumental_laws, "$row_total, $column_total"
+instrumental_laws, "$row_total, $column_total, $total_1"
 instrumental_tactics,"fill_cell : {patterns := 1;
                                    laws := 1},
                       calc : {patterns := 1;
-                              laws := 0}"
+                              laws := 0},
+                      observe : {patterns := 1;
+                                 laws := 0}"
 relevant_tokens,"1 : {type := real;
                       occurrences := 3},
                  4 : {type := real;

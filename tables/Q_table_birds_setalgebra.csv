@@ -1,0 +1,60 @@
+birds,setalgebra
+mode,"sentential"
+error_allowed, 0
+answer_type, real
+instrumental_tokens,"|| : {type := set -> real;
+                            occurrences := 8},
+                     \setminus : {type := set -> set;
+                                  occurrences := 2},
+                     \cap : {type := set * set -> set;
+                             occurrences := 3}"
+instrumental_types,"set"
+instrumental_patterns, "$set_ratio : {type := formula;
+                                      holes := [set => 2. real => 1];
+                                      tokens := [=. ||];
+                                      occurrences := 3;
+                                      token_registration := 1},
+                        $cardinality_of_intersection : {type := formula;
+                                                         holes := [set => 2. real => 1];
+                                                         occurrences := 2;
+                                                         tokens := [||. \cap. =];
+                                                         token_registration := 1},
+                        $cardinality_of_set : {type := formula;
+                                                holes := [set => 1. real => 1];
+                                                occurrences := 8;
+                                                tokens := [||. \setminus. =];
+                                                token_registration := 1}"
+instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
+                    $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
+instrumental_tactics,"rewrite : {laws := 1;
+                                 patterns := 1},
+                      calc : {patterns := 1;
+                              laws := 0}"
+relevant_tokens,"1 : {type := real;
+                      occurrences := 2},
+                 4 : {type := real;
+                      occurrences := 1},
+                 2 : {type := real;
+                      occurrences := 1},
+                 3 : {type := real;
+                      occurrences := 1},
+                 \div : {type := real * real -> real;
+                         occurrences := 2},
+                 \cdot : {type := real * real -> real;
+                          occurrences := 3},
+                 \cup : {type := set * set -> set;
+                         occurrences := 0},
+                 = : {type := real * real -> formula;
+                         occurrences := 4},
+                 birds : {type := set;
+                          occurrences := 5},
+                 flying : {type := set;
+                           occurrences := 4},
+                 animals : {type := set;
+                           occurrences := 4}"
+relevant_patterns, "$cardinality_of_union: {type := formula;
+                                             holes := [set => 2. real => 1];
+                                             occurrences := 0;
+                                             tokens := [||. \cup. =];
+                                             token_registration := 1}"
+noise_tokens,""

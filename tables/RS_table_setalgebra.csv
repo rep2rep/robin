@@ -1,0 +1,41 @@
+setalgebra,
+mode,"sentential"
+rigorous,TRUE
+types,"set,real"
+tokens,"|| : {type := set -> real},
+        \setminus : {type := set -> set},
+        \cap : {type := set * set -> set},
+        1 : {type := real},
+         4 : {type := real},
+         2 : {type := real},
+         3 : {type := real},
+         \div : {type := real * real -> real},
+         \cdot : {type := real * real -> real},
+         \cup : {type := set * set -> set},
+         = : {type := real * real -> formula},
+         birds : {type := set},
+         flying : {type := set},
+         animals : {type := set}"
+patterns, "$set_ratio : {type := formula;
+                          holes := [set => 2. real => 1];
+                          tokens := [=. ||];
+                          token_registration := 1},
+            $cardinality_of_intersection : {type := formula;
+                                             holes := [set => 2. real => 1];
+                                             tokens := [||. \cap. =];
+                                             token_registration := 1},
+            $cardinality_of_set : {type := formula;
+                                    holes := [set => 1. real => 1];
+                                    tokens := [||. \setminus. =];
+                                    token_registration := 1},
+            $cardinality_of_union: {type := formula;
+                                     holes := [set => 2. real => 1];
+                                     tokens := [||. \cup. =];
+                                     token_registration := 1}"
+laws,"$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
+      $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},
+      $distributivity : {description := distribution of union and intersection}"
+tactics,"rewrite : {laws := 1;
+                     patterns := 1},
+          calc : {patterns := 1;
+                  laws := 0}"

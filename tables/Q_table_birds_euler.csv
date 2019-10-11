@@ -3,7 +3,9 @@ mode,"sentential,containment"
 error_allowed, 0
 answer_type, real
 instrumental_tokens,"$contour: {type := contour;
-                                occurrences := 2}"
+                                occurrences := 2},
+                     || : {type := set -> real;
+                            occurrences := 7}"
 instrumental_types,"zone"
 instrumental_patterns, "$set_ratio : {type := formula;
                                       holes := [set => 2. real => 1];
@@ -13,7 +15,7 @@ instrumental_patterns, "$set_ratio : {type := formula;
                         $whole : {type := zone;
                                    holes := [];
                                    occurrences := 1;
-                                   tokens := [$rectangle];
+                                   tokens := [$frame];
                                    token_registration := 1},
                         $zone_determined_by_contour : {type := zone;
                                                        holes := [contour => 1];
@@ -48,7 +50,7 @@ instrumental_patterns, "$set_ratio : {type := formula;
                                                holes := [set => 1. zone => 1];
                                                occurrences := 11;
                                                udepth := 1;
-                                               tokens := [];
+                                               tokens := [$label_container];
                                                token_registration := 3},
                         $reference_by_description : {type := reference;
                                                      holes := [statement => 1. zone => 1];
@@ -58,10 +60,12 @@ instrumental_patterns, "$set_ratio : {type := formula;
                                                      token_registration := 3}"
 instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
                     $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
-instrumental_tactics,"rewrite : {laws := 1;
-                                 patterns := 1},
+instrumental_tactics,"rewrite : {patterns := 1;
+                              laws := 0},
                       calc : {patterns := 1;
-                              laws := 0}"
+                              laws := 0},
+                      observe : {patterns := 1;
+                                 laws := 0}"
 relevant_tokens,"1 : {type := real;
                       occurrences := 2},
                  4 : {type := real;
@@ -78,8 +82,6 @@ relevant_tokens,"1 : {type := real;
                          occurrences := 2},
                  = : {type := real * real -> formula;
                          occurrences := 4},
-                 || : {type := set -> real;
-                       occurrences := 7},
                  birds : {type := set;
                           occurrences := 5},
                  flying : {type := set;
@@ -104,8 +106,8 @@ relevant_tokens,"1 : {type := real;
                            occurrences := 1},
                  $label_container : {type := class -> label;
                                      occurrences := 3},
-                 $rectangle : {type := contour;
-                               occurrences := 1}"
+                 $frame : {type := contour;
+                            occurrences := 1}"
 relevant_patterns, "$union: {type := zone;
                              holes := [zone => 2];
                              occurrences := 1; comment := cannot handle larger numbers;
