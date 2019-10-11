@@ -1,0 +1,13 @@
+dots,
+mode,"grid"
+types,"unit,arrangement"
+tokens,"$dot : dot"
+patterns,"$square,$rectangle,$diagonal,$ell,$triangle"
+token_imports,NONE
+grammatical_complexity,type-3
+facts,"$count_invariant"
+fact_imports,NONE
+rigorous,TRUE
+tactics,"stack_horizontal, stack_vertical, cut_horizontal, cut_vertical, cut_diagonal, cut_ell, cut_square, count_equal, count_more, count_less, constructive_omega_rule"
+inferential_complexity,0
+physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"

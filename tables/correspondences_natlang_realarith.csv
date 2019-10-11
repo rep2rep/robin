@@ -1,0 +1,44 @@
+type-number,type-real,0.75
+type-ratio,type-real,0.9
+type-ratio,type-rational,1
+type-percentage,type-real,0.9
+token-none OR token-empty,token-0,0.25
+token-zero,import-base_10_real_numerals OR token-0,1
+token-one,import-base_10_real_numerals OR token-1,1
+token-two,import-base_10_real_numerals OR token-2,1
+token-three,import-base_10_real_numerals OR token-3,1
+token-four,import-base_10_real_numerals OR token-4,1
+token-five,import-base_10_real_numerals OR token-5,1
+token-six,import-base_10_real_numerals OR token-6,1
+token-seven,import-base_10_real_numerals OR token-7,1
+token-eight,import-base_10_real_numerals OR token-8,1
+token-nine,import-base_10_real_numerals OR token-9,1
+token-ten,import-base_10_real_numerals OR token-10,1
+token-0,import-base_10_real_numerals OR token-0,1
+token-1,import-base_10_real_numerals OR token-1,1
+token-2,import-base_10_real_numerals OR token-2,1
+token-3,import-base_10_real_numerals OR token-3,1
+token-4,import-base_10_real_numerals OR token-4,1
+token-5,import-base_10_real_numerals OR token-5,1
+token-6,import-base_10_real_numerals OR token-6,1
+token-7,import-base_10_real_numerals OR token-7,1
+token-8,import-base_10_real_numerals OR token-8,1
+token-9,import-base_10_real_numerals OR token-9,1
+token-plus,token-+,1
+token-minus,token--,1
+token-times,token-*,1
+token-divided_by,token-\div OR token-/,1
+token-smaller_than,token-<,1
+token-greater_than,token->,1
+token-equals OR token-is,token-=,1
+token-sum,token-\sum,1
+token-to_the_power_of OR token-squared,token-^,1
+fact-*associative, import-real_number_arithmetic, 1
+fact-*commutative, import-real_number_arithmetic, 1
+fact-+associative, import-real_number_arithmetic, 1
+fact-+commutative, import-real_number_arithmetic, 1
+fact-distributive, import-real_number_arithmetic, 1
+fact-+zero, import-real_number_arithmetic, 1
+fact-+inverse, import-real_number_arithmetic, 1
+fact-*one, import-real_number_arithmetic, 1
+fact-*inverse, import-real_number_arithmetic, 1

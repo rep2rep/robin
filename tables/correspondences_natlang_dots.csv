@@ -1,0 +1,16 @@
+type-natural,type-arrangement, 1
+token-1 OR token-one,token-$dot, 1
+token-add OR token-plus,tactic-stack_horizontal OR tactic-stack_vertical,1
+token-sum,tactic-stack_horizontal OR tactic-stack_vertical,0.75
+token-minus OR token-subtract OR token-remove,tactic-cut_horizontal OR tactic-cut_vertical OR token-cut_ell OR token-cut_square,0.75
+token-divided_by,tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal,0.75
+token-count,tactic-count_equal OR tactic-count_more OR tactic-count_less,1
+token-equal OR token-is,tactic-count_equal,0.9
+token-greater_than,tactic-count_more,0.9
+token-smaller_than,tactic-count_less,0.9
+token-squared,pattern-$square,0.9
+token-times,pattern-$rectangle,0.9
+token-odd,pattern-$ell,1
+tactic-induction,tactic-constructive_omega_rule,0.75
+fact-$+-commutative,tactic-count_equal,1
+fact-$+-associative,tactic-count_equal,1

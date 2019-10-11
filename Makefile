@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 MLC=polyc
 ifeq (, $(shell which rlwrap))
 	REPL=poly
@@ -24,7 +25,7 @@ $(ROBIN_TMP): base.sml src/main.sml
 	done
 
 base.sml:
-	echo 'val BASE="'`pwd`'/src/";' > base.sml
+	echo 'val BASE="$(CURDIR)/src/";' > base.sml
 	echo 'use "src/util/robinlib.sml"; open RobinLib;' >> base.sml
 
 .PHONY:clean

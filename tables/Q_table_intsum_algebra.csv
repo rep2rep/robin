@@ -1,0 +1,14 @@
+intsum,
+error_allowed,0
+answer_type,integer
+instrumental_types,"integer,proof"
+instrumental_tokens,"\sum,*,="
+instrumental_patterns,"$sum, $equality_chain"
+instrumental_facts,""
+instrumental_tactics,"induction"
+relevant_tokens,"n:{type:=integer}, i:{type:=integer}, +, \div"
+relevant_related_tokens,"-,^,\sqrt,0"
+num_tokens,14
+num_distinct_tokens,9
+noise_tokens,""
+noise_related_tokens,""

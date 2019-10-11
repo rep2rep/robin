@@ -30,11 +30,14 @@ sig
     val intersection : t set -> t set -> t set;
     val difference : t set -> t set -> t set;
 
+    val unionAll : t set list -> t set;
+    val intersectionAll : t set list -> t set;
+
     val map : (t -> 'a) -> t set -> 'a list;
     val endomap : (t -> t) -> t set -> t set;
     val filter : (t -> bool) -> t set -> t set;
     val foldl : (t * 'a -> 'a) -> 'a -> t set -> 'a;
-    val foldr: (t * 'a -> 'a) -> 'a -> t set -> 'a;
+    val foldr : (t * 'a -> 'a) -> 'a -> t set -> 'a;
 
     val size : t set -> int;
 
@@ -42,6 +45,8 @@ sig
     val isEmpty : t set -> bool;
     val contains : t set -> t -> bool;
     val subset : t set -> t set -> bool;
+
+    val getFirst : t set -> t;
 end;
 
 
@@ -64,6 +69,7 @@ type t = O.t;
 structure D = Dictionary(struct
                           type k = t;
                           val compare = O.compare;
+                          val fmt = O.fmt;
                           end);
 type 'a set = ('a, unit) D.dict;
 
@@ -72,11 +78,15 @@ fun fromList xs = D.fromPairList (map (fn x => (x, ())) xs);
 fun toList xs = map (fn (x,_) => x) (D.toPairList xs);
 fun toString items =
     let
+        val printThreshold = 100;
         val stringItems = D.map (fn (k, _) => O.fmt k) items;
-        val withCommas = intersperse ", " stringItems;
-        val joined = foldr (fn (x, y) => x ^ y) "" withCommas;
+        val tooLong = (D.size items) > printThreshold;
+        val mostItems = if tooLong
+                        then (List.take (stringItems, printThreshold))
+                        else stringItems;
+        val joined = String.concatWith ", " mostItems;
     in
-        "{" ^ joined ^ "}"
+        "{" ^ joined ^ (if tooLong then "..." else "") ^ "}"
     end;
 
 
@@ -98,6 +108,9 @@ fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
         fromList result
     end;
 
+fun unionAll xs = D.unionAllWith (fn (_, _, _) => ()) xs;
+fun intersectionAll xs = D.intersectionAllWith (fn (_, _, _) => ()) xs;
+
 fun map f xs = D.map (fn (k, v) => f k) xs;
 fun endomap f xs = fromList (map f xs);
 fun filter f xs = D.filter (fn (k, v) => f k) xs;
@@ -113,7 +126,9 @@ fun contains xs x =
     in true end
     handle KeyError => false;
 fun subset xs ys =
-    let val contained = map (fn x => contains ys x) xs;
-    in all contained end;
+    let val contained = fn x => contains ys x;
+    in List.all contained (toList xs) end;
+
+fun getFirst xs = #1 (D.getFirst xs);
 
 end;

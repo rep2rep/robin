@@ -1,0 +1,13 @@
+contingency,
+mode,"sentential,grid"
+types,"string,real,formula,cell,column,row"
+tokens,"$cell : {type:= cell}, + : {type:= real * real -> real}, - : {type:= real * real -> real}, * : {type:= real * real -> real}, / : {type:= real * real -> real}, = : {type:= real * real -> bool}, SUM : {type:= cell set -> real}, PRODUCT: {type:= cell set -> real}"
+patterns,"$ordered_row : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $ordered_column : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $equal_values : {holes:=[real=>2]}, $column : {holes:=[cell=>sqrt(#t)]}, $row : {holes:=[cell=>sqrt(#t)]}"
+token_imports,"base_10_real_numerals, latin_alphabet"
+grammatical_complexity,type-3
+rigorous,TRUE
+facts,"$row_total,$column_total,$total_1"
+fact_imports,NONE
+tactics,"add_value, add_formula, get_value, compare_values"
+inferential_complexity,2
+physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological}, colour:{}"

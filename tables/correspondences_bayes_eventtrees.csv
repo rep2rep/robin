@@ -1,0 +1,6 @@
+type-event,type-event_node,1
+token-\cap,token-$conjunction_edge,0.5
+token-\cup,pattern-$subgraph,1
+token-\Omega,type-event_tree,0.75
+token-\Pr,tactic-compare_nodes,0.75
+token-=,tactic-compare_values,0.5

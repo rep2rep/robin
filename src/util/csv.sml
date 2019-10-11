@@ -37,7 +37,7 @@ sig
 
     val openOut : string -> outstream;
     val closeOut : outstream -> unit;
-    val outputCell : outstream -> string -> bool -> unit;
+    val outputCell : outstream -> string -> unit;
     val outputRow : outstream -> string list -> unit;
     val output : outstream -> string list list -> unit;
     val flushOut : outstream -> unit;
@@ -51,16 +51,8 @@ type instream = TextIO.instream;
 type outstream = TextIO.outstream;
 
 val delimiters = Config.delimiters;
-val newlines = mergesort
-                   (fn (a, b) => let
-                        val la = List.length a;
-                        val lb = List.length b;
-                    in
-                        if la < lb then GREATER  (* We want it reversed *)
-                        else if la > lb then LESS
-                        else EQUAL
-                   end)
-                   (map String.explode Config.newlines);
+val newlines = List.mergesort (Comparison.rev Int.compare o spread List.length)
+                              (map String.explode Config.newlines);
 val lookaheadDistance = List.foldr Int.max 0 (map List.length newlines);
 
 fun isDelimiter c = List.exists (fn x => x = c) delimiters;
@@ -76,7 +68,7 @@ fun closeIn istr = TextIO.closeIn istr;
 
 fun endOfStream istr = TextIO.endOfStream istr;
 fun endOfRow istr =
-    case (lookaheadN (istr, lookaheadDistance)) of
+    case (TextIO.lookaheadN (istr, lookaheadDistance)) of
         "" => true
       | c => isNewline (String.explode c);
 fun endOfCell istr =
@@ -92,7 +84,7 @@ fun skipDelimiter istr =
 
 fun inputCell istr = let
     fun escapedQuote istr = let
-        val next2 = String.explode (lookaheadN (istr, 2));
+        val next2 = String.explode (TextIO.lookaheadN (istr, 2));
         val (current, next) = case next2 of
                                   [] => (#"0", #"0")
                                 | [x] => (x, #"0")
@@ -107,60 +99,63 @@ fun inputCell istr = let
         else case (TextIO.lookahead istr) of
                  NONE => result
                | SOME c => if (isDelimiter c) then
-                               if quoted then (TextIO.input1 istr; readCell quoted (result ^ (Char.toString c)))
+                               if quoted then (TextIO.input1 istr;
+                                               readCell quoted ((Char.toString c) :: result))
                                else result
-                           else if (c = #"\"" andalso not quoted) then (* Open quoted cell *)
+                           else if (c = #"\"" andalso not quoted) then
+                               (* Open quoted cell *)
                                (TextIO.input1 istr; readCell true result)
-                           else if (c = #"\"" andalso quoted) then (* Close quoted cell, or escaped *)
+                           else if (c = #"\"" andalso quoted) then
+                               (* Close quoted cell, or escaped *)
                                if (escapedQuote istr) then
-                                   (TextIO.inputN (istr, 2); readCell true (result ^ "\"")) (* Consume the quotes and carry on *)
+                                   (TextIO.inputN (istr, 2);
+                                    (* Consume the quotes and carry on *)
+                                    readCell true ("\"" :: result))
                                else (TextIO.input1 istr;
                                      result) (* End of cell *)
-                           else readCell quoted (result ^ TextIO.inputN (istr, 1));
+                           else readCell quoted (TextIO.inputN (istr, 1) :: result);
 in
-    readCell false ""
+    String.concat (List.rev (readCell false []))
 end;
 
 fun inputRow istr = let
-    fun dowhile' cond eval result =
-        if (cond ()) then (dowhile' cond eval ((eval ())::result))
-        else result;
-    fun dowhile cond eval = List.rev (dowhile' cond eval []);
+    fun getAllCells ans istr' =
+        if (endOfRow istr') then List.rev(ans)
+        else (skipDelimiter istr'; getAllCells ((inputCell istr')::ans) istr');
     val startsEmpty = endOfRow istr;
     val result = (if not (endOfRow istr) then inputCell istr else "")::
-                 (dowhile (fn () => not (endOfRow istr))
-                          (fn () => (skipDelimiter istr; inputCell istr)));
+                 getAllCells [] istr;
 in
     if startsEmpty then let
-        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val newlineChars = String.explode (TextIO.lookaheadN (istr,
+                                                              lookaheadDistance));
         val matchedNewline = matchNewline newlineChars;
         val consumeDistance = case matchedNewline of
                                   NONE => 0
-                               | SOME nl => List.length nl;
+                                | SOME nl => List.length nl;
     in
         (TextIO.inputN (istr, consumeDistance); [])
     end
     else let
-        val newlineChars = String.explode (lookaheadN (istr, lookaheadDistance));
+        val newlineChars = String.explode (TextIO.lookaheadN (istr,
+                                                              lookaheadDistance));
         val matchedNewline = matchNewline newlineChars;
         val consumeDistance = case matchedNewline of
                                   NONE => 0
-                               | SOME nl => List.length nl;
+                                | SOME nl => List.length nl;
     in
         (TextIO.inputN (istr, consumeDistance); result) (* Consume the newline *)
     end
 end;
 
 fun input istr = let
-    fun dowhile' cond eval result =
-        if (cond ()) then (dowhile' cond eval ((eval ())::result))
-        else result;
-    fun dowhile cond eval = List.rev (dowhile' cond eval []);
+    fun getAllRows ans istr' =
+        if (endOfStream istr') then List.rev(ans)
+        else getAllRows ((inputRow istr')::ans) istr';
     val startsEmpty = endOfStream istr;
 in
     if startsEmpty then []
-    else dowhile (fn () => not (endOfStream istr))
-                 (fn () => inputRow istr)
+    else getAllRows [] istr
 end;
 
 
@@ -168,10 +163,55 @@ fun openOut filename = TextIO.openOut filename;
 fun closeOut ostr = TextIO.closeOut ostr;
 fun flushOut ostr = TextIO.flushOut ostr;
 
-(* TODO: Implement output *)
-fun outputCell ostr value isEndOfLine = ();
-fun outputRow ostr values = ();
-fun output ostr values = ();
+fun outputCell ostr value =
+    let
+        fun containsQuotes s = String.isSubstring "\"" s;
+        fun containsNewlines s = List.exists
+                                     (fn nl => String.isSubstring
+                                                   (String.implode nl) s)
+                                     newlines;
+        fun containsDelimiters s = List.exists
+                                       (fn d => String.isSubstring
+                                                    (String.str d) s)
+                                       delimiters;
+
+        fun outputQuotedCell () =
+            let
+                fun doubleUp c [] = []
+                  | doubleUp c (x::xs) = if x = c then (x::x::(doubleUp c xs))
+                                         else (x::(doubleUp c xs));
+                fun doubleQuotes s = String.implode
+                                         (doubleUp #"\""
+                                                   (String.explode s));
+                val _ = TextIO.output1(ostr, #"\"");
+                val _ = TextIO.output(ostr, doubleQuotes value);
+                val _ = TextIO.output1(ostr, #"\"");
+            in () end;
+        fun outputUnquotedCell () = TextIO.output(ostr, value);
+        val needsQuotes = (containsQuotes value) orelse
+                          (containsNewlines value) orelse
+                          (containsDelimiters value);
+        val _ = if needsQuotes
+                then outputQuotedCell()
+                else outputUnquotedCell();
+    in () end;
+fun outputRow ostr values =
+    let
+        fun zipWithIsLast [] ans = List.rev ans
+          | zipWithIsLast [x] ans = List.rev ((x, true)::ans)
+          | zipWithIsLast (x::xs) ans = zipWithIsLast xs ((x, false)::ans)
+        val _ = map
+                    (fn (v, last) => (
+                         outputCell ostr v;
+                         if last then ()
+                         else TextIO.output1(ostr, (List.hd delimiters))))
+                    (zipWithIsLast values []);
+        val _ = TextIO.output(ostr, (String.implode (List.hd newlines)));
+    in () end;
+fun output ostr values =
+    let
+        val _ = map (outputRow ostr) values
+    in () end;
 
 end;
 

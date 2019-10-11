@@ -1,9 +1,0 @@
-type-unit, type-unit, 0.7
-token-dot, token-dot, 0.9
-tactic-stack_horizontal OR tactic-stack_vertical, token-add OR token-plus OR token-sum,0.8
-tactic-cut_horizontal OR tactic-cut_vertical OR token-cut_ell OR token-cut_square,token-minus OR token-subtract OR token-remove,0.8
-tactic-cut_horizontal OR tactic-cut_vertical OR tactic-cut_diagonal,token-divided_by,0.8
-tactic-count_equal OR tactic-count_more OR tactic-count_less,token-count,1
-tactic-count_equal,token-equal OR token-is,0.9
-tactic-count_more,token-greater_than,0.9
-tactic-count_less,token-smaller_than,0.9
