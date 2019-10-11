@@ -146,9 +146,10 @@ fun zip _ EMPTY = EMPTY
 fun length EMPTY = 0
   | length (CONS(x, xf)) = 1 + length (force xf);
 
-fun unfold f s = case f s of
-                     SOME x => CONS(fn () => s, fn () => unfold f x)
-                   | NONE => CONS(fn () => s, fn () => EMPTY);
+fun unfold f s = let fun uf x = case x of
+                                    SOME v => CONS(fn () => v, fn () => uf (f v))
+                                  | NONE => EMPTY;
+                 in uf (SOME s) end;
 
 fun repeat x = unfold (fn _ => SOME x) x;
 
