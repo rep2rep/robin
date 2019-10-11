@@ -1,13 +1,40 @@
 graphs,
 mode,"connection"
-types,"vertex, vertex * vertex -> graph, graph, integer, abc_string"
-tokens,"$vertex : {type:= vertex} , $edge : {type:= vertex * vertex -> graph}"
-patterns,"$complete, $bipartite, $bipartite_complete, $empty, $acyclic"
-token_imports,"latin_alphabet"
-grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$count_invariant"
-fact_imports,NONE
-tactics,"edge_add,edge_remove,edge_count,vertex_add,vertex_remove,vertex_count,join_graphs,remove_graph,constructive_omega_rule"
+types,"vertex, vertex * vertex -> graph, graph, integer, abc_string"
+tokens,"$vertex : {type := vertex},
+        $edge : {type:= vertex * vertex -> graph}"
+patterns,"$complete : {type := graph;
+                       holes := [vertex => sqrt(#t).
+                                 vertex * vertex -> graph => #t];
+                       token_registration := 1},
+          $bipartite : {type := graph;
+                        holes := [vertex => sqrt(#t).
+                                  vertex * vertex -> graph => #t];
+                        token_registration := 1},
+          $bipartite_complete : {type := graph;
+                                 holes := [vertex => sqrt(#t).
+                                           vertex * vertex -> graph => #t];
+                                 token_registration := 1},
+          $empty : {type := graph;
+                    holes := [];
+                    token_registration := 1},
+          $acyclic : {type := graph;
+                      holes := [vertex => sqrt(#t).
+                                vertex * vertex -> graph => #t];
+                      token_registration := 1}"
+token_imports,"latin_alphabet"
+laws,"$count_invariant : {description := the scale and arrangement of the graph has no impact on the connections or size}"
+law_imports,NONE
+tactics,"edge_add,
+         edge_remove,
+         edge_count,
+         vertex_add,
+         vertex_remove,
+         vertex_count,
+         join_graphs,
+         remove_graph,
+         constructive_omega_rule"
+grammatical_complexity,type-3
 inferential_complexity,0
 physical_dimension_use,"X:{grammatical;inferential},Y:{grammatical;inferential},colour:{}"
