@@ -87,6 +87,8 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
+    val split : ('a list * int) -> ('a list * 'a list);
+
     val rotate : int -> 'a list -> 'a list;
 
     val product : 'a list -> 'b list -> ('a * 'b) list;
@@ -165,6 +167,15 @@ fun takeWhile pred list =
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
+    end;
+
+fun split (xs, i) =
+    let
+        fun split' fst xs 0 = (List.rev fst, xs)
+          | split' fst [] _ = raise Subscript
+          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
+    in
+        split' [] xs i
     end;
 
 fun rotate 0 xs = xs
