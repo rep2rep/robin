@@ -13,6 +13,7 @@ sig
     val randInt : (int * int) -> int;
 
     val choose : 'a list -> 'a;
+    val chooseRemove : 'a list -> ('a * 'a list);
     val shuffle : 'a list -> 'a list;
 
 end;
@@ -40,6 +41,11 @@ fun randInt (low, high) = (* Range is inclusive, exclusive *)
 
 fun choose [] = raise List.Empty
   | choose xs = let val i = randInt (0, List.length xs) in List.nth (xs, i) end;
+
+fun chooseRemove [] = raise List.Empty
+  | chooseRemove xs = let val i = randInt (0, List.length xs);
+                          val (firstPart, secondPart) = List.split (xs, i);
+                      in (List.hd secondPart, firstPart @ (List.tl secondPart)) end;
 
 fun shuffle xs =
     let
