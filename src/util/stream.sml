@@ -31,8 +31,9 @@ signature STREAM = sig
     val all : ('a -> bool) -> 'a stream -> bool;
     val exists: ('a -> bool) -> 'a stream -> bool; (* Finite only! *)
 
-    val interleave : 'a stream -> (unit -> 'a stream) -> 'a stream;
-    val interleaveAll : 'a stream list -> 'a stream;
+    val interleave : 'a stream -> 'a stream -> 'a stream;
+    val interleave' : 'a stream -> (unit -> 'a stream) -> 'a stream;
+    val interleaveAll : 'a stream stream -> 'a stream;
 
     val zip : 'a stream -> 'b stream -> ('a * 'b) stream;
     val product : 'a stream -> 'b stream -> ('a * 'b) stream;
@@ -74,11 +75,13 @@ fun lazyHead EMPTY = raise Subscript
 fun lazyStep EMPTY = raise Subscript
   | lazyStep (CONS(x, xf)) = (x, force xf);
 
-fun interleave EMPTY y = y()
-  | interleave (CONS(x, xf)) y = CONS(x, fn () => interleave (force y) xf);
+fun interleave' EMPTY y = y()
+  | interleave' (CONS(x, xf)) y = CONS(x, fn () => interleave' (force y) xf);
 
-fun interleaveAll [] = EMPTY
-  | interleaveAll (s::ss) = interleave s (fn () => interleaveAll ss);
+fun interleave a b = interleave' a (fn () => b);
+
+fun interleaveAll EMPTY = EMPTY
+  | interleaveAll (CONS(s,ss)) = interleave' (force s) (fn () => interleaveAll (force ss));
 
 fun fromList [] = EMPTY
   | fromList (x::xs) = CONS(fn () => x, fn () => fromList xs);
@@ -100,13 +103,13 @@ fun mapPartial f EMPTY = EMPTY
         SOME v => CONS(fn () => v, fn () => mapPartial f (force xf))
       | NONE => mapPartial f (force xf);
 
-fun flatmap f EMPTY = EMPTY
-  | flatmap f (CONS(x, xf)) = interleave (f (force x)) (fn () => flatmap f (force xf));
+fun flatmap f xs = interleaveAll (map f xs);
 
 fun filter f EMPTY = EMPTY
-  | filter f (CONS(x, xf)) = if f (force x)
-                             then CONS(x, fn () => filter f (force xf))
-                             else filter f (force xf);
+  | filter f (CONS(x, xf)) = let val v = force x
+                             in if f v
+                                then CONS(fn () => v, fn () => filter f (force xf))
+                                else filter f (force xf) end;
 
 fun fold f a EMPTY = a
   | fold f a (CONS(x, xf)) = fold f (f (a, (force x))) (force xf);
@@ -122,16 +125,18 @@ fun drop 0 x = x
   | drop n (CONS(x, xf)) = drop (n-1) (force xf);
 
 fun takeWhile f EMPTY = EMPTY
-  | takeWhile f (CONS(x, xf)) = if f (force x)
-                                then CONS(x, fn () => takeWhile f (force xf))
-                                else EMPTY;
+  | takeWhile f (CONS(x, xf)) = let val v = force x
+                                in if f v
+                                   then CONS( fn () => v, fn () => takeWhile f (force xf))
+                                   else EMPTY end;
 
 fun takeListWhile f xs = toList (takeWhile f xs);
 
 fun dropWhile f EMPTY = EMPTY
-  | dropWhile f (CONS(x, xf)) = if f (force x)
-                                then dropWhile f (force xf)
-                                else CONS(x, xf);
+  | dropWhile f (CONS(x, xf)) = let val v = force x
+                                in if f v
+                                   then dropWhile f (force xf)
+                                   else CONS(fn () => v, xf) end;
 
 fun all f EMPTY = true
   | all f (CONS(x, xf)) = f (force x) andalso all f (force xf);
@@ -158,6 +163,6 @@ val nats = unfold (fn x => SOME (x + 1)) 0;
 fun product _ EMPTY = EMPTY
   | product EMPTY _ = EMPTY
   | product (CONS(x, xf)) yf = let fun lazyRepeat x = CONS(x, fn () => lazyRepeat x);
-                               in interleave (zip (lazyRepeat x) yf) (fn () => product (force xf) yf) end;
+                               in interleave' (zip (lazyRepeat x) yf) (fn () => product (force xf) yf) end;
 
 end;
