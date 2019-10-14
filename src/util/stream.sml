@@ -1,3 +1,4 @@
+import "util.random";
 signature STREAM = sig
 
     type 'a stream;
@@ -6,9 +7,9 @@ signature STREAM = sig
     val cons : 'a * 'a stream -> 'a stream;
     val null : 'a stream -> bool;
 
-    val head : 'a stream -> 'a;
-    val lazyHead : 'a stream -> (unit -> 'a);
-    val tail : 'a stream -> 'a stream;
+    val hd : 'a stream -> 'a;
+    val lazyHd : 'a stream -> (unit -> 'a);
+    val tl : 'a stream -> 'a stream;
     val step : 'a stream -> ('a * 'a stream);
     val lazyStep : 'a stream -> ((unit -> 'a) * 'a stream);
 
@@ -32,7 +33,6 @@ signature STREAM = sig
     val exists: ('a -> bool) -> 'a stream -> bool; (* Finite only! *)
 
     val interleave : 'a stream -> 'a stream -> 'a stream;
-    val interleave' : 'a stream -> (unit -> 'a stream) -> 'a stream;
     val interleaveAll : 'a stream stream -> 'a stream;
 
     val zip : 'a stream -> 'b stream -> ('a * 'b) stream;
@@ -48,121 +48,123 @@ end;
 
 structure Stream : STREAM = struct
 
-datatype 'a stream = EMPTY
-                   | CONS of (unit -> 'a) * (unit -> 'a stream);
+datatype 'a stream = STREAM of unit -> 'a streamHelper
+     and 'a streamHelper = EMPTY | CONS of (unit -> 'a) * 'a stream;
 
-fun force x = (x());
+fun force (STREAM s) = (s());
 
-val empty = EMPTY;
+val empty = STREAM (fn () => EMPTY);
 
-fun null EMPTY = true
-  | null _ = false;
+fun null s = case force s of EMPTY => true
+                           | _ => false;
 
-fun cons (x, xs) = CONS(fn () => x, fn () => xs);
+fun cons (x, s) = STREAM (fn () => CONS (fn () => x, s));
 
-fun head EMPTY = raise Subscript
-  | head (CONS(x, xf)) = force x;
+fun hd s = case force s of EMPTY => raise Subscript
+                         | CONS(x, xf) => x();
 
-fun tail EMPTY = raise Subscript
-  | tail (CONS(x, xf)) = force xf;
+fun tl s = case force s of EMPTY => raise Subscript
+                         | CONS(x, xf) => xf;
 
-fun step EMPTY = raise Subscript
-  | step (CONS(x, xf)) = (force x, force xf);
+fun step s = case force s of EMPTY => raise Subscript
+                           | CONS (x, xf) => (x(), xf);
 
-fun lazyHead EMPTY = raise Subscript
-  | lazyHead (CONS(x, xf)) = x;
+fun lazyHd s = (print"GettingHeadLazy\n";case force s of EMPTY => raise Subscript
+                             | CONS(x, xf) => x);
 
-fun lazyStep EMPTY = raise Subscript
-  | lazyStep (CONS(x, xf)) = (x, force xf);
+fun lazyStep s = (print"GettingStepLazy\n";case force s of EMPTY => raise Subscript
+                               | CONS(x, xf) => (x, xf));
 
-fun interleave' EMPTY y = y()
-  | interleave' (CONS(x, xf)) y = CONS(x, fn () => interleave' (force y) xf);
+fun interleave s t = STREAM (fn () => case force s of EMPTY => force t
+                                                    | CONS(x, xf) => CONS (x, interleave t xf));
 
-fun interleave a b = interleave' a (fn () => b);
+fun interleaveAll s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                                     | CONS(x, xf) => force (interleave (x()) (interleaveAll xf)));
 
-fun interleaveAll EMPTY = EMPTY
-  | interleaveAll (CONS(s,ss)) = interleave' (force s) (fn () => interleaveAll (force ss));
+fun fromList [] = STREAM (fn () => EMPTY)
+  | fromList (x::xs) = STREAM (fn () => CONS(fn () => x, fromList xs));
 
-fun fromList [] = EMPTY
-  | fromList (x::xs) = CONS(fn () => x, fn () => fromList xs);
-
-fun toList s =
+fun toList (STREAM s) =
     let
-        fun toList' EMPTY ans = List.rev ans
-          | toList' (CONS(x, xf)) ans = toList' (force xf) ((force x)::ans);
+        fun toList' s ans = case force s of EMPTY => List.rev ans
+                                          | CONS(x, xf) => toList' xf ((x())::ans)
     in
-        toList' s []
+        toList' (STREAM s) []
     end;
 
-fun map f EMPTY = EMPTY
-  | map f (CONS(x, xf)) = CONS(fn () => f (force x), fn () => map f (force xf));
+fun map f s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                             | CONS(x, xf) => CONS(fn () => f (x()), map f xf));
 
-fun mapPartial f EMPTY = EMPTY
-  | mapPartial f (CONS(x, xf)) =
-    case f (force x) of
-        SOME v => CONS(fn () => v, fn () => mapPartial f (force xf))
-      | NONE => mapPartial f (force xf);
+fun mapPartial f s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                                    | CONS(x, xf) => let val v = x()
+                                                                     in case f v of SOME y => CONS(fn () => y, mapPartial f xf)
+                                                                                  | NONE => force (mapPartial f xf) end);
 
-fun flatmap f xs = interleaveAll (map f xs);
+fun flatmap f s = interleaveAll (map f s);
 
-fun filter f EMPTY = EMPTY
-  | filter f (CONS(x, xf)) = let val v = force x
-                             in if f v
-                                then CONS(fn () => v, fn () => filter f (force xf))
-                                else filter f (force xf) end;
+fun filter f s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                                | CONS(x, xf) => let val v = x()
+                                                                 in case f v of true => CONS(fn () => v, filter f xf)
+                                                                              | false => force (filter f xf) end);
 
-fun fold f a EMPTY = a
-  | fold f a (CONS(x, xf)) = fold f (f (a, (force x))) (force xf);
+fun fold f a s = case force s of EMPTY => a
+                               | CONS(x, xf) => fold f (f(a, x())) xf;
 
-fun take 0 _ = EMPTY
-  | take _ EMPTY = EMPTY
-  | take n (CONS(x, xf)) = CONS(x, fn () => take (n-1) (force xf));
+fun take 0 _ = STREAM (fn () => EMPTY)
+  | take n s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                              | CONS(x, xf) => CONS(x, take (n-1) xf));
 
-fun takeList i xs = toList (take i xs);
+fun takeList i s = toList (take i s);
 
 fun drop 0 x = x
-  | drop _ EMPTY = EMPTY
-  | drop n (CONS(x, xf)) = drop (n-1) (force xf);
+  | drop i s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                              | CONS(x, xf) => force (drop (i-1) xf));
 
-fun takeWhile f EMPTY = EMPTY
-  | takeWhile f (CONS(x, xf)) = let val v = force x
-                                in if f v
-                                   then CONS( fn () => v, fn () => takeWhile f (force xf))
-                                   else EMPTY end;
+fun takeWhile f s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                                  | CONS(x, xf) => let val v = x()
+                                                                   in if f v then CONS(fn () => v, takeWhile f xf)
+                                                                      else EMPTY end);
 
-fun takeListWhile f xs = toList (takeWhile f xs);
+fun takeListWhile f s = toList (takeWhile f s);
 
-fun dropWhile f EMPTY = EMPTY
-  | dropWhile f (CONS(x, xf)) = let val v = force x
-                                in if f v
-                                   then dropWhile f (force xf)
-                                   else CONS(fn () => v, xf) end;
+fun dropWhile f s = STREAM (fn () => case force s of EMPTY => EMPTY
+                                                   | CONS(x, xf) => let val v = x()
+                                                                    in if f v then force (dropWhile f xf)
+                                                                       else CONS(fn () => v, xf) end);
+fun all f s = case force s of EMPTY => true
+                            | CONS(x, xf) => f (x ()) andalso all f xf;
 
-fun all f EMPTY = true
-  | all f (CONS(x, xf)) = f (force x) andalso all f (force xf);
+fun exists f s = case force s of EMPTY => false
+                               | CONS(x, xf) => f (x ()) orelse exists f xf;
 
-fun exists f EMPTY = false
-  | exists f (CONS(x, xf)) = f (force x) orelse exists f (force xf);
+fun zip s t = STREAM (fn () => case (force s, force t) of
+                                   (EMPTY, _) => EMPTY
+                                 | (_, EMPTY) => EMPTY
+                                 | (CONS(x, xf), CONS(y, yf)) => CONS(fn () => (x(),y()), zip xf yf));
 
-fun zip _ EMPTY = EMPTY
-  | zip EMPTY _ = EMPTY
-  | zip (CONS(x, xf)) (CONS(y, yf)) = CONS(fn () => ((force x), (force y)), fn () => zip (force xf) (force yf));
+fun length s =
+    let
+        fun len' t ans = case force t of EMPTY => ans
+                                       | CONS(x, xf) => len' xf (1 + ans);
+    in
+        len' s 0
+    end;
 
-fun length EMPTY = 0
-  | length (CONS(x, xf)) = 1 + length (force xf);
+fun unfold f z = let fun uf x = STREAM (fn () => case x of SOME v => CONS(fn () => v, uf (f v))
+                                                         | NONE => EMPTY)
+                 in uf (SOME z) end;
 
-fun unfold f s = let fun uf x = case x of
-                                    SOME v => CONS(fn () => v, fn () => uf (f v))
-                                  | NONE => EMPTY;
-                 in uf (SOME s) end;
-
-fun repeat x = unfold (fn _ => SOME x) x;
+fun repeat k = unfold (fn _ => SOME k) k;
 
 val nats = unfold (fn x => SOME (x + 1)) 0;
 
-fun product _ EMPTY = EMPTY
-  | product EMPTY _ = EMPTY
-  | product (CONS(x, xf)) yf = let fun lazyRepeat x = CONS(x, fn () => lazyRepeat x);
-                               in interleave' (zip (lazyRepeat x) yf) (fn () => product (force xf) yf) end;
+fun product s t = STREAM(fn () => case (force s, force t) of (_, EMPTY) => EMPTY
+                                                           | (EMPTY, _) => EMPTY
+                                                           | (CONS(x, xf), _) =>
+                                                             let
+                                                                 fun repeatl x = STREAM(fn () => CONS(x, repeatl x));
+                                                             in
+                                                                 force (interleave (zip (repeatl x) t) (product xf t))
+                                                             end);
 
 end;
