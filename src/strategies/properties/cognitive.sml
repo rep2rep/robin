@@ -30,6 +30,7 @@ sig
   val quantityScale : qtable -> real;
 
   val expressionComplexity : qtable (*-> rstable*) -> real;
+  val inferenceType : qtable -> real;
 
   val problemSpaceBranchingFactor : qtable -> rstable -> real;
 end;
@@ -200,8 +201,8 @@ fun expressionComplexity qT (*rT *)=
                 val _ = print ("\n       arity:" ^ (Real.toString arity) ^ " ")
             in Math.sqrt (Math.pow(arity,2.0) + (depth * breadth))
             end
-        fun weighing x = (*(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
-                          **) (Importance.weight (QProperty.importanceOf x))
+        fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+                          * (Importance.weight (QProperty.importanceOf x))
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
     in List.weightedAvgIndexed weighing f (nonTrivialTokens @ P)
     end;
@@ -319,6 +320,16 @@ fun tokenConceptMapping idealqT rT = conceptMapping Kind.Token idealqT rT;
 
 fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT;
 
+fun inferenceType qT =
+    let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
+        val S = PropertySet.map (fn x => #2 (Property.getStringFunction "inference_type" x)) T
+        fun assess s = if s = "assign" then 1.0
+                  else if s = "match" then 2.0
+                  else if s = "subst" then 3.0
+                  else if s = "calc" then 4.0
+                  else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
+    in List.avgIndexed assess S handle Empty => Real.posInf
+    end;
 
 fun problemSpaceBranchingFactor qT rT =
     let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;

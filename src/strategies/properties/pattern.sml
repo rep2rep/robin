@@ -32,11 +32,11 @@ fun sameTypeDNF (tF, tF') =
     in same tF tF'
     end
 
-fun getChildrenOptions _ [] = []
-  | getChildrenOptions t (((labels,tokens,(tL,t')),i)::K) =
+fun literalUnfoldChoices _ [] = []
+  | literalUnfoldChoices t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
-    then (labels,tokens,(tL,t')) :: getChildrenOptions t K
-    else getChildrenOptions t K;
+    then (labels,tokens,(tL,t')) :: literalUnfoldChoices t K
+    else literalUnfoldChoices t K;
 
 
 exception Unsatisfiable;
@@ -64,36 +64,16 @@ fun unfoldTypeDNF [] = (false,[])
             in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
             end
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
-          | unfoldClause ((lt::C),((d,b),K)) = distribute (getChildrenOptions lt K) (unfoldClause (C,((d,b),K)));
-
-(* The following functions are not used but could potentially simplify the search if used properly *)
-(* begin *)
-(*
-        fun remove_satisfied [] = []
-          | remove_satisfied ((x,_)::L) = if null x then remove_satisfied L else x :: remove_satisfied L
-
-        fun countAndRemoveType _ [] = (0,[])
-          | countAndRemoveType t' ((t,i)::C) = let val (s,L) = countAndRemoveType t' C
-                                               in if t' = t then (s+i,L) else (s,(t,i)::L)
-                                               end;
-        fun simplifyClause [] = []
-          | simplifyClause ((lt,count)::C) = let val (s,L) = countAndRemoveType lt ((lt,count) :: C)
-                                              in (lt,s) :: simplifyClause L
-                                              end;
-*)(* end *)
-
+          | unfoldClause ((lt::C),((d,b),K)) = distribute (literalUnfoldChoices lt K) (unfoldClause (C,((d,b),K)));
         val unfoldedCl = if null (#1 cl) then [cl] else unfoldClause cl
         val clChanged = not (sameTypeDNF ([cl],unfoldedCl))
         val (dnfChanged, unfoldedDNF) = unfoldTypeDNF dnf
     in (clChanged orelse dnfChanged, unfoldedCl @ unfoldedDNF)
     end;
 
-exception X of clause list;
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let val (changed,x') = if length x > 1000000
-                                    then (print "\n         DNF is too large!"; (false,List.filter (fn d => null (#1 d)) x))
-                                    else unfoldTypeDNF x
+            let val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => x)
             in (print ("\n       length of DNF: " ^ Int.toString (length x) ^ "");
                 if null x' then raise Unsatisfiable
                 else (if changed
@@ -146,7 +126,8 @@ fun satisfyPattern p C P =
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = if Property.kindOf p = Kind.Pattern then getLTTNP p else getLTTNC p
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun patternClause () = (typs, ((udepth,1), diminish tks CP))
+        fun makeKB K = List.mergesort (fn (((_,_,(typsx,_)),_),((_,_,(typsy,_)),_)) => Int.compare (length typsx,length typsy)) (diminish tks K) (* using argument to delay evaluation*)
+        fun patternClause x = (typs, ((udepth,1), makeKB CP))
     in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0.0,0.0))
     end
 
