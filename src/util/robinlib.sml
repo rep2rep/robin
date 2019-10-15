@@ -17,6 +17,7 @@ sig
     val flip : ('a * 'b) -> ('b * 'a);
     val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
     val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
+    val fails : (unit -> 'a) -> bool;
 end;
 
 
@@ -58,6 +59,9 @@ fun flip (a, b) = (b, a);
 fun curry f a b = f (a, b);
 
 fun uncurry f (a, b) = f a b;
+
+fun fails f = (f(); false)
+              handle _ => true;
 
 end;
 
