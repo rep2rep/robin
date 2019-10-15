@@ -61,13 +61,13 @@ fun repl state =
 
 fun showAll stream =
     let
-        fun fmt c r = (Correspondence.toString c)
+        fun fmt (c, r) = (Correspondence.toString c)
                       ^ "\n\t"
                       ^ (FindCorrs.reasonString r)
                       ^ "\n";
         fun next s =
-            let val ((c, r), t) = Stream.step s
-            in print (fmt c r); next t end
+            let val (x, t) = Stream.lazyStep s
+            in print (fmt (x())); next t end
             handle Subscript => ();
     in
         next stream
