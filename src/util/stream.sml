@@ -51,7 +51,7 @@ structure Stream : STREAM = struct
 datatype 'a stream = STREAM of unit -> 'a streamHelper
      and 'a streamHelper = EMPTY | CONS of (unit -> 'a) * 'a stream;
 
-fun force (STREAM s) = (s());
+fun force (STREAM s) = s();
 
 val empty = STREAM (fn () => EMPTY);
 
@@ -69,11 +69,11 @@ fun tl s = case force s of EMPTY => raise Subscript
 fun step s = case force s of EMPTY => raise Subscript
                            | CONS (x, xf) => (x(), xf);
 
-fun lazyHd s = (print"GettingHeadLazy\n";case force s of EMPTY => raise Subscript
-                             | CONS(x, xf) => x);
+fun lazyHd s = case force s of EMPTY => raise Subscript
+                             | CONS(x, xf) => x;
 
-fun lazyStep s = (print"GettingStepLazy\n";case force s of EMPTY => raise Subscript
-                               | CONS(x, xf) => (x, xf));
+fun lazyStep s = case force s of EMPTY => raise Subscript
+                               | CONS(x, xf) => (x, xf);
 
 fun interleave s t = STREAM (fn () => case force s of EMPTY => force t
                                                     | CONS(x, xf) => CONS (x, interleave t xf));
