@@ -46,7 +46,7 @@ fun reasonString (IDENTITY p) =
   | reasonString (ATTRIBUTE (p1, p2)) =
     "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
   | reasonString (VALUE (p1, p2)) =
-    "Is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
+    "This is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
 fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
 
@@ -60,49 +60,63 @@ fun makeCorr (p, q) =
 fun atomOnly (Correspondence.F.Atom x, Correspondence.F.Atom y, z) = true
   | atomOnly _ = false;
 
+fun corrToPairs (p, q, v) =
+    let
+        fun formulaToValue (Correspondence.F.Atom a, Correspondence.F.Atom b) = SOME (a, b)
+          | formulaToValue _ = NONE
+        val (pClauses, qClauses) = spread (Stream.fromList o Correspondence.F.clauses) (p, q);
+        val basePairs = Stream.product pClauses qClauses;
+    in
+        Stream.mapPartial formulaToValue basePairs
+    end;
+
+fun streamSetProduct ps qs = (uncurry Stream.product) (spread (Stream.fromList o PropertySet.toList) (ps, qs));
+
 local
     fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
     fun propertyFromToken s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
-    fun unifyish (Type.Ground x, Type.Ground y) = [(Type.Ground x, Type.Ground y)]
-      | unifyish (Type.Var x, Type.Var y) = []
-      | unifyish (Type.Pair (a, b), Type.Pair (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
-      | unifyish (Type.Function (a, b), Type.Function (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
-      | unifyish (Type.Constructor (s, x), Type.Constructor (s', y)) = (Type.Ground s, Type.Ground s')::(unifyish (x, y))
+    fun unifyish (Type.Ground x, Type.Ground y) = Stream.fromList [(Type.Ground x, Type.Ground y)]
+      | unifyish (Type.Var x, Type.Var y) = Stream.empty
+      | unifyish (Type.Pair (a, b), Type.Pair (x, y)) = Stream.interleave (unifyish (a, x)) (unifyish (b, y))
+      | unifyish (Type.Function (a, b), Type.Function (x, y)) = Stream.interleave (unifyish (a, x)) (unifyish (b, y))
+      | unifyish (Type.Constructor (s, x), Type.Constructor (s', y)) = Stream.cons ((Type.Ground s, Type.Ground s'), unifyish (x, y))
       | unifyish _ = raise Match;
 in
 fun checkAttrCorr cs (a, b) =
     let (*  Type * Type  *)
         val (at, bt) = spread Attribute.getType (a, b);
-        val unified = unifyish (at, bt) handle Match => [];
-        val typePairs = map (spread propertyFromType) unified;
-        val success = List.all (doCorrespond cs) typePairs;
+        (* Need to check if there are holes: if so, we ignore this type match *)
+        val _ = if fails (fn () => spread Attribute.getHoles (a, b)) then () else raise Match;
+        val unified = unifyish (at, bt) handle Match => Stream.empty;
+        val typePairs = Stream.map (spread propertyFromType) unified;
+        val success = Stream.all (doCorrespond cs) typePairs;
     in
-        success andalso not (List.null unified)
+        success andalso not (Stream.null unified)
     end handle Match =>
     let (*  Content * Content  *)
         val (ac, bc) = spread Attribute.getContent (a, b);
-        val unified = unifyish (ac, bc) handle Match => [];
-        val typePairs = map (spread propertyFromType) unified;
-        val success = List.all (doCorrespond cs) typePairs;
+        val unified = unifyish (ac, bc) handle Match => Stream.empty;
+        val typePairs = Stream.map (spread propertyFromType) unified;
+        val success = Stream.all (doCorrespond cs) typePairs;
     in
-        success andalso not (List.null unified)
+        success andalso not (Stream.null unified)
     end handle Match =>
     let (*  (Holes * Type) * (Holes * Type)  *)
-        val (ah, bh) = spread (Attribute.M.toPairList o Attribute.getHoles) (a, b);
-        val holePairs = List.map (fn ((a, _), (b, _)) => (a, b)) (List.filter (fn ((_, c), (_, c')) => c = c') (List.product ah bh));
+        val (ah, bh) = spread (Stream.fromList o Attribute.M.toPairList o Attribute.getHoles) (a, b);
+        val holePairs = Stream.map (fn ((a, _), (b, _)) => (a, b)) (Stream.filter (fn ((_, c), (_, c')) => c = c') (Stream.product ah bh));
         val (at, bt) = spread Attribute.getType (a, b);
-        val typePairs = map (spread propertyFromType) ((at, bt) :: (List.flatmap unifyish holePairs) handle Match => []);
-        val success = List.all (doCorrespond cs) typePairs;
+        val typePairs = Stream.map (spread propertyFromType) (Stream.cons ((at, bt), (Stream.flatmap unifyish holePairs) handle Match => Stream.empty));
+        val success = Stream.all (doCorrespond cs) typePairs;
     in
-        success andalso not (List.null holePairs)
+        success andalso not (Stream.null holePairs)
     end handle Match =>
     let (*  Tokens * Tokens  *)
-        val (at, bt) = spread Attribute.getTokens (a, b);
-        val tokPairs = List.product at bt;
-        val propPairs = map (spread propertyFromToken) tokPairs;
-        val success = List.all (doCorrespond cs) propPairs;
+        val (at, bt) = spread (Stream.fromList o Attribute.getTokens) (a, b);
+        val tokPairs = Stream.product at bt;
+        val propPairs = Stream.map (spread propertyFromToken) tokPairs;
+        val success = Stream.all (doCorrespond cs) propPairs;
     in
-        success andalso not (List.null tokPairs)
+        success andalso not (Stream.null tokPairs)
     end handle Match => false;
 
 fun potentialAttrCorr (a, b) =
@@ -113,7 +127,7 @@ fun potentialAttrCorr (a, b) =
         val types = fn () =>
             let
                 val getTypes = getAttr Attribute.getType;
-                val typeStream = Stream.fromList (unifyish (getTypes (a, b)) handle Match => []);
+                val typeStream = unifyish (getTypes (a, b)) handle Match => Stream.empty;
                 val propStream = Stream.map (spread propertyFromType) typeStream;
             in
                 propStream
@@ -121,7 +135,7 @@ fun potentialAttrCorr (a, b) =
         val content = fn () =>
             let
                 val getContent = getAttr Attribute.getContent;
-                val contentStream = Stream.fromList (unifyish (getContent (a, b)) handle Match => []);
+                val contentStream = unifyish (getContent (a, b)) handle Match => Stream.empty;
                 val propStream = Stream.map (spread propertyFromType) contentStream;
             in
                 propStream
@@ -130,8 +144,8 @@ fun potentialAttrCorr (a, b) =
             let
                 val getHoles = getAttr Attribute.getHoles;
                 val (ah, bh) = spread ((map (fn (k, _) => k)) o Attribute.M.toPairList) (getHoles (a, b));
-                val holeStream = Stream.fromList (List.product ah bh);
-                val typeStream = Stream.flatmap (Stream.fromList o unifyish) holeStream;
+                val holeStream = uncurry Stream.product (spread Stream.fromList (ah, bh));
+                val typeStream = Stream.flatmap unifyish holeStream;
                 val propStream = Stream.map (spread propertyFromType) typeStream;
             in
                 propStream
@@ -139,43 +153,43 @@ fun potentialAttrCorr (a, b) =
         val tokens = fn () =>
             let
                 val getTokens = getAttr Attribute.getTokens;
-                val tokenStream = Stream.fromList (uncurry List.product (getTokens (a,b) handle Match => ([], [])));
+                val tokenStream = uncurry Stream.product (spread Stream.fromList (getTokens (a,b) handle Match => ([], [])));
                 val propStream = Stream.map (spread propertyFromToken) tokenStream;
             in
                 propStream
             end;
+        val chosen  = Random.choose [types, content, holes, tokens];
     in
-        (Random.choose [types, content, holes, tokens])()
+        chosen ()
     end;
 end;
 
 fun findMatches cs rs =
     let
         val matchChecker = fn m => not o PropertySet.isEmpty o (m rs);
-        val leftMatches = List.filter (matchChecker Correspondence.leftMatches) cs;
-        val rightMatches = List.filter (matchChecker Correspondence.rightMatches) cs;
+        val leftMatches = Stream.filter (matchChecker Correspondence.leftMatches) cs;
+        val rightMatches = Stream.filter (matchChecker Correspondence.rightMatches) cs;
     in (leftMatches, rightMatches) end;
 
 fun chooseNew options existing =
     let
-        fun maybeUse (option, reason) (a, f) =
+        fun maybeUse (option, reason) cc =
             if corrExists option existing
-            then f a
+            then cc()
             else SOME (option, reason);
         fun listChoose (xs, s) =
             let
-                val (x, r) = Random.choose xs;
-                val xs' = List.filter (fn (y, _) => not (Correspondence.matchingProperties x y)) xs;
+                val (x, xs') = Random.chooseRemove xs;
             in
-                maybeUse (x, r) ((xs', s), listChoose)
+                maybeUse (x()) (fn () => listChoose (xs', s))
             end handle List.Empty => NONE;
         fun streamChoose (rest, s) =
             let
-                val (x, xf) = Stream.step s;
+                val (x, xf) = Stream.lazyStep s;
                 val r = Random.random ();
             in
-                if r < 0.2  (* Lower probabilities means it will walk further before finding something *)
-                then maybeUse x ((rest, s), streamChoose)
+                if r < 0.5  (* Lower probabilities means it will walk further before finding something *)
+                then maybeUse (x()) (fn () => streamChoose (rest, xf))
                 else streamChoose ((x::rest), xf)
             end
             handle Subscript => listChoose (rest, Stream.empty);
@@ -194,10 +208,10 @@ fun discoverReversal (cs, rss, rs') =
     let
         fun flipCorr (a, b, c) = ((b, a, c), (* c needs to be changed too *)
                                   REVERSAL (a, b, c));
-        val (leftMatches, rightMatches) = findMatches cs rs';
-        val corrs = map flipCorr (leftMatches @ rightMatches);
+        val (leftMatches, rightMatches) = findMatches (Stream.fromList cs) rs';
+        val corrs = Stream.map flipCorr (Stream.interleave leftMatches rightMatches);
     in
-        chooseNew (Stream.fromList corrs) cs
+        chooseNew corrs cs
     end handle List.Empty => NONE;
 
 fun discoverComposition (cs, rss, rs') =
@@ -206,13 +220,14 @@ fun discoverComposition (cs, rss, rs') =
                                                 (Property.match)
                                                 (x, y);
         fun compose ((x, y, xs), (y', z, zs)) = ((x, z, xs * zs),
-                                               COMPOSITION ((x, y, xs), (y', z, zs)));
-        val (leftMatches, rightMatches) = findMatches cs rs';
-        val corrPairs = (List.product leftMatches cs) @ (List.product cs rightMatches);
-        val validCorrPairs = List.filter doCompose corrPairs;
-        val corrs = map compose validCorrPairs;
+                                                 COMPOSITION ((x, y, xs), (y', z, zs)));
+        val css = Stream.fromList cs;
+        val (leftMatches, rightMatches) = findMatches css rs';
+        val corrPairs = Stream.interleave (Stream.product leftMatches css) (Stream.product css rightMatches);
+        val validCorrPairs = Stream.filter doCompose corrPairs;
+        val corrs = Stream.map compose validCorrPairs;
     in
-        chooseNew (Stream.fromList corrs) cs
+        chooseNew corrs cs
     end handle List.Empty => NONE;
 
 (* fun discoverKind (cs, rss, rs') = NONE; *)
@@ -227,21 +242,24 @@ fun discoverAttribute (cs, rss, rs') =
             in
                 not (List.null corrAttrs)
             end;
-        val potentialCorrs = (Stream.interleaveAll o List.map (fn rs => Stream.fromList (PropertySet.product rs rs'))) rss;
+        val potentialCorrs = Stream.flatmap (fn rs => streamSetProduct rs rs') (Stream.fromList rss);
         val matchingAttrs = Stream.filter matchAttrs potentialCorrs;
         val corrs = Stream.map (fn pq => (makeCorr pq, ATTRIBUTE pq)) matchingAttrs;
+        val chosen = chooseNew corrs cs;
     in
-        chooseNew corrs cs
+        chosen
     end handle List.Empty => NONE;
 
 fun discoverValue (cs, rss, rs') =
     let
-        val potentialMatchingValues = (Stream.interleaveAll o List.map (fn rs => Stream.fromList (PropertySet.product rs rs'))) rss;
-        val matchingValues = Stream.filter (doCorrespond cs) potentialMatchingValues;
-        val attrOptions = Stream.flatmap potentialAttrCorr matchingValues;
-        val corrs = Stream.map (fn pq => (makeCorr pq, VALUE pq)) attrOptions;
+        (* val potentialMatchingValues = Stream.flatmap (fn rs => streamSetProduct rs rs') (Stream.fromList rss); *)
+        (* val matchingValues = Stream.filter (doCorrespond cs) potentialMatchingValues; *)
+        val matchingValues = Stream.flatmap (corrToPairs) ((uncurry Stream.interleave) (findMatches (Stream.fromList cs) rs'));
+        val attrOptions = Stream.flatmap (fn v => Stream.map (fn p => (p, v)) (potentialAttrCorr v)) matchingValues;
+        val corrs = Stream.map (fn (pq, ab) => (makeCorr pq, VALUE ab)) attrOptions;
+        val chosen = chooseNew corrs cs;
     in
-        chooseNew corrs cs
+        chosen
     end handle List.Empty => NONE;
 
 
