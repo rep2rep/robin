@@ -28,6 +28,8 @@ sig
     val map : ('a -> 'b) -> 'a formula -> 'b formula;
     val fold : ('a -> 'b) -> ('b -> 'b) -> ('b * 'b -> 'b) -> ('b * 'b -> 'b) -> 'a formula -> 'b;
 
+    val clauses : 'a formula -> 'a formula list;
+
     val toString : ('a -> string) -> 'a formula -> string;
     val fromString : (string -> 'a) -> string -> 'a formula;
 
@@ -116,6 +118,13 @@ fun equal eq (x, y) =
         equal' (normalise x) (normalise y)
     end;
 
+fun clauses (Atom a) = [(Atom a)]
+  | clauses (Neg a) = [(Neg a)]
+  | clauses (Conj(Disj a, b)) = clauses (normalise (Conj(Disj a, b)))
+  | clauses (Conj(a, Disj b)) = clauses (normalise (Conj(a, Disj b)))
+  | clauses (Conj(a, b)) = [Conj(a, b)]
+  | clauses (Disj(a, b)) = (clauses a) @ (clauses b);
+
 fun toString f (Atom a) = f a
   | toString f (Neg a) = Format.neg ^ " " ^ (toString f a)
   | toString f (Conj (x as (Disj _), y as (Disj _))) = "("
@@ -186,7 +195,7 @@ fun fromString builder s =
                 fun fixSpaces ans [] = List.rev ans
                   | fixSpaces ans [t] = fixSpaces (t::ans) []
                   | fixSpaces ans (t::t'::ts) =
-                    if t = "("
+                    if (Parser.stripSpaces t) = "("
                        orelse t = Format.neg
                     then
                         fixSpaces (t::ans) (t'::ts)
