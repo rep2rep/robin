@@ -53,11 +53,6 @@ type rstable = PropertySet.t PropertySet.set;
 type corrtable = Correspondence.correspondence list;
 type userprofile = (string * real) list;
 
-(*
-val _ = registerPropertyReaders
-            PropertyTables.setQGenerators
-            PropertyTables.setRSGenerators;
-*)
 
 (* C and W are meant to be set per property/process, while T is meant to be set
    from the User Profile. *)
@@ -65,13 +60,13 @@ fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
 fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0) (QPropertySet.collectOfKind qS k)
 
-(* Cognitive property 1a *)
+
 fun numberOfTokens qT =
     let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
     in List.sumIndexed (#2 o (Property.getNumFunction "occurrences") o QProperty.withoutImportance) C
     end;
 
-(* Cognitive property 1b *)
+
 fun varietyOfTokens qT =
     let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
         fun f x = if #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 then 1.0 else 0.0
@@ -79,15 +74,14 @@ fun varietyOfTokens qT =
     end;
 
 
-(* Cognitive property 2 *)
+
 fun numberOfTokenTypes qT =
     let val C = collectOfKindPresentInQ qT Kind.Token
         val T = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) C
     in real (List.length (List.removeDuplicates T))
     end;
 
-(* Cognitive property 3a *)
-(* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
+
 fun numberOfExpressionTypes qT =
     let val P = collectOfKindPresentInQ qT Kind.Pattern
         val C = collectOfKindPresentInQ qT Kind.Token
@@ -101,76 +95,71 @@ fun numberOfExpressionTypes qT =
     in real (List.length (List.removeDuplicates (Tc @ Tp)))
     end;
 
-(* Cognitive property 3b *)
-(* Notice this is not number of expressions, because it's not clear how this can be calculated at all*)
+
 fun numberOfPatterns qT =
-    let val P = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Pattern)
-    in List.sumIndexed (#2 o (Property.getNumFunction "occurrences") o QProperty.withoutImportance) P
+    let val P = QPropertySet.map QProperty.withoutImportance (collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.map QProperty.withoutImportance (collectOfKindPresentInQ qT Kind.Token)
+        val nonTrivialC = List.filter (fn c => Pattern.arity c <> 0) C
+    in List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) (P @ nonTrivialC)
     end;
 
-(* Cognitive property 3 *)
+fun numberOfPatternsModulated qT =
+    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+        val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
+    in List.sumIndexed (fn x => (Importance.weight (QProperty.importanceOf x)) * #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))) (P @ nonTrivialC)
+    end;
+
+
 fun varietyOfExpressions qT =
     let val P = collectOfKindPresentInQ qT Kind.Pattern
     in real (QPropertySet.size P)
     end;
 
-(* Cognitive property 4 *)
+
 fun subRSVariety rT = real (PropertySet.size (PropertySet.collectOfKind rT Kind.Mode));
 
-(* Cognitive property 5 *)
-(* Collects the token registration from the patterns where the tokens appear.
-Registration is linearly influenced by number of tokens, because each token's
-registration is multiplied by its number of occurrences  *)
+
 fun tokenRegistration qT =
     let val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-        val P = QPropertySet.withoutImportances (collectOfKindPresentInQ qT Kind.Pattern)
-  (*    fun importance_filter i X =
-            map QProperty.withoutImportance (List.filter (fn x => QProperty.importanceOf x = i) X)
-        val C1 = importance_filter Importance.High C
-        val C2 = importance_filter Importance.Medium C
-        val C3 = importance_filter Importance.Low C
-        val C4 = importance_filter Importance.Zero C
-        val C5 = importance_filter Importance.Noise C*)
-        fun tokensFromPattern x = (Property.getTokens x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Property.NoAttribute _ => (([],1.0))
-        fun typesFromPattern x = (Property.getHoles x, #2 (Property.getNumFunction "token_registration" x))
-                                    handle Property.NoAttribute _ => ((Property.getHoles x,1.0))
-        val tokenswithreg = PropertySet.map tokensFromPattern P
-        val typeswithreg = PropertySet.map typesFromPattern P
-        fun typereg [] t = 1.0
-          | typereg ((T,r)::L) t = if Property.contains T t then Real.max (r, typereg L t) else typereg L t
-        fun symbreg' [] x = (1.0,false)
-          | symbreg' (([],_)::L) x = symbreg' L x
-          | symbreg' ((s::S,r)::L) x = if Property.LabelOf x = s
-                                      then (Real.max (r, #1 (symbreg' L x)), true)
-                                      else symbreg' ((S,r)::L) x;
-        fun symbreg L x = let val (sr,found) = symbreg' L x
+        val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+        val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
+        fun tokensWithRegistration x =
+            let val c = QProperty.withoutImportance x
+                val tks = Property.getTokens c handle Property.NoAttribute _ => [Property.LabelOf c]
+                val i = Importance.weight (QProperty.importanceOf x)
+                val reg = i * #2 (Property.getNumFunction "token_registration" c) handle Property.NoAttribute _ => i
+            in (tks,reg)
+            end
+        fun typesWithRegistration x =
+            let val c = QProperty.withoutImportance x
+                val typs = Property.getHoles c handle Property.NoAttribute _ => Property.HolesfromList (#1 (Type.getInOutTypes (Property.getTypeOfValue c)))
+                val i = Importance.weight (QProperty.importanceOf x)
+                val reg = i * #2 (Property.getNumFunction "token_registration" c) handle Property.NoAttribute _ => i
+            in (typs,reg)
+            end
+        val tkregs = map tokensWithRegistration (P @ nonTrivialTokens)
+        val typregs = map typesWithRegistration (P @ nonTrivialTokens)
+        fun regOfTyp [] t = 1.0
+          | regOfTyp ((T,r)::L) t = if Property.contains T t then Real.max (r, regOfTyp L t) else regOfTyp L t
+        fun regOfTk' [] x = (1.0,false)
+          | regOfTk' (([],_)::L) x = regOfTk' L x
+          | regOfTk' ((s::S,r)::L) x = if Property.LabelOf x = s
+                                      then (Real.max (r, #1 (regOfTk' L x)), true)
+                                      else regOfTk' ((S,r)::L) x;
+        fun regOfTk L x = let val (sr,found) = regOfTk' L x
                           in (if found then sr
-                              else typereg typeswithreg (Property.getTypeOfValue x))
+                              else regOfTyp typregs (Property.getTypeOfValue x))
                               * (#2 (Property.getNumFunction "occurrences" x))
                               (* if token does not appear directly on patterns, but a hole with the type of the token does, approximate it with that*)
                           end
-    (*)    val S = map (map (symbreg tokenswithreg)) [C1,C2,C3,C4,C5] (*this extracted the token_registration from the patterns for each token, stratified by importances*)
-        val [s1,s2,s3,s4,s5] = map (List.sum) S
-        val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]
-        val total = (s1 + s2 + s3 + s4 + s5)*)
-
-        val S = map ((symbreg tokenswithreg) o QProperty.withoutImportance) C
-        val total = List.sum S
-          (* thought about multiplying by a factor of all vs important,
-            but maybe importance doesn't belong in registration; being a semantic property *)
+        val total = List.sumIndexed ((regOfTk tkregs) o QProperty.withoutImportance) C
     in total
     end;
 
-(* Cognitive property 6 *)
-(* instrumental patterns divided by all patterns, times the average
-value for the expression attributes of types*)
+
 fun expressionRegistration qT rT =
     let val M = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Mode)
-  (*    val P = (QPropertySet.collectOfKind qT Kind.Pattern)
-        val p1 = QPropertySet.size (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) P)
-        val p2 = QPropertySet.size (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) P)
-        val p3 = QPropertySet.size (QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) P) *)
         fun modereg x = if Property.LabelOf x = "grid" then 1.0
                    else if Property.LabelOf x = "containment" then 1.0
                    else if Property.LabelOf x = "axial" then 2.0
@@ -178,8 +167,7 @@ fun expressionRegistration qT rT =
                    else if Property.LabelOf x = "connection" then 3.0
                    else if Property.LabelOf x = "proportional" then 3.0
                    else (print "unknown mode"; raise Match)
-  (*    val [w1,w2,w3] = map (Importance.weight) [Importance.High, Importance.Medium, Importance.Low]*)
-    in (numberOfPatterns qT) * (List.avgIndexed modereg M)
+    in (numberOfPatternsModulated qT) * (List.avgIndexed modereg M)
     end;
 
 
@@ -200,8 +188,8 @@ fun arity qT =
     in Math.sqrt (List.weightedSumIndexed weighing (fn x => Math.pow(a x,2.0)) (nonTrivialTokens @ P))
     end
 
-(* Cognitive property 7 *)
-fun expressionComplexity qT (*rT *)=
+
+fun expressionComplexity qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
         val n = numberOfTokens qT / numberOfTokenTypes qT
@@ -221,28 +209,29 @@ fun expressionComplexity qT (*rT *)=
     end;
 
 
+fun filesMatchingPrefix dir prefix =
+    let
+        fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
+                                      SOME f => getWholeDir direc (f::out)
+                                    | NONE => List.rev out;
+        val dirstream = OS.FileSys.openDir dir;
+        val filenames = getWholeDir dirstream [];
+        val filteredFiles = List.filter (String.isPrefix prefix) filenames;
+        fun attachDir p = dir ^ p;
+    in
+        map (OS.FileSys.fullPath o attachDir) filteredFiles
+    end;
+
+val corrT = let val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
+            in List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
+            end;
+
+
 fun quantityScale qT =
     let
-        fun filesMatchingPrefix dir prefix =
-            let
-                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
-                                              SOME f => getWholeDir direc (f::out)
-                                            | NONE => List.rev out;
-                val dirstream = OS.FileSys.openDir dir;
-                val filenames = getWholeDir dirstream [];
-                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
-                fun attachDir p = dir ^ p;
-            in
-                map (OS.FileSys.fullPath o attachDir) filteredFiles
-            end;
         val arithpath = filesMatchingPrefix "tables/" "RS_table_realarith"
         val (_,arithT) = PropertyTables.loadRepresentationTable (hd arithpath)
 
-        (* this will probably change one I incorporate these calculations
-        into the stream of representation selection and the tables are handed
-        over by the main function *)
-        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
-        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
         val corrT' = map (Correspondence.flip 1.0) corrT
 
         val pT = PropertyTables.transformQPropertySet qT arithT (corrT @ corrT')
@@ -266,57 +255,41 @@ fun quantityScale qT =
     in s
     end;
 
+
 fun conceptMapping kind idealqT rT =
     let fun present x = #2 (Property.getNumFunction "occurrences" (x)) > 0.0
         val C = (*QPropertySet.filter (fn x => present x handle Property.NoAttribute _ => true)*) idealqT
         val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) C
         val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) C
         val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) C
-        fun filesMatchingPrefix dir prefix =
-            let
-                fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
-                                              SOME f => getWholeDir direc (f::out)
-                                            | NONE => List.rev out;
-                val dirstream = OS.FileSys.openDir dir;
-                val filenames = getWholeDir dirstream [];
-                val filteredFiles = List.filter (String.isPrefix prefix) filenames;
-                fun attachDir p = dir ^ p;
-            in
-                map (OS.FileSys.fullPath o attachDir) filteredFiles
-            end;
-        (* this will probably change one I incorporate these calculations
-        into the stream of representation selection and the tables are handed
-        over by the main function *)
-        val corrpaths = filesMatchingPrefix "tables/" "correspondences_"
-        val corrT = List.concat (map PropertyTables.loadCorrespondenceTable corrpaths)
+
         val corrT' = map (Correspondence.flip 1.0) corrT
 
-        val rT' = PropertySet.filter (fn x => Property.kindOf x = kind(*Property.kindOf x = Kind.Token orelse Property.kindOf x = Kind.Pattern*) andalso present x) rT
+        val rT' = PropertySet.filter (fn x => Property.kindOf x = kind andalso present x (*Property.kindOf x = Kind.Token orelse Property.kindOf x = Kind.Pattern*)) rT
         fun assess_rd p =
             let val T = PropertyTables.transformQProperty p rT' (corrT @ corrT')
                 val x = QPropertySet.size T
-                val s = if x = 1 then 0.0 else (* functional *)
-                         if x > 1 then 2.0 else (* redundancy *)
-                         if x < 1 then 3.0 else 0.0  (* deficit *)
+                val s = if x = 1 (* functional *) then 0.0 else
+                         if x > 1 (* redundancy *) then 2.0 * Math.ln(real x)/Math.ln(2.0) else
+                         if x < 1 (* deficit *) then 3.0 else raise Match
             in s
             end;
 
         fun assess_oe C' r =
             let val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) (QPropertySet.withoutImportances C') (corrT @ corrT')
                 val x = QPropertySet.size T
-                val s = if x = 1 then 0.0 else (* injetive & surjective *)
-                         if x > 1 then 4.0 else (* overload *)
-                         if x < 1 then 1.0 else 0.0 (* excess *)
+                val s = if x = 1 (* injetive & surjective *) then 0.0 else
+                         if x > 1 (* overload *) then 4.0 * Math.ln(real x)/Math.ln(2.0) else
+                         if x < 1 (* excess *) then 1.0 else raise Match
             in s
             end;
 
-        val normFactor = real (QPropertySet.size C)
         val rd1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
         val rd2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
         val rd3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
         val _ = print ((Real.toString rd2) ^ " \n")
 
-        fun globalOE X = (List.avgIndexed (assess_oe X) (PropertySet.toList rT')) * normFactor handle Empty => 0.0
+        fun globalOE X = (List.avgIndexed (assess_oe X) (PropertySet.toList rT')) * real (QPropertySet.size X) handle Empty => 0.0
         val oe1 = globalOE C1
         val oe2 = globalOE C2
         val oe3 = globalOE C3
@@ -328,10 +301,10 @@ fun conceptMapping kind idealqT rT =
        + (Importance.weight Importance.Low) * (rd3 + oe3)
     end;
 
-
 fun tokenConceptMapping idealqT rT = conceptMapping Kind.Token idealqT rT;
 
 fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT;
+
 
 fun inferenceType qT =
     let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
@@ -343,6 +316,7 @@ fun inferenceType qT =
                   else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
     in List.avgIndexed assess S handle Empty => Real.posInf
     end;
+
 
 fun problemSpaceBranchingFactor qT rT =
     let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;

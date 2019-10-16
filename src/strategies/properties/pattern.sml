@@ -35,9 +35,9 @@ fun sameTypeDNF (tF, tF') =
 fun literalUnfoldChoices _ [] = []
   | literalUnfoldChoices t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
-    then (labels,tokens,(tL,t')) :: literalUnfoldChoices t K
+    then (tokens,tL) :: literalUnfoldChoices t K
     else if (case Type.getInOutTypes t of (uL,u) => Type.match (u,t') andalso List.isPermutationOf Type.match uL tL)
-         then (labels,tokens,([],t')) :: literalUnfoldChoices t K
+         then (tokens,[]) :: literalUnfoldChoices t K
          else literalUnfoldChoices t K;
 
 
@@ -58,7 +58,7 @@ fun diminish L [] = if null L then [] else raise Unsatisfiable
 fun unfoldTypeDNF [] = (false,[])
   | unfoldTypeDNF (cl::dnf) = (* HERE *)
     let fun distribute [] LL' = []
-          | distribute ((_,tokens,(tL,_))::LL) LL' =
+          | distribute ((tokens,tL)::LL) LL' =
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L

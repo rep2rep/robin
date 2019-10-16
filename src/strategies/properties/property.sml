@@ -16,6 +16,7 @@ sig
     structure M : MULTISET;
     val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
+    val HolesfromList : Type.T list -> Type.T M.multiset
     val countUnique : Type.T M.multiset -> int;
     val size : Type.T M.multiset -> int;
     val contains : Type.T M.multiset -> Type.T -> bool;
@@ -69,6 +70,7 @@ structure M = Attribute.M
 
 fun toListHandlingNegatives f m = M.toListHandlingNegatives f m;
 fun toPairList m = M.toPairList m;
+fun HolesfromList l = M.fromList l;
 fun countUnique m = M.countUnique m;
 fun size m = M.size m;
 fun contains m a = M.contains m a;
