@@ -36,7 +36,9 @@ fun literalUnfoldChoices _ [] = []
   | literalUnfoldChoices t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
     then (labels,tokens,(tL,t')) :: literalUnfoldChoices t K
-    else literalUnfoldChoices t K;
+    else if (case Type.getInOutTypes t of (uL,u) => List.isPermutationOf Type.match uL tL andalso Type.match (u,t'))
+         then (labels,tokens,([],t')) :: literalUnfoldChoices t K
+         else literalUnfoldChoices t K;
 
 
 exception Unsatisfiable;
@@ -56,7 +58,7 @@ fun diminish L [] = if null L then [] else raise Unsatisfiable
 fun unfoldTypeDNF [] = (false,[])
   | unfoldTypeDNF (cl::dnf) = (* HERE *)
     let fun distribute [] LL' = []
-          | distribute ((_,tokens,(tL,t))::LL) LL' =
+          | distribute ((_,tokens,(tL,_))::LL) LL' =
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L
