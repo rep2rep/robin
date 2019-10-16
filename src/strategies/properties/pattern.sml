@@ -126,9 +126,10 @@ fun satisfyPattern p C P =
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
         val ((_,tks,(typs,_)),_) = if Property.kindOf p = Kind.Pattern then getLTTNP p else getLTTNC p
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun makeKB K = List.mergesort (fn (((_,_,(typsx,_)),_),((_,_,(typsy,_)),_)) => Int.compare (length typsx,length typsy)) (diminish tks K) (* using argument to delay evaluation*)
-        fun patternClause x = (typs, ((udepth,1), makeKB CP))
-    in satisfyTypeDNF [patternClause ()] handle Unsatisfiable => ([],(0.0,0.0))
+        fun makeKB K = List.mergesort (fn (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) => Int.compare ((length typsx)*(iy),(length typsy)*(ix))) K
+        fun makeKB' K = List.mergesort (fn (((_,_,(_,_)),i),((_,_,(_,_)),i')) => Int.compare (i,i')) K
+        fun patternClause K = (typs, ((udepth,1), makeKB (diminish tks K)))
+    in satisfyTypeDNF [patternClause CP] handle Unsatisfiable => ([],(0.0,0.0))
     end
 
 (*)

@@ -30,6 +30,7 @@ sig
   val quantityScale : qtable -> real;
 
   val expressionComplexity : qtable (*-> rstable*) -> real;
+  val arity : qtable -> real;
   val inferenceType : qtable -> real;
 
   val problemSpaceBranchingFactor : qtable -> rstable -> real;
@@ -181,6 +182,24 @@ fun expressionRegistration qT rT =
     in (numberOfPatterns qT) * (List.avgIndexed modereg M)
     end;
 
+
+fun arity qT =
+    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+        val n = numberOfTokens qT / numberOfTokenTypes qT
+        fun a p = let val x = QProperty.withoutImportance p
+                      val i = Pattern.arity x
+                  in if i = ~3 then n else
+                     if i = ~2 then Math.sqrt n else
+                     if i = ~1 then Math.ln n else
+                         real i
+                  end
+        fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+                          * (Importance.weight (QProperty.importanceOf x))
+        val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
+    in Math.sqrt (List.weightedSumIndexed weighing (fn x => Math.pow(a x,2.0)) (nonTrivialTokens @ P))
+    end
+
 (* Cognitive property 7 *)
 fun expressionComplexity qT (*rT *)=
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
@@ -189,22 +208,16 @@ fun expressionComplexity qT (*rT *)=
         fun f p =
             let val x = QProperty.withoutImportance p
                 val _ = print ("\n   " ^ (Property.toString x))
-                val (_,(d,b)) = Pattern.satisfyPattern x (map QProperty.withoutImportance C) (map QProperty.withoutImportance P)
+                val (L,(d,b)) = Pattern.satisfyPattern x (map QProperty.withoutImportance C) (map QProperty.withoutImportance P)
+                val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
                 val depth = (print ("\n       depth:" ^ (Real.toString d) ^ " "); d) (*Pattern.avgDepth trees*)
                 val breadth = (print ("\n       breadth:" ^ (Real.toString b) ^ " "); b)
-                val arity = let val i = Pattern.arity x
-                            in if i = ~3 then n else
-                               if i = ~2 then Math.sqrt n else
-                               if i = ~1 then Math.ln n else
-                                   real i
-                            end
-                val _ = print ("\n       arity:" ^ (Real.toString arity) ^ " ")
-            in Math.sqrt (Math.pow(arity,2.0) + (depth * breadth))
+            in (depth * breadth)
             end
         fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
                           * (Importance.weight (QProperty.importanceOf x))
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-    in List.weightedAvgIndexed weighing f (nonTrivialTokens @ P)
+    in Math.sqrt (List.weightedSumIndexed weighing f (nonTrivialTokens @ P))
     end;
 
 
