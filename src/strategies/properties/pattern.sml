@@ -36,7 +36,7 @@ fun literalUnfoldChoices _ [] = []
   | literalUnfoldChoices t (((labels,tokens,(tL,t')),i)::K) =
     if Type.match (t, t')
     then (labels,tokens,(tL,t')) :: literalUnfoldChoices t K
-    else if (case Type.getInOutTypes t of (uL,u) => List.isPermutationOf Type.match uL tL andalso Type.match (u,t'))
+    else if (case Type.getInOutTypes t of (uL,u) => Type.match (u,t') andalso List.isPermutationOf Type.match uL tL)
          then (labels,tokens,([],t')) :: literalUnfoldChoices t K
          else literalUnfoldChoices t K;
 
