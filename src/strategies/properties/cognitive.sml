@@ -133,7 +133,7 @@ fun tokenRegistration qT =
             end
         fun typesWithRegistration x =
             let val c = QProperty.withoutImportance x
-                val typs = Property.getHoles c handle Property.NoAttribute _ => Property.HolesfromList (#1 (Type.getInOutTypes (Property.getTypeOfValue c)))
+                val typs = Property.getHoles c handle Property.NoAttribute _ => Property.HolesFromList (#1 (Type.getInOutTypes (Property.getTypeOfValue c)))
                 val i = Importance.weight (QProperty.importanceOf x)
                 val reg = i * #2 (Property.getNumFunction "token_registration" c) handle Property.NoAttribute _ => i
             in (typs,reg)
@@ -192,7 +192,6 @@ fun arity qT =
 fun expressionComplexity qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-        val n = numberOfTokens qT / numberOfTokenTypes qT
         fun f p =
             let val x = QProperty.withoutImportance p
                 val _ = print ("\n   " ^ (Property.toString x))
@@ -202,10 +201,10 @@ fun expressionComplexity qT =
                 val breadth = (print ("\n       breadth:" ^ (Real.toString b) ^ " "); b)
             in (depth * breadth)
             end
-        fun weighing x = (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+        fun weighing x = (Math.ln(#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))+1.0)/Math.ln(2.0))
                           * (Importance.weight (QProperty.importanceOf x))
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-    in Math.sqrt (List.weightedSumIndexed weighing f (nonTrivialTokens @ P))
+    in (List.weightedSumIndexed weighing f (nonTrivialTokens @ P))
     end;
 
 

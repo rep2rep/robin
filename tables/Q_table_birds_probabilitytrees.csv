@@ -20,18 +20,6 @@ instrumental_patterns, "$path : {type := path;
                                              udepth : = 1;
                                              tokens := [];
                                              token_registration := 3},
-                        $description : {type := statement;
-                                         holes := [class => log(#t)];
-                                         udepth : = 1;
-                                         occurrences := 2;
-                                         tokens := [];
-                                         token_registration := 3},
-                        $reference_by_description : {type := reference;
-                                                     holes := [statement => 1. node=>1];
-                                                     udepth : = 1;
-                                                     occurrences := 2;
-                                                     tokens := [];
-                                                     token_registration := 3},
                         $subtree : {type := tree;
                                     holes := [node => #t];;
                                     udepth : = 1;
@@ -81,5 +69,16 @@ relevant_tokens,"1 : {type := real;
                         occurrences := 1},
                  $frame : {type := node -> node;
                             occurrences := 2}"
-relevant_patterns,""
+relevant_patterns,"$description : {type := statement;
+                                    holes := [class => log(#t)];
+                                    udepth : = 1;
+                                    occurrences := 2;
+                                    tokens := [];
+                                    token_registration := 3},
+                    $reference_by_description : {type := reference;
+                                                  holes := [statement => 1. node=>1];
+                                                  udepth : = 1;
+                                                  occurrences := 2;
+                                                  tokens := [];
+                                                  token_registration := 3}"
 noise_tokens,""

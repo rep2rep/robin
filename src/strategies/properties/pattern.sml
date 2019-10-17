@@ -20,9 +20,25 @@ end;
 structure Pattern : PATTERN =
 struct
 
-  type data = real * real;
-  type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-  type clause = (Type.T list * ((int * int) * resources));
+fun fromToken c =
+    let val (tL,t) = Type.getInOutTypes (Property.getTypeOfValue c)
+        val H = Attribute.M.fromList tL
+        val (s,r) = Property.getNumFunction "token_registration" c
+                      handle Property.NoAttribute _ => ("token_registration",1.0)
+        val tks = case Property.LabelOf c of
+                    label => label :: List.remove label (Property.getTokens c)
+                              handle Property.NoAttribute _ => [label]
+        val p = ((Property.updateAttribute (Attribute.fromType t))
+                 o (Property.updateAttribute (Attribute.fromHoles H))
+                 o (Property.updateAttribute (Attribute.fromNumFunction (s,r)))
+                 o (Property.updateAttribute (Attribute.fromTokens tks))) c
+        val (_,v,A) = Property.toKindValueAttributes p
+    in Property.fromKindValueAttributes (Kind.Pattern, v, A)
+    end
+
+type data = real * real;
+type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
+type clause = (Type.T list * ((int * int) * resources));
 
 fun sameTypeDNF (tF, tF') =
     let (* compares everything except the current depth *)
@@ -67,21 +83,20 @@ fun unfoldTypeDNF [] = (false,[])
             end
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
           | unfoldClause ((lt::C),((d,b),K)) = distribute (literalUnfoldChoices lt K) (unfoldClause (C,((d,b),K)));
-        val unfoldedCl = if null (#1 cl) then [cl] else unfoldClause cl
-        val clChanged = not (sameTypeDNF ([cl],unfoldedCl))
+        val unfoldedClause = if null (#1 cl) then [cl] else unfoldClause cl
+        val clChanged = not (sameTypeDNF ([cl],unfoldedClause))
         val (dnfChanged, unfoldedDNF) = unfoldTypeDNF dnf
-    in (clChanged orelse dnfChanged, unfoldedCl @ unfoldedDNF)
+    in (clChanged orelse dnfChanged, unfoldedClause @ unfoldedDNF)
     end;
 
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => x)
-            in (print ("\n       length of DNF: " ^ Int.toString (length x) ^ "");
-                if null x' then raise Unsatisfiable
-                else (if changed
-                       then iterate x'
-                       else x)
-                )
+            let val _ = print ("\n       length of DNF: " ^ Int.toString (length x))
+                val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => (print " --uncut"; x))
+            in if null x' then raise Unsatisfiable
+               else (if changed
+                     then iterate x'
+                     else x)
             end
         fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
                                     List.avgIndexed (fn (_,((_,b),_)) => real b) L)
@@ -96,21 +111,19 @@ fun satisfyTypeDNF tF =
 
 fun satisfyPattern p C P =
     let val occurrences = #2 o (Property.getNumFunction "occurrences")
-        val nty = real (List.length (List.removeDuplicates (map Property.getTypeOfValue C)))
-        val nt = List.sumIndexed occurrences C / nty
+        val tkPatterns = map fromToken C
+        val nty = List.length (List.removeDuplicates (map Property.getTypeOfValue tkPatterns))
+        val nt = List.sumIndexed occurrences C / real nty
         fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
                       else if x = ~2 then Real.floor (Math.sqrt nt)
                       else if x = ~3 then Real.floor nt
                       else if x >= 0 then x else raise Match
         fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
-        fun getLTTNC c = (([Property.LabelOf c],
-                           [Property.LabelOf c],
-                           Type.getInOutTypes (Property.getTypeOfValue c)),
-                          Real.floor (occurrences c))
-        fun getLTTNP x = (([Property.LabelOf x],
-                           Property.LabelOf x :: Property.getTokens x,
-                           (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
-                          Real.floor (occurrences x))
+
+        fun toLTTN x = (([Property.LabelOf x],
+                         case Property.getTokens x of [] => [Property.LabelOf x] | L => L,
+                         (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
+                         Real.floor (occurrences x))
 
         fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
           | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
@@ -121,16 +134,17 @@ fun satisfyPattern p C P =
             else ((l',ls',(ts',t')),i') :: findAndUpdateByTypes ((l,ls,(ts,t)),i) L;
         fun clusterByTypes [] = []
           | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
-        val C' = clusterByTypes (map getLTTNC C)
-        val P' = clusterByTypes (map getLTTNP P)
-        val CP = clusterByTypes ((map getLTTNC C) @ map getLTTNP P)
+
+        val CP = clusterByTypes (map toLTTN (tkPatterns @ P))
 
         fun printLTTN ((labels,tokens,(_,_)),i) = print (labels ^ ", [" ^ String.concat tokens ^ "], " ^ (Int.toString i) ^ "\n")
-        val ((_,tks,(typs,_)),_) = if Property.kindOf p = Kind.Pattern then getLTTNP p else getLTTNC p
+        val ((_,tks,(typs,_)),_) = if Property.kindOf p = Kind.Pattern then toLTTN p else toLTTN (fromToken p)
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
-        fun makeKB K = List.mergesort (fn (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) => Int.compare ((length typsx)*(iy),(length typsy)*(ix))) K
-        fun makeKB' K = List.mergesort (fn (((_,_,(_,_)),i),((_,_,(_,_)),i')) => Int.compare (i,i')) K
-        fun patternClause K = (typs, ((udepth,1), makeKB (diminish tks K)))
+
+        (* the following ordering of the KB gives preference to both things with more occurrences and with shorter input type *)
+        fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (iy * length typsx, ix* length typsy)
+
+        fun patternClause K = (typs, ((udepth,1), List.mergesort ordering (diminish tks K)))
     in satisfyTypeDNF [patternClause CP] handle Unsatisfiable => ([],(0.0,0.0))
     end
 

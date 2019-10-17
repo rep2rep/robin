@@ -9,17 +9,7 @@ instrumental_tokens, "$cell_r : {type := cell;
                                  content := class;
                                  occurrences := 7}"
 instrumental_types,"cell"
-instrumental_patterns, "$column : {type := column;
-                                    holes := [cell => sqrt(#t)];
-                                    occurrences := 4;
-                                    tokens := [];
-                                    token_registration := 1},
-                        $row : {type := row;
-                                holes := [cell => sqrt(#t)];
-                                occurrences := 4;
-                                tokens := [];
-                                token_registration := 1},
-                        $last_of_row : {type := cell;
+instrumental_patterns, "$last_of_row : {type := cell;
                                         holes := [row => 1];
                                         occurrences := 3;
                                         tokens := [];
@@ -29,26 +19,11 @@ instrumental_patterns, "$column : {type := column;
                                             occurrences := 3;
                                             tokens := [];
                                             token_registration := 1},
-                        $cells_column : {type := column;
-                                        holes := [cell => 1];
-                                        occurrences := 16;
-                                        tokens := [];
-                                        token_registration := 2},
-                        $cells_row : {type := row;
-                                        holes := [cell => 1];
-                                        occurrences := 16;
-                                        tokens := [];
-                                        token_registration := 2},
                         $value_relative_to_total : {type := real observation;
                                                    holes := [cell => 1];
                                                    occurrences := 9;
                                                    tokens := [];
-                                                   token_registration := 2},
-                        $reference_by_label : {type := reference;
-                                                holes := [class => 1. real =>1];
-                                                occurrences := 6;
-                                                tokens := [$cell_r];
-                                                token_registration := 3}"
+                                                   token_registration := 2}"
 instrumental_laws, "$row_total, $column_total, $total_1"
 instrumental_tactics,"fill_cell : {patterns := 1;
                                    laws := 1;
@@ -90,5 +65,29 @@ relevant_tokens,"1 : {type := real;
                               occurrences := 1},
                  x : {type := label;
                       occurrences := 1}"
-relevant_patterns,""
+relevant_patterns,"$column : {type := column;
+                              holes := [cell => sqrt(#t)];
+                              occurrences := 4;
+                              tokens := [];
+                              token_registration := 1},
+                   $row : {type := row;
+                           holes := [cell => sqrt(#t)];
+                           occurrences := 4;
+                           tokens := [];
+                           token_registration := 1},
+                   $cells_column : {type := column;
+                                    holes := [cell => 1];
+                                    occurrences := 16;
+                                    tokens := [];
+                                    token_registration := 2},
+                   $cells_row : {type := row;
+                                  holes := [cell => 1];
+                                  occurrences := 16;
+                                  tokens := [];
+                                  token_registration := 2},
+                   $reference_by_label : {type := reference;
+                                           holes := [class => 1. real =>1];
+                                           occurrences := 6;
+                                           tokens := [$cell_r];
+                                           token_registration := 3}"
 noise_tokens,""

@@ -16,7 +16,7 @@ sig
     structure M : MULTISET;
     val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
-    val HolesfromList : Type.T list -> Type.T M.multiset
+    val HolesFromList : Type.T list -> Type.T M.multiset
     val countUnique : Type.T M.multiset -> int;
     val size : Type.T M.multiset -> int;
     val contains : Type.T M.multiset -> Type.T -> bool;
@@ -32,6 +32,8 @@ sig
     val NumberOf : property -> int;
     val BooleanOf : property -> bool;
     val TypeOf : property -> Type.T;
+
+    val updateAttribute : Attribute.T -> property -> property
 
     val attributesOf : property -> Attribute.T list;
     val getTypeOfValue : property -> Type.T;
@@ -70,7 +72,7 @@ structure M = Attribute.M
 
 fun toListHandlingNegatives f m = M.toListHandlingNegatives f m;
 fun toPairList m = M.toPairList m;
-fun HolesfromList l = M.fromList l;
+fun HolesFromList l = M.fromList l;
 fun countUnique m = M.countUnique m;
 fun size m = M.size m;
 fun contains m a = M.contains m a;
@@ -99,6 +101,11 @@ fun BooleanOf p =
 fun TypeOf p =
     case valueOf p of Type t => t
                     | _ => raise Error "Not a Type";
+
+fun updateAttribute a' (k,s,a::A) =
+    if Attribute.sameSort (a,a') then (k,s,a'::A)
+    else (case updateAttribute a' (k,s,A) of (_,_,A') => (k,s,a::A'))
+  | updateAttribute a' (k,s,[]) = (k,s,[a'])
 
 fun attributesOf (_,_,A) = A;
 

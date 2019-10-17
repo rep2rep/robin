@@ -2,7 +2,7 @@ birds,natlang
 mode,"sentential"
 error_allowed,0
 answer_type,ratio
-instrumental_tokens, "probability : {type := class * ratio -> statement;
+instrumental_tokens, "probability : {type := class;
                                      occurrences := 1},
                       and : {type := statement * statement -> statement;
                              occurrences := 1},
@@ -23,7 +23,7 @@ instrumental_patterns, "$class_ratio : {holes := [class => 2. ratio => 1];
                                                        occurrences := 1;
                                                        token_registration := 2},
                         $conditional_probability : {holes := [class=>2. ratio=>1];
-                                                    tokens := [probability. of];
+                                                    tokens := [probability. of. if];
                                                     type := statement;
                                                     occurrences := 1;
                                                     token_registration := 2}"

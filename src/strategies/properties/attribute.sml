@@ -6,6 +6,10 @@ signature ATTRIBUTE =
 sig
   structure M : MULTISET;
   type T;
+
+  val sameSort : T * T -> bool
+  val equal : T * T -> bool;
+
   val fromType : Type.T -> T;
   val fromHoles : Type.T M.multiset -> T;
   val fromContent : Type.T -> T;
@@ -45,6 +49,24 @@ struct
              | NumFunction of string * real (* e.g., frequency := 4 *)
              | StringFunction of string * string (* e.g., registration := icon *)
              | Feature of string;
+
+  fun sameSort ((IsOfType _), (IsOfType _)) = true
+    | sameSort ((Holes _), (Holes _)) = true
+    | sameSort ((Tokens _), (Tokens _)) = true
+    | sameSort ((Content _), (Content _)) = true
+    | sameSort ((NumFunction (s,_)), (NumFunction (s',_))) = (s = s')
+    | sameSort ((StringFunction (s,_)), (StringFunction (s',_))) = (s = s')
+    | sameSort ((Feature s), (Feature s')) = (s = s')
+    | sameSort _ = false
+
+  fun equal ((IsOfType t), (IsOfType t')) = (t = t')
+    | equal ((Holes m), (Holes m')) = M.equal (m,m')
+    | equal ((Tokens C), (Tokens C')) = List.isPermutationOf (fn (x,y) => x = y) C C'
+    | equal ((Content t), (Content t')) = (t = t')
+    | equal ((NumFunction (s,n)), (NumFunction (s',n'))) = (s = s' andalso Real.==(n,n'))
+    | equal ((StringFunction (s,r)), (StringFunction (s',r'))) = (s = s' andalso r = r')
+    | equal ((Feature s), (Feature s')) = (s = s')
+    | equal _ = false
 
   fun fromType t = IsOfType t;
   fun fromHoles H = Holes H;

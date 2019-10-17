@@ -12,18 +12,18 @@ instrumental_tokens, "probability : {type := N;
                              occurrences := 1}"
 instrumental_types, "ratio,
                      class"
-instrumental_patterns, "$class_ratio : {holes := [class => 2. ratio => 1];
-                                        tokens := [of. are];
+instrumental_patterns, "$class_ratio : {holes := [DET => 1. N => 1. PP => 1. NP => 1];
+                                        tokens := [are];
                                         type := statement;
                                         occurrences := 3;
                                         token_registration := 2},
-                        $probability_of_conjunction : {holes := [class=>2. ratio=>1];
-                                                       tokens := [probability. of. and];
+                        $probability_of_conjunction : {holes := [NP => 3];
+                                                       tokens := [probability. and];
                                                        type := statement;
                                                        occurrences := 1;
                                                        token_registration := 2},
-                        $conditional_probability : {holes := [class=>2. ratio=>1];
-                                                    tokens := [probability. of];
+                        $conditional_probability : {holes := [PP => 1. NP => 3];
+                                                    tokens := [probability. if];
                                                     type := statement;
                                                     occurrences := 1;
                                                     token_registration := 2}"
@@ -79,9 +79,17 @@ relevant_patterns, "ClassIsN : {type := N;
                                      holes := [VP => 1. PP => 1]; recursive;
                                      occurrences := 0;
                                      tokens := []},
-                    $CONJ : {type := S;
+                    $CONJS : {type := S;
                              holes := [CONJ => 1. S => 2];
                              occurrences := 1;
+                             tokens := []},
+                    $CONJN : {type := NP;
+                             holes := [CONJ => 1. NP => 2];
+                             occurrences := 0;
+                             tokens := []},
+                    $CONJV : {type := VP;
+                             holes := [CONJ => 1. VP => 2];
+                             occurrences := 0;
                              tokens := []}"
 instrumental_laws, "$Bayes'_theorem,
                     $law_of_total_probability,
