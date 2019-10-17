@@ -48,7 +48,7 @@ fun reasonString (IDENTITY p) =
   | reasonString (VALUE (p1, p2)) =
     "This is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
-fun corrExists c cs = List.exists (Correspondence.matchingProperties c) cs;
+fun corrExists c cs = List.exists (Correspondence.implies c) cs;
 
 fun anyCommonCorrs cs cs' = List.exists (fn c => corrExists c cs') cs;
 

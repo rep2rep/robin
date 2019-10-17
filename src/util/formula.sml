@@ -10,6 +10,7 @@ that you use for negation, conjunction, and disjunction.
 
 import "util.logging";
 import "util.parser";
+import "util.listset";
 
 signature FORMULA =
 sig
@@ -29,6 +30,7 @@ sig
     val fold : ('a -> 'b) -> ('b -> 'b) -> ('b * 'b -> 'b) -> ('b * 'b -> 'b) -> 'a formula -> 'b;
 
     val clauses : 'a formula -> 'a formula list;
+    val implies : ('a * 'a -> bool) -> 'a formula -> 'a formula -> bool;
 
     val toString : ('a -> string) -> 'a formula -> string;
     val fromString : (string -> 'a) -> string -> 'a formula;
@@ -124,6 +126,37 @@ fun clauses (Atom a) = [(Atom a)]
   | clauses (Conj(a, Disj b)) = clauses (normalise (Conj(a, Disj b)))
   | clauses (Conj(a, b)) = [Conj(a, b)]
   | clauses (Disj(a, b)) = (clauses a) @ (clauses b);
+
+(* implies : ('a * 'a -> b) -> 'a formula -> 'a formula -> bool
+`implies` defines a relationship on satisfiability. `implies a b` returns true
+if when in all cases a is satisfied, then b would also be satisfied. For example,
+x AND y implies x, while x implies x OR z. We also state that x implies x.
+The provided function is the atom-level implication checker: we need to make
+sure that the things the formula is talking about imply each other.
+ *)
+fun implies imp x y =
+    (* General idea: x's clauses must be a 'subset' of y's clauses
+                     where the subset relation is defined by being
+                     a 'covering conjunction' (has all the terms and maybe extras).
+     *)
+    let
+        fun unitsOfClause (Atom x) = [Atom x]
+          | unitsOfClause (Neg x) = [Neg x]
+          | unitsOfClause (Conj(a, b)) = (unitsOfClause a) @ (unitsOfClause b)
+          | unitsOfClause (Disj _) = raise Match;
+        fun coveringConj (x, y) =
+            let
+                val x' = unitsOfClause x;
+                val y' = unitsOfClause y;
+                fun eqF (Atom m, Atom n) = imp (m, n)
+                  | eqF (Neg m, Neg n) = eqF (m, n)
+                  | eqF _ = false;
+            in
+                ListSet.subset eqF y' x'
+            end;
+    in
+        ListSet.subset coveringConj (clauses x) (clauses y)
+    end;
 
 fun toString f (Atom a) = f a
   | toString f (Neg a) = Format.neg ^ " " ^ (toString f a)
