@@ -2,26 +2,30 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
-  type data = real * real;
-  type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-  type clause = (Type.T list * ((int * int) * resources));
+    val fromToken : Property.property -> Property.property
+    val fromQToken : QProperty.property -> QProperty.property
 
-  val unfoldTypeDNF : clause list -> (bool * clause list);
+    type data = real * real;
+    type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
+    type clause = (Type.T list * ((int * int) * resources));
 
-  val satisfyTypeDNF : clause list -> clause list * data;
+    val unfoldTypeDNF : clause list -> (bool * clause list);
 
-  val satisfyPattern : Property.property -> Property.property list -> Property.property list
-                        -> (clause list * data);
+    val satisfyTypeDNF : clause list -> clause list * data;
 
-  val arity : Property.property -> int;
-  val distinctArity : Property.property -> real;
+    val satisfyPattern : Property.property -> Property.property list -> Property.property list
+                          -> (clause list * data);
+
+    val arity : Property.property -> int;
+    val distinctArity : Property.property -> real;
 end;
 
 structure Pattern : PATTERN =
 struct
 
 fun fromToken c =
-    let val (tL,t) = Type.getInOutTypes (Property.getTypeOfValue c)
+    let val _ = if Property.kindOf c = Kind.Token then () else raise Property.Error "Non-token given to function Pattern.fromToken"
+        val (tL,t) = Type.getInOutTypes (Property.getTypeOfValue c)
         val H = Attribute.M.fromList tL
         val (s,r) = Property.getNumFunction "token_registration" c
                       handle Property.NoAttribute _ => ("token_registration",1.0)
@@ -35,6 +39,7 @@ fun fromToken c =
         val (_,v,A) = Property.toKindValueAttributes p
     in Property.fromKindValueAttributes (Kind.Pattern, v, A)
     end
+fun fromQToken c = QProperty.fromPair (fromToken (QProperty.withoutImportance c), (QProperty.importanceOf c))
 
 type data = real * real;
 type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
@@ -108,6 +113,7 @@ fun satisfyTypeDNF tF =
         val sattF = iterate tF
     in (sattF, avgDepthAndBreadth sattF)
     end;
+
 
 fun satisfyPattern p C P =
     let val occurrences = #2 o (Property.getNumFunction "occurrences")
