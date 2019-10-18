@@ -248,24 +248,24 @@ fun quantityScale qT =
 
         val corrT' = map (Correspondence.flip 1.0) corrT
 
-        fun tp x = (QPropertySet.toList (PropertyTables.transformQProperty x arithT (corrT @ corrT')), #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))
+        fun tp x = (QPropertySet.toList (PropertyTables.transformQProperty x arithT (corrT @ corrT')),
+                    #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))handle Property.NoAttribute _ => 1.0)
         fun conc [] = []
-          | conc (([],n)::L) = conc L
-          | conc (((h::t),n)::L) = (h,n) :: conc ((t,n)::L)
+          | conc ((t,n)::L) = (map (fn x => (x,n/(real (length t)))) t) @ conc L
         val pL = conc (QPropertySet.map tp qT)
 
         fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y handle Property.Error _ => false) L
-        fun ordinalFun (x,_) = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
-        fun intervalFun (x,_) = check x ["+","-","sum","\\sum"]
-        fun ratioFun (x,_) = check x ["*","\\div","\\dvd","\\gcd","\\prod","\\lcm","/","^"]
-        fun nominalFun (x,_) = not (ordinalFun x orelse intervalFun x orelse ratioFun x)
+        fun ordinalCheck (x,_) = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
+        fun intervalCheck (x,_) = check x ["+","-","sum","\\sum"]
+        fun ratioCheck (x,_) = check x ["*","\\div","\\dvd","\\gcd","\\prod","\\lcm","/","^"]
+        fun nominalCheck (x,n) = not (ordinalCheck (x,n) orelse intervalCheck (x,n) orelse ratioCheck (x,n))
 
-        val ratio = List.filter ratioFun pL
-        val interval = List.filter intervalFun pL
-        val ordinal = List.filter ordinalFun pL
-        val nominal = List.filter nominalFun pL
+        val ratio = List.filter ratioCheck pL
+        val interval = List.filter intervalCheck pL
+        val ordinal = List.filter ordinalCheck pL
+        val nominal = List.filter nominalCheck pL
 
-        val importanceNorm = List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) pL
+        val importanceNorm = List.sumIndexed (fn (x,_) => Importance.weight (QProperty.importanceOf x)) pL
         fun f (x,n) = n * ((Importance.weight o QProperty.importanceOf) x) / importanceNorm
 
         val s = 8.0*(List.sumIndexed f ratio)
