@@ -261,7 +261,7 @@ fun discoverAttribute (cs, rss, rs') =
 fun discoverValue (cs, rss, rs') =
     let
         val allProps = PropertySet.union rs' (PropertySet.unionAll rss);
-        fun sourceProperty p = PropertySet.filter (curry Property.match p) allProps;
+        fun sourceProperty p = PropertySet.filterMatches p allProps;
         fun sourcePropPairs ((p, q), s) = let val pqs = streamSetProduct (sourceProperty p) (sourceProperty q)
                                           in Stream.map (fn v => (v, s)) pqs end;
         val matchingValues = Stream.flatmap corrToPairs ((uncurry Stream.interleave) (findMatches (Stream.fromList cs) rs'));
