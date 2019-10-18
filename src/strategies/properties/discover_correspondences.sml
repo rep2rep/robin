@@ -218,7 +218,8 @@ fun chooseNew options existing =
 (*  All of these have type state -> (correspondence * reason) option *)
 
 (* Identity is handled elsewhere in the code, so ignore it here *)
-fun discoverIdentity (cs, rss, rs') = NONE;
+fun discoverIdentity (cs, rss, rs') = let val corrs = Stream.map (fn p => (makeCorr (p, p), IDENTITY p)) (Stream.fromList (PropertySet.toList rs'))
+                                      in chooseNew corrs cs end handle List.Empty => NONE;
 
 fun discoverReversal (cs, rss, rs') =
     let
