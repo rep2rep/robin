@@ -28,7 +28,7 @@ fun filesMatchingPrefix dir prefix =
         map (OS.FileSys.fullPath o attachDir) filteredFiles
     end;
 
-fun parseArgs () =
+fun parseArgs NONE =
     let
         val args = CommandLine.arguments ();
         val configuration =
@@ -37,7 +37,8 @@ fun parseArgs () =
               | [rs] => (SOME rs, NONE)
               | [rs, count] => (SOME rs, Int.fromString count)
               | (rs::count::_) => (Logging.error ("Ignoring extra arguments..."); (SOME rs, Int.fromString count));
-    in configuration end;
+    in configuration end
+  | parseArgs (SOME args) = args;
 
 fun repl state =
     let
@@ -101,7 +102,7 @@ fun main () =
                          (map loadRS rsFiles);
         val _ = Logging.write ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
 
-        val (rsname, rscount) = parseArgs ();
+        val (rsname, rscount) = parseArgs NONE;
 
         val newRSName = case rsname of
                             SOME name => (Logging.write ("Taking " ^ name ^ " as the new RS.\n"); name)
