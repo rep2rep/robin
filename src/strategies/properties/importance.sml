@@ -8,6 +8,7 @@ sig
     val modulate : importance -> real -> real;
     val fromString : string -> importance option;
     val toString : importance -> string;
+    val fromReal : real -> importance;
 
 end;
 
@@ -51,6 +52,10 @@ fun toString Noise = "Noise"
   | toString Medium = "Medium"
   | toString High = "High";
 
-
+fun fromReal r = if r < 0.0 then Noise
+            else if r >= 0.0 andalso r <= 0.0 then Zero
+            else if r > 0.0 andalso r <= 0.3 then Low
+            else if r > 0.3 andalso r <= 0.7 then Medium
+            else High;
 
 end;

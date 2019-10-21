@@ -79,75 +79,75 @@ fun crunch_rank L =
 
 fun dummy_rank qL = List.mergesort RS_order (map (fn x => (x,0.0)) qL)
 
-fun subRSVariety_score qL crunch=
+fun subRSVariety_score u qL crunch=
     let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.subRSVariety (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
-fun tokenRegistration_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenRegistration x)
+fun tokenRegistration_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenRegistration (CognitiveProperties.modifyImportances u x))
     in crunch (map f qL)
     end;
 
-fun expressionRegistration_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionRegistration x (#2(loadRS r)))
+fun expressionRegistration_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionRegistration (CognitiveProperties.modifyImportances u x) (#2(loadRS r)))
     in crunch (map f qL)
     end;
 
-fun tokenConceptMapping_score qL crunch=
+fun tokenConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
-        val bayesian = #2(loadQ q "bayes")
+        val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
         fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
-fun expressionConceptMapping_score qL crunch=
+fun expressionConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
-        val bayesian = #2(loadQ q "bayes")
+        val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
         fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
-fun numberOfTokenTypes_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.numberOfTokenTypes x)
+fun numberOfTokenTypes_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.numberOfTokenTypes (CognitiveProperties.modifyImportances u x))
     in crunch (map f qL)
     end;
 
-fun numberOfExpressionTypes_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.numberOfExpressionTypes x)
+fun numberOfExpressionTypes_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.numberOfExpressionTypes (CognitiveProperties.modifyImportances u x))
     in crunch (map f qL)
     end;
 
-fun quantityScale_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.quantityScale x)
+fun quantityScale_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.quantityScale (CognitiveProperties.modifyImportances u x))
     in crunch (map f qL)
     end;
 
-fun expressionComplexity_score qL crunch=
+fun expressionComplexity_score u qL crunch=
     let fun f ((q,r),x) = let val _ = print ("\n" ^ r ^ "... ")
-                              val v = CognitiveProperties.expressionComplexity x
+                              val v = CognitiveProperties.expressionComplexity (CognitiveProperties.modifyImportances u x)
                               val _ = print ("\n")
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
     end;
 
-fun arity_score qL crunch=
-    let fun f ((q,r),x) = let val v = CognitiveProperties.arity x
+fun arity_score u qL crunch=
+    let fun f ((q,r),x) = let val v = CognitiveProperties.arity (CognitiveProperties.modifyImportances u x)
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
     end;
 
-fun inferenceType_score qL crunch=
-    let fun f ((q,r),x) = let val v = CognitiveProperties.inferenceType x
+fun inferenceType_score u qL crunch=
+    let fun f ((q,r),x) = let val v = CognitiveProperties.inferenceType (CognitiveProperties.modifyImportances u x)
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
     end;
 
-fun problemSpaceBranchingFactor_score qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.problemSpaceBranchingFactor x (#2(loadRS r)))
+fun problemSpaceBranchingFactor_score u qL crunch=
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.problemSpaceBranchingFactor (CognitiveProperties.modifyImportances u x) (#2(loadRS r)))
     in crunch (map f qL)
     end;
 
@@ -170,7 +170,7 @@ end;
 
 fun printAsInteger r = Int.toString (Real.toInt IEEEReal.TO_NEAREST r) handle Domain => "NaN";
 fun printNumber r = Real.fmt (StringCvt.FIX (SOME 6)) r handle Domain => "NaN";
-
+(*
 fun cognitiveScores_latex qL crunch =
     let val w1 = 1.0
         val w2 = 2.0
@@ -201,8 +201,8 @@ fun cognitiveScores_latex qL crunch =
                         (String.concat (List.intersperse " & " ("\\textbf{Total}" :: map printNumber totals)) ^ " \\\\ \n")
     in (print forLatex)
     end;
-
-fun cognitiveScores qL crunch =
+*)
+fun cognitiveScores u qL crunch =
     let val w1 = 1.0
         val w2 = 2.0
         val w3 = 4.0
@@ -210,18 +210,18 @@ fun cognitiveScores qL crunch =
         val u2 = 1
         val u3 = 2
         val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
-        val c1 = map (fn (_,v) => v) (tokenRegistration_score qL crunch)
-        val c2 = map (fn (_,v) => v) (expressionRegistration_score qL crunch)
-        val c3 = map (fn (_,v) => v) (tokenConceptMapping_score qL crunch)
-        val c4 = map (fn (_,v) => v) (expressionConceptMapping_score qL crunch)
-        val c5 = map (fn (_,v) => v) (numberOfTokenTypes_score qL crunch)
-        val c6 = map (fn (_,v) => v) (numberOfExpressionTypes_score qL crunch)
-        val c7 = map (fn (_,v) => v) (quantityScale_score qL crunch)
-        val c8 = map (fn (_,v) => v) (expressionComplexity_score qL crunch)
-        val c9 = map (fn (_,v) => v) (arity_score qL crunch)
-        val c10 = map (fn (_,v) => v) (inferenceType_score qL crunch)
-        val c11 = map (fn (_,v) => v) (subRSVariety_score qL crunch)
-        val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score qL crunch)
+        val c1 = map (fn (_,v) => v) (tokenRegistration_score u qL crunch)
+        val c2 = map (fn (_,v) => v) (expressionRegistration_score u qL crunch)
+        val c3 = map (fn (_,v) => v) (tokenConceptMapping_score u qL crunch)
+        val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)
+        val c5 = map (fn (_,v) => v) (numberOfTokenTypes_score u qL crunch)
+        val c6 = map (fn (_,v) => v) (numberOfExpressionTypes_score u qL crunch)
+        val c7 = map (fn (_,v) => v) (quantityScale_score u qL crunch)
+        val c8 = map (fn (_,v) => v) (expressionComplexity_score u qL crunch)
+        val c9 = map (fn (_,v) => v) (arity_score u qL crunch)
+        val c10 = map (fn (_,v) => v) (inferenceType_score u qL crunch)
+        val c11 = map (fn (_,v) => v) (subRSVariety_score u qL crunch)
+        val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12]
         val forLatex = (String.concat ("\n , , ," :: List.intersperse " , " rss) ^ "   \n") ^
                         (String.concat (List.intersperse " , " ("token registration , ," :: map printNumber c1)) ^ "  \n") ^
@@ -251,6 +251,6 @@ val p3 = List.nth (P,2);
 
 
 val _ = print "\n"
-val _ = cognitiveScores B crunch_raw;
+val _ = cognitiveScores 0.0 B crunch_raw;
 (*)
 val S = quantityScale_score B crunch_raw;*)

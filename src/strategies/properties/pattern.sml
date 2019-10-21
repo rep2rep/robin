@@ -9,6 +9,8 @@ sig
     type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
     type clause = (Type.T list * ((int * int) * resources));
 
+    exception Unsatisfiable
+
     val unfoldTypeDNF : clause list -> (bool * clause list);
 
     val satisfyTypeDNF : clause list -> clause list * data;
@@ -151,7 +153,7 @@ fun satisfyPattern p C P =
         fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (iy * length typsx, ix* length typsy)
 
         fun patternClause K = (typs, ((udepth,1), List.mergesort ordering (diminish tks K)))
-    in satisfyTypeDNF [patternClause CP] handle Unsatisfiable => ([],(0.0,0.0))
+    in satisfyTypeDNF [patternClause CP]
     end
 
 (*)
