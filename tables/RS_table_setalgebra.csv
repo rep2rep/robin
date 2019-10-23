@@ -2,7 +2,7 @@ setalgebra,
 mode,"sentential"
 rigorous,TRUE
 types,"set,real"
-tokens,"|| : {type := set -> real},
+tokens,"| : {type := bracket},
         \setminus : {type := set -> set},
         \cap : {type := set * set -> set},
         1 : {type := real},
@@ -16,21 +16,25 @@ tokens,"|| : {type := set -> real},
          birds : {type := set},
          flying : {type := set},
          animals : {type := set}"
-patterns, "$set_ratio : {type := formula;
+patterns, "|| : {type := real;
+                 holes := [set => 1];
+                 tokens := [|. |]
+                 token_registration := 2},
+            $set_ratio : {type := formula;
                           holes := [set => 2. real => 1];
-                          tokens := [=. ||];
+                          tokens := [=. |. |];
                           token_registration := 1},
             $cardinality_of_intersection : {type := formula;
                                              holes := [set => 2. real => 1];
-                                             tokens := [||. \cap. =];
+                                             tokens := [|. |. \cap. =];
                                              token_registration := 1},
             $cardinality_of_set : {type := formula;
                                     holes := [set => 1. real => 1];
-                                    tokens := [||. \setminus. =];
+                                    tokens := [|. |. \setminus. =];
                                     token_registration := 1},
             $cardinality_of_union: {type := formula;
                                      holes := [set => 2. real => 1];
-                                     tokens := [||. \cup. =];
+                                     tokens := [|. |. \cup. =];
                                      token_registration := 1}"
 laws,"$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
       $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},

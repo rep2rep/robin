@@ -98,8 +98,8 @@ fun unfoldTypeDNF [] = (false,[])
 
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let val _ = print ("\n       length of DNF: " ^ Int.toString (length x))
-                val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => (print " --uncut"; x))
+            let (*val _ = print ("\n       length of DNF: " ^ Int.toString (length x))*)
+                val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => ((*print " --uncut";*) x))
             in if null x' then raise Unsatisfiable
                else (if changed
                      then iterate x'
@@ -133,13 +133,15 @@ fun satisfyPattern p C P =
                          (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
                          Real.floor (occurrences x))
 
-        fun findAndUpdateByTypes ((l,ls,(ts,t)),i) [] = [((l,ls,(ts,t)),i)]
-          | findAndUpdateByTypes ((l,ls,(ts,t)),i) (((l',ls',(ts',t')),i')::L) =
+        fun findAndUpdateByTypes ((l,tks,(ts,t)),i) [] = [((l,tks,(ts,t)),i)]
+          | findAndUpdateByTypes ((l,tks,(ts,t)),i) (((l',tks',(ts',t')),i')::L) =
             if List.isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
-                andalso (List.tl ls handle Empty => []) = (List.tl ls' handle Empty => [])
+                andalso List.isPermutationOf (fn (x,y) => x = y)
+                                             (List.tl tks handle Empty => [])
+                                             (List.tl tks' handle Empty => [])
                 (* this last condition makes sure that the patterns are only clustered together if they have the same tokens*)
-            then ((l @ l',ls',(ts,t)),i+i')::L
-            else ((l',ls',(ts',t')),i') :: findAndUpdateByTypes ((l,ls,(ts,t)),i) L;
+            then ((l @ l',tks',(ts,t)),i+i')::L
+            else ((l',tks',(ts',t')),i') :: findAndUpdateByTypes ((l,tks,(ts,t)),i) L;
         fun clusterByTypes [] = []
           | clusterByTypes (((l,ls,(ts,t)),i)::L) = findAndUpdateByTypes ((l,ls,(ts,t)),i) (clusterByTypes L);
 

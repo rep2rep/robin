@@ -2,27 +2,32 @@ birds,setalgebra
 mode,"sentential"
 error_allowed, 0
 answer_type, real
-instrumental_tokens,"|| : {type := set -> real;
+instrumental_tokens,"| : {type := bracket;
                             occurrences := 8},
                      \setminus : {type := set -> set;
                                   occurrences := 2},
                      \cap : {type := set * set -> set;
                              occurrences := 3}"
 instrumental_types,"set"
-instrumental_patterns, "$set_ratio : {type := formula;
+instrumental_patterns, "|| : {type := real;
+                               holes := [set => 1];
+                               tokens := [|. |];
+                               occurrences := 8;
+                               token_registration := 2},
+                        $set_ratio : {type := formula;
                                       holes := [set => 2. real => 1];
-                                      tokens := [=. ||];
+                                      tokens := [=. |. |];
                                       occurrences := 3;
                                       token_registration := 1},
                         $cardinality_of_intersection : {type := formula;
                                                          holes := [set => 2. real => 1];
                                                          occurrences := 2;
-                                                         tokens := [||. \cap. =];
+                                                         tokens := [|. |. \cap. =];
                                                          token_registration := 1},
                         $cardinality_of_set : {type := formula;
                                                 holes := [set => 1. real => 1];
                                                 occurrences := 8;
-                                                tokens := [||. \setminus. =];
+                                                tokens := [|. |. \setminus. =];
                                                 token_registration := 1}"
 instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
                     $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
@@ -32,7 +37,9 @@ instrumental_tactics,"rewrite : {laws := 1;
                       calc : {patterns := 1;
                               laws := 0;
                               inference_type := calc}"
-relevant_tokens,"1 : {type := real;
+relevant_tokens,"| : {type := bracket;
+                      occurrences := 16},
+                 1 : {type := real;
                       occurrences := 2},
                  4 : {type := real;
                       occurrences := 1},
@@ -57,6 +64,11 @@ relevant_tokens,"1 : {type := real;
 relevant_patterns, "$cardinality_of_union: {type := formula;
                                              holes := [set => 2. real => 1];
                                              occurrences := 0;
-                                             tokens := [||. \cup. =];
-                                             token_registration := 1}"
+                                             tokens := [|. |. \cup. =];
+                                             token_registration := 1},
+                   $infix : {type := sugar;
+                              holes := ['a * 'b -> 'c => 1];
+                              occurrences := 15;
+                              tokens := [];
+                              token_registration := 1}"
 noise_tokens,""

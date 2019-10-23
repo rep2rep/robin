@@ -1,9 +1,9 @@
 bayes,
 mode,"sentential"
 types,"real,event,formula,proof"
-tokens,"\Omega : {type := event}, \emptyset : {type := event}, \bar : {type := event -> event}, 0 : {type := real}, 1 : {type:= real}, + : {type := real*real->real}, - : {type := real*real->real}, * : {type := real*real->real}, \div : {type := real*real->real}, \cup : {type := event*event->event}, \cap : {type := event*event->event}, \setminus : {type := event*event->event}, \Pr : {type:= event*event->real}, \Pr : {type := event->real}, | : {type := event*event->event}, = : {type := event*event->formula}, = : {type := real*real->formula}"
+tokens,"\Omega : {type := event}, \emptyset : {type := event}, \bar : {type := event -> event}, 0 : {type := real}, 1 : {type:= real}, + : {type := real*real->real}, - : {type := real*real->real}, * : {type := real*real->real}, \div : {type := real*real->real}, \cup : {type := event*event->event}, \cap : {type := event*event->event}, \setminus : {type := event*event->event}, \Pr : {type:= event*event->real}, \Pr : {type := event->real}, \mid : {type := event*event->event}, = : {type := event*event->formula}, = : {type := real*real->formula}"
 token_imports,"base_10_real_numerals, latin_alphabet"
-patterns,"$conditional_Pr : {holes:=[event=>2. real=>1]; tokens:=[\Pr. |. =]}, $simple_Pr : {holes:=[event=>1. real=>1]; tokens:=[\Pr. =]}, $equality_chain : {holes:=[real=>#t]; tokens:=[=]}, $joint_Pr : {holes:=[event=>2. real=>1]; tokens:=[\cap. =. \Pr]}"
+patterns,"$conditional_Pr : {holes:=[event=>2. real=>1]; tokens:=[\Pr. \mid. =]}, $simple_Pr : {holes:=[event=>1. real=>1]; tokens:=[\Pr. =]}, $equality_chain : {holes:=[real=>#t]; tokens:=[=]}, $joint_Pr : {holes:=[event=>2. real=>1]; tokens:=[\cap. =. \Pr]}"
 grammatical_complexity,type-2
 rigorous,TRUE
 laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity, $+inverse, $add-def, $mult-def, $*inverse"

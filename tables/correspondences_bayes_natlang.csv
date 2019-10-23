@@ -7,5 +7,5 @@ token-\cup,token-union OR token-or,0.75
 token-\cap,token-intersection OR token-and,0.75
 token-\bar,token-complement OR token-not,0.75
 token-\Pr,token-probability,0.75
-token-|,token-given OR token-if,0.75
+token-\mid,token-given OR token-if,0.75
 tactic-calc,tactic-arithmetic_calculation,0.75

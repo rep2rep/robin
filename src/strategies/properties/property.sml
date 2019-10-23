@@ -44,6 +44,9 @@ sig
     val getNumFunction : string -> property -> (string * real);
     val getFeatures : property -> string list;
 
+    val sameHoles : (property * property) -> bool;
+    val sameTokens : (property * property) -> bool;
+
     val updateNumFunction : string -> (real -> real) -> property -> property;
 
     val compare : property * property -> order;
@@ -120,7 +123,7 @@ fun getTypeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
 fun getHoles (_,_,[]) = raise NoAttribute "holes"
   | getHoles (k,v,(a::L)) = Attribute.getHoles a handle Match => getHoles (k,v,L);
 
-fun getTokens (_,_,[]) = raise NoAttribute "tokens"
+fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s]) else raise NoAttribute "tokens"
   | getTokens (k,v,(a::L)) = Attribute.getTokens a handle Match => getTokens (k,v,L);
 
 fun getContent (_,_,[]) = raise NoAttribute "content"
@@ -141,6 +144,10 @@ fun getFeatures (_,_,[]) = []
 
 fun updateNumFunction s f (k,v,L) = (k,v,map (Attribute.updateNumFunction s f) L);
 
+fun sameHoles (p,p') = M.equal (getHoles p, getHoles p')
+fun sameTokens (p,p') = List.isPermutationOf (fn (x,y) => x = y)
+                                             (getTokens p handle NoAttribute _ => [])
+                                             (getTokens p' handle NoAttribute _ => [])
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
