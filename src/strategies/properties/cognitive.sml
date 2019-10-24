@@ -23,10 +23,10 @@ sig
 
   val expressionRegistration : qtable -> rstable -> real;
 
-  val tokenConceptMapping : qtable -> rstable -> real;
+  val tokenConceptMapping : qtable -> qtable -> real;
   val numberOfTokenTypes : qtable -> real;
 
-  val expressionConceptMapping : qtable -> rstable -> real;
+  val expressionConceptMapping : qtable -> qtable -> real;
   val numberOfExpressionTypes : qtable -> real;
 
   val quantityScale : qtable -> real;
@@ -63,7 +63,7 @@ type userprofile = (string * real) list;
 fun modifyImportances u qT =
     let fun updImportance q =
             case QProperty.toPair q of (p,i) =>
-                QProperty.fromPair (p, Importance.fromReal (u*Importance.weight(i) + 1.0 - u))
+                QProperty.fromPair (p, Importance.weight(1.0 + u*i - u))
     in QPropertySet.fromList (QPropertySet.map updImportance qT)
     end;
 
@@ -320,46 +320,57 @@ fun quantityScale qT =
     end;
 
 
-fun conceptMapping kind idealqT rT =
-    let fun present x = #2 (Property.getNumFunction "occurrences" (x)) > 0.0
+fun conceptMapping kind idealqT qT =
+    let fun present x = #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0
 
-        val C1 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.High) idealqT
-        val C2 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Medium) idealqT
-        val C3 = QPropertySet.filter (fn x => QProperty.importanceOf x = Importance.Low) idealqT
+        fun findAndInsertByImportance x [] = [(QProperty.importanceOf x, [QProperty.withoutImportance x])]
+          | findAndInsertByImportance x ((i,l)::L) =
+            if Importance.equal(i,QProperty.importanceOf x)
+            then (i,QProperty.withoutImportance x::l) :: L
+            else (i,l) :: findAndInsertByImportance x L
+        fun clusterByImportance [] = []
+          | clusterByImportance (x::L) = findAndInsertByImportance x (clusterByImportance L)
+
+        val qT' = QPropertySet.filter (fn x => Property.kindOf (QProperty.withoutImportance x) = kind andalso present x) qT
+        val clusteredqT = clusterByImportance (QPropertySet.toList qT')
+        val clusteredIdealqT = clusterByImportance (QPropertySet.toList idealqT)
 
         val corrT' = map (Correspondence.flip 1.0) corrT
 
-        val rT' = PropertySet.filter (fn x => Property.kindOf x = kind andalso present x) rT
-        fun assess_rd p =
-            let val T = PropertyTables.transformQProperty p rT' (corrT @ corrT')
-                val x = QPropertySet.size T
-                val s = if x = 1 (* functional *) then 0.0 else
-                         if x > 1 (* redundancy *) then 2.0 * Math.ln(real x)/Math.ln(2.0) else
-                         if x < 1 (* deficit *) then 3.0 else raise Match
-            in s
+        fun assess_rd p = (* concepts to objects *)
+            let fun transformToCluster (imp,X) =
+                    (imp,QPropertySet.toList (PropertyTables.transformQProperty p (PropertySet.fromList X) (corrT @ corrT')))
+                val T = map transformToCluster clusteredqT
+                val x = length (List.concat (map #2 T))
+                val i = List.sumIndexed (fn (imp,L) => imp * Math.ln(real (1 + length L))/Math.ln(2.0)) T
+                val s = (if x = 1 (* functional *) then 0.0 else
+                         if x > 1 (* redundancy *) then 2.0 * i else
+                         if x < 1 (* deficit *) then 3.0 else raise Match)
+            in s * (Importance.weight (QProperty.importanceOf p))
             end;
 
-        fun assess_oe X r =
-            let val T = PropertyTables.transformQProperty (QProperty.fromPair (r,Importance.High)) (QPropertySet.withoutImportances X) (corrT @ corrT')
-                val x = QPropertySet.size T
-                val s = if x = 1 (* injetive & surjective *) then 0.0 else
-                         if x > 1 (* overload *) then 4.0 * Math.ln(real x)/Math.ln(2.0) else
-                         if x < 1 (* excess *) then 1.0 else raise Match
-            in s
+        fun assess_oe p = (* objects to concepts *)
+            let fun transformToCluster (imp,X) =
+                    (imp,QPropertySet.toList (PropertyTables.transformQProperty p (PropertySet.fromList X) (corrT @ corrT')))
+                val T = map transformToCluster clusteredIdealqT
+                val x = length (List.concat (map #2 T))
+                val i = List.sumIndexed (fn (imp,L) => imp * Math.ln(real (1 + length L))/Math.ln(2.0)) T
+                val s = (if x = 1 (* injetive & surjective *) then 0.0 else
+                         if x > 1 (* overload *) then 4.0 * i else
+                         if x < 1 (* excess *) then 1.0 else raise Match)
+            in s * (Importance.weight (QProperty.importanceOf p))
             end;
 
-        val rd1 = List.sumIndexed assess_rd (QPropertySet.toList C1)
-        val rd2 = List.sumIndexed assess_rd (QPropertySet.toList C2)
-        val rd3 = List.sumIndexed assess_rd (QPropertySet.toList C3)
+        val rd = List.sumIndexed assess_rd (QPropertySet.toList idealqT)
+        val _ = print (Real.toString rd ^ "\n")
+        val oe = (List.avgIndexed assess_oe (QPropertySet.toList qT')) * (real (QPropertySet.size idealqT))
+        val _ = print (Real.toString oe ^ "\n")
+        val _ = print ("\n")
+(*)
+        fun globalOE i = (List.avgIndexed (assess_oe) clusteredqT) * real (QPropertySet.size X) handle Empty => 0.0
+        val oeL = map globalOE clusteredIdealqT*)
 
-        fun globalOE X = (List.avgIndexed (assess_oe X) (PropertySet.toList rT')) * real (QPropertySet.size X) handle Empty => 0.0
-        val oe1 = globalOE C1
-        val oe2 = globalOE C2
-        val oe3 = globalOE C3
-
-    in   (Importance.weight Importance.High) * (rd1 + oe1)
-       + (Importance.weight Importance.Medium) * (rd2 + oe2)
-       + (Importance.weight Importance.Low) * (rd3 + oe3)
+    in rd + oe
     end;
 
 fun tokenConceptMapping idealqT rT = conceptMapping Kind.Token idealqT rT;

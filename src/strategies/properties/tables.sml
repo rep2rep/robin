@@ -180,9 +180,9 @@ fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
 
 fun loadQuestionTable filename = let
     val sets = (SQ.empty, SQ.union);
-    fun parseImportance s = case Importance.fromString s of
-                                SOME i => i
-                              | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");
+    fun parseImportance s = case Importance.fromString s of i => i;
+                            (*)    SOME i => i
+                              | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");*)
     fun parseHeader [] = raise TableError ("Q Table "
                                            ^ "has empty header")
       | parseHeader [x] = raise TableError ("Q Table "
@@ -203,7 +203,7 @@ fun loadQuestionTable filename = let
             val (valparser, keypre, defaultImportance) =
                 case (findQGenerator key) of
                     SOME kt => kt
-                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.Low);
+                  | NONE => ((fn s => [(Property.Label s,[])]), (Kind.fromString key), Importance.fromString "Low");
             val importance = case overrideImportance of
                                     NONE => defaultImportance
                                   | SOME i => i;
@@ -330,7 +330,7 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                                    (* BEWARE: THIS GENERATES NONSENSE PROPERTIES FOR THE PSEUDO Q TABLE,
                                    BUT IT GIVES US AN IDEA OF WHAT SHOULD GO IN THERE FOR WHEN WE FIX IT LATER *)
                   | findName ((k', i', s)::xs) =
-                    if k' = k andalso i' = i then s
+                    if k' = k andalso Importance.equal (i', i) then s
                     else findName xs;
             in
                 findName propertyKinds (*(List.filter notRelated propertyKinds)*) (* probably not necessary to filter now*)

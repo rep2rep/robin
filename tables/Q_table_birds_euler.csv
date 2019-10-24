@@ -115,10 +115,10 @@ relevant_patterns, "$union: {type := zone;
                                                   occurrences := 1;
                                                   udepth := 1;
                                                   tokens := [];
-                                                  token_registration := 3}
+                                                  token_registration := 3},
                      $zone_determined_by_contour : {type := zone;
                                                     holes := [contour => 1];
                                                     occurrences := 3;
                                                     tokens := [];
-                                                    token_registration := 1},"
+                                                    token_registration := 1}"
 noise_tokens,""

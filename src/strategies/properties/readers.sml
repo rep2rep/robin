@@ -81,7 +81,6 @@ end;
 
 
 local
-    open Importance;
     open PropertyReader;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
 
@@ -115,16 +114,16 @@ local
 
 
     fun importanceOfPrefix p =
-        if p = "essential" orelse p = "answer" then High else
-        if p = "instrumental" then Medium else
-        if p = "relevant" then Low else
-        if p = "circumstantial" then Zero else
-        if p = "noise" then Noise
-        else Zero;
+        if p = "essential" orelse p = "answer" then Importance.fromString "High" else
+        if p = "instrumental" then Importance.fromString "Medium" else
+        if p = "relevant" then Importance.fromString "Low" else
+        if p = "circumstantial" then Importance.fromString "Zero" else
+        if p = "noise" then Importance.fromString "Noise"
+        else Importance.fromString "Zero";
 
     fun qTagToTriple t =
         let val (p,_,k) = Parser.breakOn "_" t
-            val importance = if t = "error_allowed" then High else if t = "mode" then Zero else importanceOfPrefix p
+            val importance = if t = "error_allowed" then Importance.fromString "High" else if t = "mode" then Importance.fromString "Zero" else importanceOfPrefix p
             fun keywordToReaderKind s =
                 if String.isPrefix "type" s then (listOf typeR, Kind.Type) else
                 if String.isPrefix "token" s then (listOf labelR, Kind.Token) else

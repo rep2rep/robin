@@ -97,14 +97,14 @@ fun expressionRegistration_score u qL crunch=
 fun tokenConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian x (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
 fun expressionConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (QPropertySet.withoutImportances x) (*(#2(loadRS r))*))
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian x (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
@@ -224,7 +224,7 @@ fun cognitiveScores u qL crunch =
         val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12]
         val csvText = "\n\n" ^
-                      (if u < 1.0/3.0 then "NOVICE" else if u < 2.0/3.0 then "MEDIAN" else if u <= 1.0 then "EXPERT" else raise Match) ^ "\n" ^
+                      (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^") \n" ^
                       (String.concat (" , " :: List.intersperse " , " rss) ^ "   \n") ^
                       (String.concat (List.intersperse " , " ("token registration" :: map printNumber c1)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression registration" :: map printNumber c2)) ^ "  \n") ^
@@ -255,6 +255,6 @@ val p3 = List.nth (P,2);
 val _ = cognitiveScores (1.0/6.0) B crunch_raw;
 val _ = cognitiveScores (3.0/6.0) B crunch_raw;
 val _ = cognitiveScores (5.0/6.0) B crunch_raw;
-val _ = print "\n"
+val _ = print "\n";
 (*)
 val S = quantityScale_score B crunch_raw;*)

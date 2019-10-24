@@ -123,7 +123,7 @@ fun getTypeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
 fun getHoles (_,_,[]) = raise NoAttribute "holes"
   | getHoles (k,v,(a::L)) = Attribute.getHoles a handle Match => getHoles (k,v,L);
 
-fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s]) else raise NoAttribute "tokens"
+fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s] | _ => raise Error "IMPOSSIBLE ERROR") else raise NoAttribute "tokens"
   | getTokens (k,v,(a::L)) = Attribute.getTokens a handle Match => getTokens (k,v,L);
 
 fun getContent (_,_,[]) = raise NoAttribute "content"
@@ -270,9 +270,9 @@ val compare = Comparison.join Property.compare Importance.compare;
 fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
 fun fromString s =
     case Parser.splitStrip "," (Parser.removeParens s) of
-        [a, b] =>(case Importance.fromString b of
-                      SOME b' => (Property.fromString a, b')
-                    | NONE => raise ParseError)
+        [a, b] => (case Importance.fromString b of b' => (Property.fromString a, b'))
+                (*)      SOME b' => (Property.fromString a, b')
+                    | NONE => raise ParseError)*)
       | _ => raise ParseError;
 fun toPair (s, i) = (s, i);
 fun fromPair (s, i) = (s, i);
@@ -337,7 +337,7 @@ fun collectOfKind ps k =
     end;
 
 fun collectOfImportance ps i =
-    let fun isOfImportance p = (#2 (QProperty.toPair p) = i);
+    let fun isOfImportance p = Importance.equal (#2 (QProperty.toPair p), i);
     in filter isOfImportance ps
     end;
 
