@@ -84,12 +84,22 @@ local
     fun getAttr f = (getAttr' f) o Property.attributesOf;
     fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
     fun propertyFromToken s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
-    fun unifyish (Type.Ground x, Type.Ground y) = [(Type.Ground x, Type.Ground y)]
-      | unifyish (Type.Var x, Type.Var y) = []
-      | unifyish (Type.Pair (a, b), Type.Pair (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
-      | unifyish (Type.Function (a, b), Type.Function (x, y)) = (unifyish (a, x)) @ (unifyish (b, y))
-      | unifyish (Type.Constructor (s, x), Type.Constructor (s', y)) = (Type.Ground s, Type.Ground s') :: unifyish (x, y)
-      | unifyish _ = raise Match;
+    fun unifyish (f, g) = let val (genf, fsubs) = Type.generalise f;
+                              val (geng, gsubs) = Type.generalise g;
+                              fun simplify [] = []
+                                | simplify ((x, y)::xs) = if List.exists (fn (a, b) => a = x orelse b = y orelse a = y orelse b = x) xs
+                                                          then raise Type.TUNIFY else (x, y)::(simplify xs);
+                              fun lookup v [] = NONE
+                                | lookup v ((x,y)::xs) = if v = y then SOME (Type.Ground x) else lookup v xs;
+                              fun align [] = []
+                                | align ((Type.Var x, Type.Var y)::us) = let val x' = lookup x fsubs;
+                                                                             val y' = lookup y gsubs;
+                                                                         in case (x', y') of
+                                                                                (SOME a, SOME b) => (a, b)::(align us)
+                                                                              | _ => (align us) end
+                                | align (_::us) = align us;
+                              val unifications = simplify (Type.unify [(genf, geng)]) handle Type.TUNIFY => raise Match;
+                          in align unifications end;
     fun allCorrStrength cs s = let val (h, t) = Stream.step s
                                in case doCorrespond cs h of
                                       NONE => NONE
@@ -159,7 +169,7 @@ fun potentialAttrCorr (a, b) =
             let
                 val (ah, bh) = spread ((map (fn (k, _) => k)) o Attribute.M.toPairList o getHoles) (a, b);
                 val holeStream = uncurry Stream.product (spread Stream.fromList (ah, bh));
-                val typeStream = Stream.flatmap (Stream.fromList o unifyish) holeStream;
+                val typeStream = Stream.flatmap (Stream.fromList o (fn h => unifyish h handle Match => [])) holeStream;
                 val propStream = Stream.map (spread propertyFromType) typeStream;
             in
                 propStream

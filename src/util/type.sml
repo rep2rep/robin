@@ -1,4 +1,5 @@
 import "util.logging";
+import "util.stream";
 import "util.parser";
 
 signature TYPE =
@@ -14,7 +15,8 @@ sig
     val inputArity : T -> int;
     val order : T -> int;
     exception TUNIFY;
-    val unify : (T * T) list -> (T * T) list
+    val unify : (T * T) list -> (T * T) list;
+    val generalise : T -> T * (string * string) list;
     val match : T * T -> bool;
     val compare : T * T -> order;
     val toString : T -> string;
@@ -62,6 +64,17 @@ datatype T = Ground of string
            | Pair of T * T
            | Function of T * T
            | Constructor of string * T;
+
+exception Extend;
+val newVariable' = ref (let fun inc [] = raise Fail "Variable gen in Type broken!"
+                              | inc [#"z"] = SOME [#"a", #"a"]
+                              | inc (x::xs) = if x = #"z" then SOME (#"a"::(Option.valOf(inc xs)))
+                                              else SOME (Char.succ(x)::xs);
+                        in Stream.map (String.implode o List.rev) (Stream.unfold inc [#"a"]) end);
+
+fun getNewVariable () = let val (v, s) = Stream.step (!newVariable');
+                            val _ = newVariable' := s;
+                        in v end;
 
 fun pairToList (Pair (x,y)) = (pairToList x) @ (pairToList y)
   | pairToList x = [x]
@@ -119,6 +132,33 @@ fun unify [] = []
     | (Function (s,t), Function (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Constructor (s,t), Constructor (s',t')) => if s = s' then unify ((t,t') :: C) else raise TUNIFY
     | _ => raise TUNIFY;
+
+fun generalise f =
+    let
+        fun usesVar (Ground a) v = false
+          | usesVar (Var a) v = v = a
+          | usesVar (Pair (x, y)) v = usesVar x v orelse usesVar y v
+          | usesVar (Function (x, y)) v = usesVar x v orelse usesVar y v
+          | usesVar (Constructor (s, x)) v = usesVar x v;
+        fun newVar () = let val v = getNewVariable ();
+                        in if usesVar f v then newVar() else v end;
+        fun getOrGenerate' old [] s = let val v = newVar ();
+                                      in (v, (s, v)::old) end
+          | getOrGenerate' old ((s, v)::vs) s' = if s = s' then (v, (s, v)::(old@vs))
+                                                 else getOrGenerate' ((s,v)::old) vs s';
+        fun getOrGenerate gs s = getOrGenerate' [] gs s;
+        fun generalise' gens (Ground a) = let val (v, gens') = getOrGenerate gens a
+                                          in (Var v, gens') end
+          | generalise' gens (Var v) = (Var v, gens)
+          | generalise' gens (Pair (x, y)) = let val (g1, gens') = generalise' gens x;
+                                                 val (g2, gens'') = generalise' gens' y;
+                                             in (Pair (g1, g2), gens'') end
+          | generalise' gens (Function (x, y)) = let val (g1, gens') = generalise' gens x;
+                                                     val (g2, gens'') = generalise' gens' y;
+                                                 in (Function (g1, g2), gens'') end
+          | generalise' gens (Constructor (s, x)) = let val (g, gens') = generalise' gens x;
+                                                    in (Constructor (s,g), gens') end;
+    in generalise' [] f end;
 
 (* I don't want to bother changing variables to absolutely guarantee that they are different,
    but this should be enough for practical purposes. We can also assume '_a is an invalid type variable name *)
