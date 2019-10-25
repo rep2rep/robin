@@ -36,6 +36,7 @@ sig
   val inferenceType : qtable -> real;
 
   val problemSpaceBranchingFactor : qtable -> rstable -> real;
+  val solutionDepth : qtable -> real;
 end;
 
 structure CognitiveProperties : COGNITIVE_PROPERTIES =
@@ -72,7 +73,9 @@ fun modifyImportances u qT =
    from the User Profile. *)
 fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
-fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0) (QPropertySet.collectOfKind qS k)
+fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false)
+                                                         orelse (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false))
+                                                       (QPropertySet.collectOfKind qS k)
 
 fun gravity x = (Importance.weight (QProperty.importanceOf x))
                   * #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))
@@ -379,14 +382,17 @@ fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT
 
 
 fun inferenceType qT =
-    let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
-        val S = PropertySet.map (fn x => #2 (Property.getStringFunction "inference_type" x)) T
-        fun assess s = if s = "assign" then 1.0
+    let val T = collectOfKindPresentInQ qT Kind.Tactic;
+        fun wt x = (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) * (Importance.weight (QProperty.importanceOf x)),
+                    #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
+        val S = QPropertySet.map wt T
+        fun assess (_,s) = if s = "assign" then 1.0
                   else if s = "match" then 2.0
-                  else if s = "subst" then 3.0
-                  else if s = "calc" then 4.0
+                  else if s = "subst" then 4.0
+                  else if s = "calc" then 8.0
+                  else if s = "transformation" then 16.0
                   else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
-    in List.avgIndexed assess S handle Empty => Real.posInf
+    in List.weightedAvgIndexed (#1) assess S handle Empty => Real.posInf
     end;
 
 
@@ -406,5 +412,11 @@ fun problemSpaceBranchingFactor qT rT =
     in if Real.==(result,0.0) then Real.posInf else result
     end;
 
+fun solutionDepth qT =
+    let val T = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic);
+        val occs = List.sumIndexed (fn t => #2 (Property.getNumFunction "uses" t) handle Property.NoAttribute _ => 0.0) T
+        val trans = List.exists (fn t => #2 (Property.getStringFunction "inference_type" t) = "transformation") T
+    in if trans then Real.posInf else occs
+    end;
 
 end;

@@ -54,9 +54,9 @@ fun crunch_raw L =
     let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
         val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
         val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
-                                          then 1.0 * (max+0.01)
+                                          then 1.0 * (max + 1.0)
                                           else if Real.== (v, Real.negInf)
-                                                then 1.0 * (min-0.01)
+                                                then 1.0 * (min - 1.0)
                                                 else  1.0 * v)) L
         val sorted = List.mergesort RS_order normL
     in sorted
@@ -96,15 +96,15 @@ fun expressionRegistration_score u qL crunch=
 
 fun tokenConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
-        val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian x (*(#2(loadRS r))*))
+        val bayesian = #2(loadQ q "bayes")
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (CognitiveProperties.modifyImportances u x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
 fun expressionConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
-        val bayesian = (CognitiveProperties.modifyImportances u (#2(loadQ q "bayes")))
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian x (*(#2(loadRS r))*))
+        val bayesian = #2(loadQ q "bayes")
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (CognitiveProperties.modifyImportances u x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
 
@@ -150,6 +150,13 @@ fun problemSpaceBranchingFactor_score u qL crunch=
     let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.problemSpaceBranchingFactor (CognitiveProperties.modifyImportances u x) (#2(loadRS r)))
     in crunch (map f qL)
     end;
+
+fun solutionDepth_score u qL crunch =
+let fun f ((q,r),x) = let val v = CognitiveProperties.solutionDepth (CognitiveProperties.modifyImportances u x)
+                      in (((q,r),x), v)
+                      end;
+in crunch (map f qL)
+end;
 
 signature VECT =
 sig
@@ -222,7 +229,8 @@ fun cognitiveScores u qL crunch =
         val c10 = map (fn (_,v) => v) (inferenceType_score u qL crunch)
         val c11 = map (fn (_,v) => v) (subRSVariety_score u qL crunch)
         val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
-        val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12]
+        val c13 = map (fn (_,v) => v) (solutionDepth_score u qL crunch)
+        val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13]
         val csvText = "\n\n" ^
                       (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^") \n" ^
                       (String.concat (" , " :: List.intersperse " , " rss) ^ "   \n") ^
@@ -237,7 +245,8 @@ fun cognitiveScores u qL crunch =
                       (String.concat (List.intersperse " , " ("arity":: map printNumber c9)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("inference type":: map printNumber c10)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("subRS variety":: map printNumber c11)) ^ "  \n") ^
-                      (String.concat (List.intersperse " , " ("problem-space branching factor":: map printNumber c12)) ^ "   \n")
+                      (String.concat (List.intersperse " , " ("problem-space branching factor":: map printNumber c12)) ^ "   \n")^
+                      (String.concat (List.intersperse " , " ("solution depth":: map printNumber c13)) ^ "   \n")
                     (*    (String.concat (List.intersperse " , " ("Total" :: "" :: map printNumber totals)) ^ "  \n")*)
     in (print csvText)
     end;

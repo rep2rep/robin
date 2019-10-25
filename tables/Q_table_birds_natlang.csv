@@ -32,7 +32,10 @@ instrumental_laws, "$Bayes'_theorem,
                     $non_negative_probability,
                     $unit_measure,
                     $sigma_additivity"
-instrumental_tactics,""
+instrumental_tactics,"transform : {patterns := 1;
+                                   laws := 1;
+                                   uses := 1;
+                                   inference_type := transformation}"
 relevant_tokens, "one : {type := quantity; occurrences := 1},
                   quarter : {type := quantity -> ratio; occurrences := 1},
                   of : {type := ratio * class -> class; occurrences := 2},
