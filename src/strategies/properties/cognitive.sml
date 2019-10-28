@@ -147,14 +147,14 @@ fun tokenRegistration qT =
         (* next functions takes a pattern, returns the pattern's tokens/hole types with the registration,
           modulated by the pattern's importance and occurrences*)
         fun tokensWithRegistration p =
-            let val c = QProperty.withoutImportance p
-                val reg = Math.pow(2.0, getReg c - 1.0) * logGravity p / patternNorm
-            in (Property.getTokens c, reg)
+            let val p' = QProperty.withoutImportance p
+                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p)) (*)* logGravity p / patternNorm*)
+            in (Property.getTokens p', reg)
             end
         fun typesWithRegistration p =
-            let val c = QProperty.withoutImportance p
-                val reg = Math.pow(2.0, getReg c - 1.0) * logGravity p / patternNorm
-            in (Property.getHoles c, reg)
+            let val p' = QProperty.withoutImportance p
+                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p)) (*)* logGravity p / patternNorm*)
+            in (Property.getHoles p', reg)
             end
         val tkregs = map tokensWithRegistration patterns
         val typregs = map typesWithRegistration patterns
@@ -170,14 +170,15 @@ fun tokenRegistration qT =
         fun regOfTk L x = let val (sr,n) = regOfTk' L x
                           in if n > 0 then sr / real n
                              else (let val (sr',n') = regOfTyp typregs (Property.getTypeOfValue x)
-                                    in sr' / real n'
+                                    in (if n' > 0 then sr' / real n' else 2.0)
                                     end)
-                              (* if token does not appear directly on patterns, but a hole with the type of the token does, approximate it with that*)
+                              (* if token does not appear directly on patterns, but a hole with
+                              the type of the token does, approximate it with that*)
                           end
         val importanceNorm = List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) C
         fun weighing tk = gravity tk / importanceNorm
-        val total = List.weightedSumIndexed gravity ((regOfTk tkregs) o QProperty.withoutImportance) C
-    in total
+        val totalSum = List.weightedSumIndexed gravity ((regOfTk tkregs) o QProperty.withoutImportance) C
+    in totalSum
     end;
 
 
@@ -188,6 +189,15 @@ fun numberOfPatternsModulated qT =
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) P
         fun weighing x = gravity x / importanceNorm
     in List.sumIndexed gravity (P @ nonTrivialC)
+    end;
+
+fun numberOfPatternsModulatedSquared qT =
+    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+        val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
+        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) P
+        fun weighing x = gravity x / importanceNorm
+    in List.sumIndexed (fn x => Math.pow(gravity x,2.0)) (P @ nonTrivialC)
     end;
 
 fun numberOfObjectsModulated qT =
@@ -207,7 +217,7 @@ fun expressionRegistration qT rT =
                    else if Property.LabelOf x = "connection" then 3.0
                    else if Property.LabelOf x = "proportional" then 3.0
                    else (print "unknown mode"; raise Match)
-    in (numberOfPatternsModulated qT) * (List.avgIndexed modereg M)
+    in Math.sqrt(numberOfPatternsModulatedSquared qT) * (List.avgIndexed modereg M)
     end;
 
 
@@ -215,20 +225,20 @@ fun arity qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
         val n = numberOfTokens qT / numberOfTokenTypes qT
-        fun a p = let val x = QProperty.withoutImportance p
-                      val i = Pattern.arity x
-                  in if i = ~3 then n else
-                     if i = ~2 then Math.sqrt n else
-                     if i = ~1 then Math.ln n else
-                         real i
-                  end
+        fun ar p = let val i = Pattern.arity (QProperty.withoutImportance p)
+                       val a = if i = ~3 then n else
+                               if i = ~2 then Math.sqrt n else
+                               if i = ~1 then Math.ln n else
+                                  real i
+                    in Math.pow(a,2.0)
+                    end
 
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
         val patternNorm = numberOfPatternsModulated qT
         fun weighing x = gravity x / (importanceNorm * patternNorm)
 
-    in List.weightedSumIndexed logGravity a (nonTrivialTokens @ P)
+    in Math.sqrt(List.weightedSumIndexed (fn x => Math.pow(logGravity x,2.0)) ar (nonTrivialTokens @ P))
     end
 
 
@@ -258,7 +268,7 @@ fun expressionComplexity qT =
                 val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
                 val _ = print ("\n       depth:" ^ (Real.toString depth) ^ " ")
                 val _ = print ("\n       breadth:" ^ (Real.toString breadth) ^ " ")
-            in (List.sum gs) * (depth * breadth)
+            in  Math.pow(List.sum gs,2.0) * (depth * breadth)
             end
 (*
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
@@ -365,10 +375,7 @@ fun conceptMapping kind idealqT qT =
             end;
 
         val rd = List.sumIndexed assess_rd (QPropertySet.toList idealqT)
-        val _ = print (Real.toString rd ^ "\n")
         val oe = (List.avgIndexed assess_oe (QPropertySet.toList qT')) * (real (QPropertySet.size idealqT))
-        val _ = print (Real.toString oe ^ "\n")
-        val _ = print ("\n")
 (*)
         fun globalOE i = (List.avgIndexed (assess_oe) clusteredqT) * real (QPropertySet.size X) handle Empty => 0.0
         val oeL = map globalOE clusteredIdealqT*)

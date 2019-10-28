@@ -41,10 +41,9 @@ fun RS_order (x,y) =
                        if r = "geometric" then 3 else
                        if r = "contingency" then 4 else
                        if r = "probabilitytrees" then 5 else
-                       if r = "euler" then 6 else
-                       if r = "setalgebra" then 7 else
-                       if r = "expeuler" then 8 else
-                       if r = "expnatlang" then 9 else raise Match;
+                       if r = "setalgebra" then 6 else
+                       if r = "euler" then 7 else
+                       if r = "expeuler" then 8 else raise Match;
         val (((_,rx),_),_) = x
         val (((_,ry),_),_) = y
     in Int.compare (numify rx, numify ry)
@@ -54,7 +53,7 @@ fun crunch_raw L =
     let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
         val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
         val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
-                                          then 1.0 * (max + 1.0)
+                                          then 1.0 * (1.0 + (max + min) / 2.0)
                                           else if Real.== (v, Real.negInf)
                                                 then 1.0 * (min - 1.0)
                                                 else  1.0 * v)) L
