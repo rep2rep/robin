@@ -260,14 +260,14 @@ fun expressionComplexity qT =
 
         fun f (p,gs) =
             let val x = QProperty.withoutImportance p
-                val _ = print ("\n   " ^ (Property.toString x))
+              (*  val _ = print ("\n   " ^ (Property.toString x))*)
                 val (L,(depth,breadth)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
                                                                  (map QProperty.withoutImportance C)
                                                                  (map QProperty.withoutImportance P)
                                   handle Pattern.Unsatisfiable => ([],(1.0,1.0))
-                val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
-                val _ = print ("\n       depth:" ^ (Real.toString depth) ^ " ")
-                val _ = print ("\n       breadth:" ^ (Real.toString breadth) ^ " ")
+              (*  val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L))) *)
+              (*  val _ = print ("\n       depth:" ^ (Real.toString depth) ^ " ")  *)
+              (*  val _ = print ("\n       breadth:" ^ (Real.toString breadth) ^ " ")  *)
             in  Math.pow(List.sum gs,2.0) * (depth * breadth)
             end
 (*
