@@ -106,7 +106,7 @@ fun satisfyTypeDNF tF =
                      else x)
             end
         fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
-                                    List.avgIndexed (fn (_,((_,b),_)) => (List.avgIndexed real b)) L)
+                                    List.avgIndexed (fn (_,((_,b),_)) => (List.avgIndexed real b handle Empty => 1.0)) L)
         fun maxDepthAndBreadth [] = (1,1)
           | maxDepthAndBreadth ((_,((d,b),_))::L) =
             let val (d',b') = maxDepthAndBreadth L
@@ -154,7 +154,7 @@ fun satisfyPattern p C P =
         (* the following ordering of the KB gives preference to both things with more occurrences and with shorter input type *)
         fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (iy * length typsx, ix* length typsy)
 
-        fun patternClause K = (typs, ((udepth,[1]), List.mergesort ordering (diminish tks K)))
+        fun patternClause K = (typs, ((udepth,[]), List.mergesort ordering (diminish tks K)))
     in satisfyTypeDNF [patternClause CP]
     end
 
