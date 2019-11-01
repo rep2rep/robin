@@ -230,9 +230,9 @@ fun cognitiveScores u qL crunch =
         val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
         val c13 = map (fn (_,v) => v) (solutionDepth_score u qL crunch)
         val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13]
+        val userS = (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^")"
         val csvText = "\n\n" ^
-                      (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^") \n" ^
-                      (String.concat (" , " :: List.intersperse " , " rss) ^ "   \n") ^
+                      (String.concat (List.intersperse " , " (userS::rss)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("token registration" :: map printableNumber c1)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression registration" :: map printableNumber c2)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("token-concept mapping" :: map printableNumber c3)) ^ "  \n") ^

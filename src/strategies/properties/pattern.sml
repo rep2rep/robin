@@ -7,7 +7,7 @@ sig
 
     type data = real * real;
     type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-    type clause = (Type.T list * ((int * int) * resources));
+    type clause = (Type.T list * ((int * (int list)) * resources));
 
     exception Unsatisfiable
 
@@ -45,7 +45,7 @@ fun fromQToken c = QProperty.fromPair (fromToken (QProperty.withoutImportance c)
 
 type data = real * real;
 type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-type clause = (Type.T list * ((int * int) * resources));
+type clause = (Type.T list * ((int * int list) * resources));
 
 fun sameTypeDNF (tF, tF') =
     let (* compares everything except the current depth *)
@@ -85,7 +85,7 @@ fun unfoldTypeDNF [] = (false,[])
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L
-                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,Int.max(b,length (tL @ l))),diminish tokens K)) handle Unsatisfiable => NONE
+                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,length (tL @ l)::b),diminish tokens K)) handle Unsatisfiable => NONE
             in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
             end
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
@@ -106,7 +106,7 @@ fun satisfyTypeDNF tF =
                      else x)
             end
         fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
-                                    List.avgIndexed (fn (_,((_,b),_)) => real b) L)
+                                    List.avgIndexed (fn (_,((_,b),_)) => (List.avgIndexed real b)) L)
         fun maxDepthAndBreadth [] = (1,1)
           | maxDepthAndBreadth ((_,((d,b),_))::L) =
             let val (d',b') = maxDepthAndBreadth L
@@ -154,7 +154,7 @@ fun satisfyPattern p C P =
         (* the following ordering of the KB gives preference to both things with more occurrences and with shorter input type *)
         fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (iy * length typsx, ix* length typsy)
 
-        fun patternClause K = (typs, ((udepth,1), List.mergesort ordering (diminish tks K)))
+        fun patternClause K = (typs, ((udepth,[1]), List.mergesort ordering (diminish tks K)))
     in satisfyTypeDNF [patternClause CP]
     end
 
