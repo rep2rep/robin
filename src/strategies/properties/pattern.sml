@@ -85,7 +85,7 @@ fun unfoldTypeDNF [] = (false,[])
             let fun removeNONEs [] = []
                   | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
                   | removeNONEs (NONE :: L) = removeNONEs L
-                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,length (tL @ l)::b),diminish tokens K)) handle Unsatisfiable => NONE
+                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,(length (tL @ l))::b),diminish tokens K)) handle Unsatisfiable => NONE
             in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
             end
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
