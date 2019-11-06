@@ -260,15 +260,16 @@ fun expressionComplexity qT =
 
         fun f (p,gs) =
             let val x = QProperty.withoutImportance p
-              (*  val _ = print ("\n   " ^ (Property.toString x))*)
-                val (L,(depth,breadth)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
-                                                                 (map QProperty.withoutImportance C)
-                                                                 (map QProperty.withoutImportance P)
-                                  handle Pattern.Unsatisfiable => ([],(1.0,1.0))
-              (*  val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L))) *)
-              (*  val _ = print ("\n       depth:" ^ (Real.toString depth) ^ " ")  *)
-              (*  val _ = print ("\n       breadth:" ^ (Real.toString breadth) ^ " ")  *)
-            in  Math.pow(List.sum gs,2.0) * (depth * breadth)
+                val _ = print ("\n   " ^ (Property.toString x))
+                val (L,(d,b,complexity)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
+                                                                  (map QProperty.withoutImportance C)
+                                                                  (map QProperty.withoutImportance P)
+                                                handle Pattern.Unsatisfiable => ([],(1.0,1.0,1.0))
+                val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
+                val _ = print ("\n       complexity: " ^ (Real.toString complexity) ^ " ")
+                val _ = print ("\n       depth: " ^ (Real.toString d) ^ " ")
+                val _ = print ("\n       breadth: " ^ (Real.toString b) ^ " ")
+            in  Math.pow(List.sum gs,2.0) * complexity
             end
 (*
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)

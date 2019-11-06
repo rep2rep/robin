@@ -24,11 +24,11 @@ instrumental_patterns, "|| : {type := real;
                                                          occurrences := 2;
                                                          tokens := [|. |. \cap. =];
                                                          token_registration := 1},
-                        $cardinality_of_set : {type := formula;
-                                                holes := [set => 1. real => 1];
-                                                occurrences := 8;
-                                                tokens := [|. |. \setminus. =];
-                                                token_registration := 1}"
+                        $cardinality_of_difference : {type := formula;
+                                                      holes := [set => 2. real => 1];
+                                                      occurrences := 0;
+                                                      tokens := [|. |. \setminus. =];
+                                                      token_registration := 1}"
 instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
                     $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
 instrumental_tactics,"rewrite : {laws := 1;
@@ -68,6 +68,11 @@ relevant_patterns, "$cardinality_of_union: {type := formula;
                                              occurrences := 0;
                                              tokens := [|. |. \cup. =];
                                              token_registration := 1},
+                    $cardinality_of_set : {type := formula;
+                                            holes := [set => 1. real => 1];
+                                            occurrences := 8;
+                                            tokens := [|. |. =];
+                                            token_registration := 1},
                    $infix : {type := sugar;
                               holes := ['a * 'b -> 'c => 1];
                               occurrences := 15;

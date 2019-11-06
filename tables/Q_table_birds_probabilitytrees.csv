@@ -11,18 +11,15 @@ instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
                                   holes := [node => log(#t)];
                                   occurrences := 20;
-                                  udepth : = 0;
                                   tokens := [];
                                   token_registration := 2},
                         $path_equivalence : {type := observation;
                                              holes := [path => 2];
                                              occurrences := 190;
-                                             udepth : = 1;
                                              tokens := [];
                                              token_registration := 3},
                         $subtree : {type := tree;
-                                    holes := [node => #t];;
-                                    udepth : = 1;
+                                    holes := [node => #t];
                                     occurrences := 6;
                                     tokens := [];
                                     token_registration := 3}"
@@ -57,30 +54,68 @@ relevant_tokens,"1 : {type := real;
                            occurrences := 2},
                  non : {type := class -> class;
                         occurrences := 6},
-                 calculate : {type := 'a -> instruction;
+                 calculate : {type := V;
                               occurrences := 1},
-                 the : {type := class -> class;
+                 the : {type := DET;
                         occurrences := 2},
-                 value : {type := class;
+                 value : {type := N;
                          occurrences := 1},
-                 of : {type := class * class -> class;
+                 of : {type := P;
                         occurrences := 1},
-                 indicated : {type := class -> class;
+                 indicated : {type := ADJ;
                             occurrences := 1},
-                 node : {type := class;
+                 node : {type := N;
                         occurrences := 1},
                  $frame : {type := node -> node;
                             occurrences := 2}"
 relevant_patterns,"$description : {type := statement;
                                     holes := [class => log(#t)];
-                                    udepth : = 1;
                                     occurrences := 2;
                                     tokens := [];
                                     token_registration := 3},
-                    $reference_by_description : {type := reference;
-                                                  holes := [statement => 1. node=>1];
-                                                  udepth : = 1;
-                                                  occurrences := 2;
-                                                  tokens := [];
-                                                  token_registration := 3}"
+                   $reference_by_description : {type := reference;
+                                                holes := [statement => 1. node=>1];
+                                                occurrences := 2;
+                                                tokens := [];
+                                                token_registration := 3},
+                   $instruction : {type := instruction;
+                                   holes := [VP => 1.];
+                                   occurrences := 1;
+                                   tokens := [];
+                                   token_registration := 1},
+                   $VPfromVandNP : {type := VP;
+                                    holes := [V => 1. NP => 1];
+                                    occurrences := 1;
+                                    tokens := [];
+                                    token_registration := 1},
+                   $NPfromNPandPP : {type := NP;
+                                     holes := [NP => 1. PP => 1];
+                                     occurrences := 1;
+                                     tokens := [];
+                                     token_registration := 1},
+                   $PPfromPandNP : {type := PP;
+                                    holes := [P => 1. NP => 1];
+                                    occurrences := 1;
+                                    tokens := [];
+                                    token_registration := 1},
+                   $NPfromDETandN : {type := NP;
+                                      holes := [DET => 1. N => 1];
+                                      occurrences := 2;
+                                      tokens := [];
+                                      token_registration := 1},
+                   $NPfromDETandADJandN : {type := NP;
+                                          holes := [DET => 1. ADJ => 1. N => 1];
+                                          occurrences := 2;
+                                          tokens := [];
+                                          token_registration := 1},
+                   $NPfromADJandNP : {type := NP;
+                                       holes := [ADJ => 1. NP => 1];
+                                       occurrences := 1;
+                                       tokens := [];
+                                       token_registration := 1},
+                   $NPfromN : {type := NP;
+                                holes := [N => 2];
+                                occurrences := 1;
+                                tokens := [];
+                                token_registration := 1}"
 noise_tokens,""

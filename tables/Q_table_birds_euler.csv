@@ -72,7 +72,7 @@ relevant_tokens,"| : {type := bracket;
                            occurrences := 3},
                  $shade : {type := colour * zone -> zone;
                            occurrences := 1},
-                 calculate : {type := 'a -> instruction;
+                 calculate : {type := class -> instruction;
                               occurrences := 1},
                  the : {type := class -> class;
                         occurrences := 2},
@@ -98,25 +98,21 @@ relevant_patterns, "$union: {type := zone;
                      $labelled_zone : {type := figure;
                                        holes := [zone=>1. label=>1];
                                        occurrences := 3;
-                                       udepth := 1;
                                        tokens := [];
                                        token_registration := 1},
                      $description : {type := statement;
                                      holes := [class => log(#t)];
-                                     udepth := 1;
                                      occurrences := 2;
                                      tokens := [];
                                      token_registration := 1},
                      $zone2set_reference : {type := reference;
                                             holes := [set => 1. zone => 1];
                                             occurrences := 11;
-                                            udepth := 1;
                                             tokens := [$label_container];
                                             token_registration := 3},
                      $reference_by_description : {type := reference;
                                                   holes := [statement => 1. zone => 1];
                                                   occurrences := 1;
-                                                  udepth := 1;
                                                   tokens := [];
                                                   token_registration := 3},
                      $zone_determined_by_contour : {type := zone;

@@ -5,7 +5,7 @@ sig
     val fromToken : Property.property -> Property.property
     val fromQToken : QProperty.property -> QProperty.property
 
-    type data = real * real;
+    type data = real * real * real;
     type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
     type clause = (Type.T list * ((int * (int list)) * resources));
 
@@ -28,7 +28,7 @@ struct
 fun fromToken c =
     let val _ = if Property.kindOf c = Kind.Token then () else raise Property.Error "Non-token given to function Pattern.fromToken"
         val (tL,t) = Type.getInOutTypes (Property.getTypeOfValue c)
-        val H = Attribute.M.fromList tL
+        val H = Attribute.M.fromList (([Property.getContent c] handle Property.NoAttribute _ => []) @ tL)
         val (s,r) = Property.getNumFunction "token_registration" c
                       handle Property.NoAttribute _ => ("token_registration",1.0)
         val tks = case Property.LabelOf c of
@@ -43,7 +43,7 @@ fun fromToken c =
     end
 fun fromQToken c = QProperty.fromPair (fromToken (QProperty.withoutImportance c), (QProperty.importanceOf c))
 
-type data = real * real;
+type data = real * real * real;
 type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
 type clause = (Type.T list * ((int * int list) * resources));
 
@@ -82,11 +82,10 @@ fun unfoldTypeDNF [] = (false,[])
   | unfoldTypeDNF (cl::dnf) = (* HERE *)
     let fun distribute [] LL' = []
           | distribute ((tokens,tL)::LL) LL' =
-            let fun removeNONEs [] = []
-                  | removeNONEs ((SOME x) :: L) = x :: removeNONEs L
-                  | removeNONEs (NONE :: L) = removeNONEs L
-                fun conjAndDim (l,((d,b),K)) = SOME (tL @ l, ((d,(length (tL @ l))::b),diminish tokens K)) handle Unsatisfiable => NONE
-            in (removeNONEs (map conjAndDim LL')) @ distribute LL LL'
+            let fun conjAndDim (l,((d,b),K)) = SOME (case tL @ l of [] => ([], ((d,b),diminish tokens K))
+                                                                  | ch => (ch, ((d,(length ch)::b),diminish tokens K)))
+                                                  handle Unsatisfiable => NONE
+            in (List.filterOption (map conjAndDim LL')) @ distribute LL LL'
             end
         fun unfoldClause ([],((d,b),K)) = [([],((d+1,b),K))]
           | unfoldClause ((lt::C),((d,b),K)) = distribute (literalUnfoldChoices lt K) (unfoldClause (C,((d,b),K)));
@@ -96,10 +95,11 @@ fun unfoldTypeDNF [] = (false,[])
     in (clChanged orelse dnfChanged, unfoldedClause @ unfoldedDNF)
     end;
 
+
 fun satisfyTypeDNF tF =
     let fun iterate x =
             let (*val _ = print ("\n       length of DNF: " ^ Int.toString (length x))*)
-                val (changed,x') =  unfoldTypeDNF (List.take (x,100000) handle Subscript => ((*print " --uncut";*) x))
+                val (changed,x') =  unfoldTypeDNF (List.take (x,10000) handle Subscript => ((*print " --uncut";*) x))
             in if null x' then raise Unsatisfiable
                else (if changed
                      then iterate x'
@@ -107,13 +107,12 @@ fun satisfyTypeDNF tF =
             end
         fun avgDepthAndBreadth L = (List.avgIndexed (fn (_,((d,_),_)) => real d) L,
                                     List.avgIndexed (fn (_,((_,b),_)) => (List.avgIndexed real b handle Empty => 1.0)) L)
-        fun maxDepthAndBreadth [] = (1,1)
-          | maxDepthAndBreadth ((_,((d,b),_))::L) =
-            let val (d',b') = maxDepthAndBreadth L
-            in (Int.max (d,d'), Int.max (b,b'))
-            end
+        fun clauseComplexity (_,((d,b),_)) = real d * (List.avgIndexed real b handle Empty => 1.0)
+        fun avgComplexity L = List.avgIndexed clauseComplexity L handle Empty => 1.0
+
         val sattF = iterate tF
-    in (sattF, avgDepthAndBreadth sattF)
+        val dat = case avgDepthAndBreadth sattF of (x,y) => (x,y,avgComplexity sattF)
+    in (sattF, dat)
     end;
 
 

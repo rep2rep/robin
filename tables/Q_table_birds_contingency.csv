@@ -60,12 +60,12 @@ relevant_tokens,"1 : {type := real;
                  fb : {type := class;
                        occurrences := 2},
                  non : {type := class -> class;
-                        occurrences := 1},
+                        occurrences := 2},
                  $gray_shade : {type := colour;
                                 occurrences := 1},
-                 calculate : {type := 'a -> instruction;
+                 calculate : {type := real -> instruction;
                               occurrences := 1},
-                 x : {type := label;
+                 x : {type := real;
                       occurrences := 1}"
 relevant_patterns,"$column : {type := column;
                               holes := [cell => sqrt(#t)];
@@ -91,7 +91,12 @@ relevant_patterns,"$column : {type := column;
                                            holes := [class => 1. real =>1];
                                            occurrences := 6;
                                            tokens := [$cell_r];
-                                           token_registration := 3}"
+                                           token_registration := 3},
+                  $infix : {type := sugar;
+                             holes := ['a * 'b -> 'c => 1];
+                             occurrences := 8;
+                             tokens := [];
+                             token_registration := 1}"
 relevant_tactics,"calculational_observation : {patterns := 1;
                                                laws := 0;
                                                description := this is an observation because it does not involve changing the state of the rs but it involves calculation;

@@ -73,6 +73,8 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
 
+    val filterOption : ('a option) list -> 'a list;
+
     val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool
 
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
@@ -153,7 +155,9 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-
+fun filterOption [] = []
+  | filterOption (NONE :: L) = filterOption L
+  | filterOption ((SOME x) :: L) = x :: filterOption L;
 
 fun findAndRemove _ _ [] = (false,[])
   | findAndRemove f x (a::L) =
