@@ -1,47 +1,170 @@
 medical,natlang
 error_allowed,0
-answer_type,ratio
-instrumental_tokens,"probability,if"
-instrumental_types,"ratio,percentage,class,occurrence"
-instrumental_patterns,"$class_ratio, $conditional_probability"
-instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental_tactics,"deduce,calculate"
-relevant_tokens,"one,hundred,people,have,disease,D,positive,result,98,95,medical,test,accurate,not,is,positive,
-                  not : {occurrences := 0},
-                  times : {occurrences := 0},
-                  divided_by : {occurrences := 0},
-                  plus : {occurrences := 0},
-                  minus : {occurrences := 0},
-                  equals : {occurrences := 0},
-                  union : {occurrences := 0},
-                  intersection : {occurrences := 0},
-                  zero : {occurrences := 0},
-                  empty : {occurrences := 0},
-                  universe : {occurrences := 0}"
-num_tokens,64
-num_distinct_tokens,30
-noise_tokens, "medicine : {occurrences := 0},
-               amount : {occurrences := 0},
-               prospect : {occurrences := 0},
-               opportunity : {occurrences := 0},
-               risk : {occurrences := 0},
-               quantity : {occurrences := 0},
-               measure : {occurrences := 0},
-               group : {occurrences := 0},
-               people : {occurrences := 0},
-               settlement : {occurrences := 0},
-               colonization : {occurrences := 0},
-               integer : {occurrences := 0},
-               sickness : {occurrences := 0},
-               illness : {occurrences := 0},
-               irrefutable : {occurrences := 0},
-               confirming : {occurrences := 0},
-               confident : {occurrences := 0},
-               hypothesise : {occurrences := 0},
-               conjecture : {occurrences := 0},
-               speculate : {occurrences := 0},
-               theorise : {occurrences := 0},
-               think : {occurrences := 0},
-               imagine : {occurrences := 0},
-               guess : {occurrences := 0},
-               say : {occurrences := 0}"
+answer_type,N
+instrumental_tokens,"probability : {type := N;
+                                    occurrences := 1},
+                     if : {type := CONJ;
+                           occurrences := 1},
+                     not : {type := ADV;
+                            occurrences := 1}"
+instrumental_types,""
+instrumental_patterns,"$class_ratio : {holes := [ratio => 1. PP => 1. VP => 1];
+                                       tokens := [];
+                                       type := S;
+                                       occurrences := 3;
+                                       token_registration := 1},
+                       $conditional_probability : {holes := [S => 2.  ratio => 1];
+                                                    tokens := [probability. if];
+                                                    type := statement;
+                                                    occurrences := 1;
+                                                    token_registration := 1}"
+instrumental_laws,"$Bayes'_theorem,
+                   $law_of_total_probability,
+                   $non_negative_probability,
+                   $unit_measure,
+                   $sigma_additivity"
+instrumental_tactics,"transform : {patterns := 1;
+                                   laws := 1;
+                                   uses := 1;
+                                   inference_type := transformation}"
+relevant_tokens,"4 : {type := number;
+                      occurrences := 1},
+                 \% : {type := number -> ratio;
+                       occurrences := 3},
+                 of : {type := P;
+                       occurrences := 3},
+                 the : {type := DET;
+                       occurrences := 7},
+                 population : {type := N;
+                               occurrences := 1},
+                 has : {type := AUX;
+                        occurrences := 1},
+                 a : {type := DET;
+                      occurrences := 2},
+                 disease : {type := N;
+                            occurrences := 4},
+                 D : {type := N;
+                      occurrences := 1},
+                 for : {type := P;
+                        occurrences := 1},
+                 those : {type := PRO;
+                          occurrences := 2},
+                 who : {type := RPRO;
+                        occurrences := 2},
+                 have : {type := AUX;
+                         occurrences := 3},
+                 test : {type := N;
+                         occurrences := 2},
+                 T : {type := N;
+                      occurrences := 2},
+                 is : {type := V;
+                       occurrences := 3},
+                 accurate : {type := ADJ;
+                             occurrences := 2},
+                 95 : {type := number;
+                       occurrences := 1},
+                 time : {type := N;
+                         occurrences := 2},
+                 do : {type := V;
+                       occurrences := 1},
+                 90 : {type := number;
+                       occurrences := 1},
+                 you : {type := PRO;
+                        occurrences := 2},
+                 take : {type := V;
+                         occurrences := 1},
+                 and : {type := CONJ;
+                        occurrences := 1},
+                 it : {type := PRO;
+                       occurrences := 1},
+                 comes : {type := V;
+                          occurrences := 1},
+                 out : {type := ADV;
+                        occurrences := 1},
+                 positive : {type := ADJ;
+                             occurrences := 1},
+                 what : {type := PRO;
+                         occurrences := 1},
+                 ? : {type := punctuation;
+                      occurrences := 1},
+                 $comma : {type := punctuation;
+                           occurrences := 2},
+                 $fullstop : {type := punctuation;
+                              occurrences := 3}"
+relevant_patterns,"NPfromRatio : {type := NP;
+                                  holes := [ratio => 1];
+                                  occurrences := 3;
+                                  token_registration := 1},
+                   NPfromN : {type := NP;
+                              holes := [N => 1];
+                              occurrences := ;
+                              token_registration := 1},
+                   VfromAux : {type := V;
+                               holes := [AUX => 1];
+                               occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                               token_registration := 1},
+                   NPfromPRO : {type := NP;
+                                holes := [PRO => 1];
+                                occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                token_registration := 1},
+                   NPfromNPandRPROandVP : {type := NP;
+                                            holes := [NP => 1. RPRO => 1. VP => 1];
+                                            occurrences := 2;
+                                            token_registration := 1},
+                   NPfromPRO : {type := NP;
+                                holes := [PRO => 1];
+                                occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                token_registration := 1},
+                   SfromNPandVP : {type := S;
+                                   holes := [NP => 1. VP => 1];
+                                   occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                   tokens := []},
+                   NPfromDETandN : {type := NP;
+                                    holes := [DET => 1. N => 1];
+                                    occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE; xx
+                                    tokens := []},
+                   NPfromADJandNP : {type := NP;
+                                     holes := [ADJ => 1. NP => 1]; recursive;
+                                     occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                     tokens := []},
+                   NPfromNPandPP : {type := NP;
+                                    holes := [NP => 1. PP => 1]; recursive;
+                                    occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE; x
+                                    tokens := []},
+                   PPfromPandNP : {type := PP;
+                                   holes := [P => 1. NP => 1];
+                                   occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE; xx
+                                   tokens := []},
+                   VPfromV : {type := VP;
+                               holes := [V => 1];
+                               occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                               tokens := []},
+                   VPfromAUXandVP : {type := VP;
+                                     holes := [AUX => 1. VP => 1]; recursive;
+                                     occurrences := 0;
+                                     tokens := []},
+                   VPfromADVPandVP : {type := VP;
+                                      holes := [ADV => 1. VP => 1]; recursive;
+                                      occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                      tokens := []},
+                   VPfromVandNP : {type := VP;
+                                    holes := [V => 1. NP => 1];
+                                    occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE; x
+                                    tokens := []},
+                   VPfromVPandPP : {type := VP;
+                                    holes := [VP => 1. PP => 1]; recursive;
+                                    occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                                    tokens := []},
+                   $CONJS : {type := S;
+                            holes := [CONJ => 1. S => 2];
+                            occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                            tokens := []},
+                   $CONJN : {type := NP;
+                            holes := [CONJ => 1. NP => 2];
+                            occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                            tokens := []},
+                   $CONJV : {type := VP;
+                            holes := [CONJ => 1. VP => 2];
+                            occurrences := ; HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE;
+                            tokens := []}"
+noise_tokens, ""
