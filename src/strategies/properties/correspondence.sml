@@ -18,7 +18,7 @@ sig
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val equal : correspondence -> correspondence -> bool;
-    val implies : correspondence -> correspondence -> bool;
+    val stronger : correspondence -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
     val match : propertyset -> propertyset -> correspondence -> bool;
@@ -125,8 +125,18 @@ fun sameProperties (q, r, _) (q', r', _) =
 
 fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
 
-fun implies (q, r, _) (q', r', _) =
-    F.implies Property.match q q' andalso F.implies Property.match r r';
+(* One correspondence is stronger than another
+   if the strength has increased, and where...
+       <a, b AND c> is stronger than <a, b>
+       <a, b>       is stronger than <a AND c, b>
+       <a, b>       is stronger than <a, b OR c>
+       <a OR c, b>  is stronger than <a, b>
+   (that is, q' -> q and r -> r')
+ *)
+fun stronger (q, r, s) (q', r', s') =
+    F.implies Property.match q' q andalso
+    F.implies Property.match r r' andalso
+    s >= s';
 
 fun identity p = (F.Atom p, F.Atom p, 1.0);
 
