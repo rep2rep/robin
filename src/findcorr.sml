@@ -69,7 +69,7 @@ fun showAll stream =
         fun next s =
             let val (x, t) = Stream.lazyStep s
             in print (fmt (x())); next t end
-            handle Subscript => ();
+            handle Subscript => print "End of suggestions.\n";
     in
         next stream
     end;
@@ -115,7 +115,9 @@ fun main () =
         val state = (correspondences, oldRSs, newRS);
         val _ = if Option.isSome rscount then ()
                 else print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
-        val suggestions = FindCorrs.discover state;
+        fun strongEnough (_, _, v) = true; (* Real.abs(v) > 0.2; *)
+        fun reflexive (a, b, _) = Correspondence.F.equal (fn (p, q) => Property.compare (p, q) = EQUAL) (a, b);
+        val suggestions = Stream.filter (fn (c, r) => strongEnough c andalso not (reflexive c)) (FindCorrs.discover state);
     in
         case rscount of
             NONE => repl suggestions

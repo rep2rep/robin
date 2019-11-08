@@ -48,7 +48,10 @@ fun reasonString (IDENTITY p) =
   | reasonString (VALUE (p1, p2)) =
     "This is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
-fun corrExists c cs = List.exists (Correspondence.implies c) cs;
+local fun covered c c' =
+          (Correspondence.sameProperties c c' (* andalso ((Correspondence.strength c) <= (Correspondence.strength c')) *));
+          (* orelse (Correspondence.implies c c'); (* A more general rule already exists *) *)
+in fun corrExists c cs = List.exists (covered c) cs end;
 
 fun anyCommonCorrs cs cs' = List.exists (fn c => corrExists c cs') cs;
 
@@ -293,8 +296,15 @@ fun discover state' =
                       (* discoverKind, *)
                       discoverAttribute,
                       discoverValue];
+        fun insert ans c [] = c::ans
+          | insert ans c (c'::cs) = if (Correspondence.sameProperties c c')
+                                    then
+                                        if (Correspondence.strength c) > (Correspondence.strength c')
+                                        then ans @ (c::cs)
+                                        else ans @ (c'::cs)
+                                    else insert (c'::ans) c cs;
         fun addCorr c (cs, rss, rs') = case c of
-                                           SOME (c', _) => (c'::cs, rss, rs')
+                                           SOME (c', _) => (insert [] c' cs, rss, rs')
                                          | NONE => (cs, rss, rs');
         fun extractCorr (corr, _, _) = corr;
         fun generator (corr, rules, state) =
