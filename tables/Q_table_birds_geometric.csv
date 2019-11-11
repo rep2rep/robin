@@ -1,43 +1,38 @@
 birds,geometric
 mode,"proportional"
 error_allowed, 0
-answer_type, real
+answer_type, real measurement
 instrumental_tokens,""
 instrumental_types,"region"
 instrumental_patterns, "$rectangle : {type := region;
                                       holes := [segment => 4];
                                       occurrences := 3;
-                                      udepth : = 0;
                                       tokens := [];
                                       token_registration := 1},
                         $size : {type := real measurement;
                                  holes := [region => 1];
                                  occurrences := 3; comment := cannot handle much larger numbers;
-                                 udepth : = 1;
                                  tokens := [];
                                  token_registration := 1},
                         $relative_size : {type := real measurement;
                                           holes := [region => 2];
                                           occurrences := 3; comment := cannot handle much larger numbers;
-                                          udepth : = 1;
                                           tokens := [];
                                           token_registration := 1},
                         $difference: {type := region;
                                        holes := [region => 2];
                                        occurrences := 3; comment := cannot handle larger numbers;
-                                       udepth : = 1;
                                        tokens := [];
                                        token_registration := 1},
                         $intersection : {type := region;
                                          holes := [region => 2];
                                          occurrences := 3; comment := cannot handle much larger numbers;
-                                         udepth : = 1;
                                          tokens := [];
                                          token_registration := 1}"
-instrumental_laws, "$scale_independence_of_ratio : {description := the ratio of two areas is independent of the scale},
-                    $area_additivity : {description := the area of a region is the sum of the areas of its parts}"
+instrumental_laws,"$scale_independence_of_ratio : {description := the ratio of two areas is independent of the scale},
+                   $area_additivity : {description := the area of a region is the sum of the areas of its parts}"
 instrumental_tactics,"observe : {patterns := 1;
-                                 laws := 1;
+                                 laws := 0;
                                  inference_type := match;
                                  uses := 3},
                       measure : {patterns := 1;

@@ -159,6 +159,10 @@ relevant_patterns,"NPfromRatio : {type := NP;
                                      holes := [ADJ => 1. AP => 1];
                                      occurrences := 2;
                                      tokens := []},
+                   APfromAPandPP : {type := AP;
+                                    holes := [AP => 1. PP => 1];
+                                    occurrences := 0;
+                                    tokens := []},
                    APfromADVandAP : {type := AP;
                                      holes := [ADV => 1. AP => 1];
                                      occurrences := 2;

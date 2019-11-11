@@ -81,7 +81,7 @@ fun gravity x = (Importance.weight (QProperty.importanceOf x))
                   * #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))
 
 fun logGravity x = (Importance.weight (QProperty.importanceOf x))
-                  * Math.ln(1.0 + #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))/Math.ln(2.0)
+                  * Math.ln(2.0 + #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))/Math.ln(2.0)
 
 fun numberOfTokens qT =
     let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
@@ -142,18 +142,17 @@ fun tokenRegistration qT =
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
         val patterns = P @ (map Pattern.fromQToken nonTrivialTokens)
         fun getReg c = #2 (Property.getNumFunction "token_registration" c) handle Property.NoAttribute _ => 1.0
-        val patternNorm = List.sumIndexed logGravity patterns
 
         (* next functions takes a pattern, returns the pattern's tokens/hole types with the registration,
           modulated by the pattern's importance and occurrences*)
         fun tokensWithRegistration p =
             let val p' = QProperty.withoutImportance p
-                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p)) (*)* logGravity p / patternNorm*)
+                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p))
             in (Property.getTokens p', reg)
             end
         fun typesWithRegistration p =
             let val p' = QProperty.withoutImportance p
-                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p)) (*)* logGravity p / patternNorm*)
+                val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p))
             in (Property.getHoles p', reg)
             end
         val tkregs = map tokensWithRegistration patterns

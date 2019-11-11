@@ -13,12 +13,12 @@ instrumental_patterns, "$last_of_row : {type := cell;
                                         holes := [row => 1];
                                         occurrences := 3;
                                         tokens := [];
-                                        token_registration := 1},
+                                        token_registration := 2},
                         $last_of_column : {type := cell;
                                             holes := [column => 1];
                                             occurrences := 3;
                                             tokens := [];
-                                            token_registration := 1},
+                                            token_registration := 2},
                         $value_relative_to_total : {type := real observation;
                                                    holes := [cell => 1];
                                                    occurrences := 9;
