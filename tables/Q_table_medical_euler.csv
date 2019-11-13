@@ -42,7 +42,7 @@ instrumental_tactics,"rewrite : {patterns := 1;
                       observe : {patterns := 1;
                                  laws := 0;
                                  inference_type := match;
-                                 uses := 2}"
+                                 uses := 3}"
 relevant_tokens,"P : {type := set;
                       occurrences := 5},
                  D : {type := set;
@@ -127,7 +127,7 @@ relevant_patterns,"$containment : {type := relation;
                    $instruction_from_VP : {type := instruction;
                                            holes := [VP => 1];
                                            token_registration := 1;
-                                           occurrences := 1},                   
+                                           occurrences := 1},
                    APfromADJ : {type := AP;
                                 holes := [ADJ => 1];
                                 occurrences := 2;
