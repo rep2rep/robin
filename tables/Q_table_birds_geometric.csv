@@ -54,15 +54,15 @@ relevant_tokens,"1 : {type := real;
                  flying : {type := class;
                            occurrences := 2},
                  animals : {type := class;
-                           occurrences := 2},
+                            occurrences := 2},
                  $segment : {type := segment;
                              occurrences := 17},
                  $shade_1 : {type := texture;
-                           occurrences := 1},
+                             occurrences := 1},
                  $shade_2 : {type := texture;
-                           occurrences := 1},
+                             occurrences := 1},
                  $shade_3 : {type := texture;
-                           occurrences := 1},
+                             occurrences := 1},
                  calculate : {type := class -> instruction;
                               occurrences := 1},
                  the : {type := class -> class;
@@ -76,7 +76,7 @@ relevant_tokens,"1 : {type := real;
                  x : {type := class;
                        occurrences := 2},
                  $label_container : {type := class -> label;
-                                    occurrences := 5}"
+                                     occurrences := 5}"
 relevant_patterns, "$union: {type := region;
                              holes := [region => 2];
                              occurrences := 3; comment := cannot handle much larger numbers;
@@ -85,14 +85,12 @@ relevant_patterns, "$union: {type := region;
                     $labelled_region : {type := figure;
                                         description := a region with a label;
                                         holes := [region=>1. class=>1];
-                                        udepth : = 1;
                                         occurrences := 5;
                                         tokens := [$label_container];
                                         token_registration := 1},
                     $reference_by_label : {type := reference;
                                             description := a label referencing something (a region in this case);
                                             holes := [figure=>1. class => 1];
-                                            udepth : = 1;
                                             occurrences := 1;
                                             tokens := [$label_container];
                                             token_registration := 3}"

@@ -19,11 +19,11 @@ instrumental_patterns, "$rectangle : {type := region;
                                           occurrences := 3;
                                           tokens := [];
                                           token_registration := 1},
-                        $rectangles_side := {type := relation;
-                                             holes := [region => 1. segment => 1];
-                                             occurrences := 6};
-                                             tokens := [];
-                                             token_registration := 1}"
+                        $rectangles_side : {type := relation;
+                                            holes := [region => 1. segment => 1];
+                                            occurrences := 6;
+                                            tokens := [];
+                                            token_registration := 1}"
 instrumental_laws,"$area_additivity : {description := the area of a region is the sum of the areas of its parts},
                    $length_additivity : {description := the length of a segment is the sum of the areas of its parts},
                    $area_of_rectangle : {description := the area of a rectangle is the product of its sides}"
@@ -71,11 +71,11 @@ relevant_tokens,"0.04 : {type := real;
                       occurrences := 1},
                  $brace : {type := bracket;
                             occurrences := 3}"
-relevant_patterns,"$rectangles_side := {type := relation;
-                                         holes := [region => 1. segment => 1];
-                                         occurrences := 9};
-                                         tokens := [];
-                                         token_registration := 1},
+relevant_patterns,"$rectangles_side : {type := relation;
+                                       holes := [region => 1. segment => 1];
+                                       occurrences := 9;
+                                       tokens := [];
+                                       token_registration := 1},
                    $difference: {type := region;
                                  holes := [region => 2];
                                  occurrences := 3;

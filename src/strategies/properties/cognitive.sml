@@ -99,8 +99,12 @@ fun varietyOfTokens qT =
 
 fun numberOfTokenTypes qT =
     let val C = collectOfKindPresentInQ qT Kind.Token
-        val T = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) C
-    in real (List.length (List.removeDuplicates T))
+        val T = QPropertySet.map (fn x => (Property.getTypeOfValue (QProperty.withoutImportance x), QProperty.importanceOf x)) C
+        fun updI (x,i) [] = [(x,i)]
+          | updI (x,i) ((x',i')::L) = if x = x' then (x,Importance.max (i,i'))::L else (x',i') :: updI (x,i) L
+        fun cleanDups [] = []
+          | cleanDups ((x,i)::L) = updI (x,i) (cleanDups L)
+    in List.sumIndexed (Importance.weight o #2) (cleanDups T)
     end;
 
 
@@ -108,13 +112,17 @@ fun numberOfExpressionTypes qT =
     let val P = collectOfKindPresentInQ qT Kind.Pattern
         val C = collectOfKindPresentInQ qT Kind.Token
         fun getNonTrivialExpressionTypes [] = []
-          | getNonTrivialExpressionTypes (x::X) =
+          | getNonTrivialExpressionTypes ((x,i)::X) =
             let val (typs,t) = Type.getInOutTypes (Property.getTypeOfValue x)
-            in if null typs then getNonTrivialExpressionTypes X else t :: getNonTrivialExpressionTypes X
+            in if null typs then getNonTrivialExpressionTypes X else (t,i) :: getNonTrivialExpressionTypes X
             end
-        val Tc = getNonTrivialExpressionTypes (QPropertySet.map QProperty.withoutImportance C)
-        val Tp = QPropertySet.map (Property.getTypeOfValue o QProperty.withoutImportance) P
-    in real (List.length (List.removeDuplicates (Tc @ Tp)))
+        val Tc = getNonTrivialExpressionTypes (QPropertySet.map (fn x => (QProperty.withoutImportance x, QProperty.importanceOf x)) C)
+        val Tp = QPropertySet.map (fn x => (Property.getTypeOfValue (QProperty.withoutImportance x), QProperty.importanceOf x)) P
+        fun updI (x,i) [] = [(x,i)]
+          | updI (x,i) ((x',i')::L) = if x = x' then (x,Importance.max (i,i'))::L else (x',i') :: updI (x,i) L
+        fun cleanDups [] = []
+          | cleanDups ((x,i)::L) = updI (x,i) (cleanDups L)
+    in List.sumIndexed (Importance.weight o #2) (cleanDups (Tc @ Tp))
     end;
 
 
@@ -148,7 +156,7 @@ fun tokenRegistration qT =
         fun tokensWithRegistration p =
             let val p' = QProperty.withoutImportance p
                 val reg = Math.pow(2.0, getReg p' - 1.0) * (Importance.weight (QProperty.importanceOf p))
-            in (Property.getTokens p', reg)
+            in (Property.getTokens p' handle Property.NoAttribute _ => [], reg)
             end
         fun typesWithRegistration p =
             let val p' = QProperty.withoutImportance p
@@ -250,7 +258,7 @@ fun expressionComplexity qT =
           | findAndUpdateByHoles p ((p',gs)::L) =
             if Property.sameHoles (QProperty.withoutImportance p, QProperty.withoutImportance p') andalso
                Property.sameTokens (QProperty.withoutImportance p, QProperty.withoutImportance p')
-            then (p, (logGravity p :: gs)) :: L
+            then (p, logGravity p :: gs) :: L
             else (p', gs) :: findAndUpdateByHoles p L;
         fun clusterByHoles [] = []
           | clusterByHoles (p::L) = findAndUpdateByHoles p (clusterByHoles L);
@@ -264,11 +272,13 @@ fun expressionComplexity qT =
                                                                   (map QProperty.withoutImportance C)
                                                                   (map QProperty.withoutImportance P)
                                                 handle Pattern.Unsatisfiable => ([],(1.0,1.0,1.0))
+                val g = Math.pow(List.sum gs,1.0)
                 val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
                 val _ = print ("\n       complexity: " ^ (Real.toString complexity) ^ " ")
+                val _ = print ("\n       gravity: " ^ (Real.toString g) ^ " ")
                 val _ = print ("\n       depth: " ^ (Real.toString d) ^ " ")
                 val _ = print ("\n       breadth: " ^ (Real.toString b) ^ " ")
-            in  Math.pow(List.sum gs,2.0) * complexity
+            in  g * complexity
             end
 (*
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
@@ -313,7 +323,7 @@ fun quantityScale qT =
         fun check x L = List.exists (fn y => (Property.LabelOf o QProperty.withoutImportance) x = y handle Property.Error _ => false) L
         fun ordinalCheck (x,_) = check x ["<",">","\\leq","\\geq","max","min","\\max","\\min"]
         fun intervalCheck (x,_) = check x ["+","-","sum","\\sum"]
-        fun ratioCheck (x,_) = check x ["*","\\div","\\dvd","\\gcd","\\prod","\\lcm","/","^"]
+        fun ratioCheck (x,_) = check x ["*","\\div","\\dvd","\\gcd","\\prod","\\cdot","\\lcm","/","^"]
         fun nominalCheck (x,n) = not (ordinalCheck (x,n) orelse intervalCheck (x,n) orelse ratioCheck (x,n))
 
         val ratio = List.filter ratioCheck pL

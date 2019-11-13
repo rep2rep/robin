@@ -32,8 +32,7 @@ fun fromToken c =
         val (s,r) = Property.getNumFunction "token_registration" c
                       handle Property.NoAttribute _ => ("token_registration",1.0)
         val tks = case Property.LabelOf c of
-                    label => label :: List.remove label (Property.getTokens c)
-                              handle Property.NoAttribute _ => [label]
+                    label => label :: List.remove label (Property.getTokens c) handle Property.NoAttribute _ => [label]
         val p = ((Property.updateAttribute (Attribute.fromType t))
                  o (Property.updateAttribute (Attribute.fromHoles H))
                  o (Property.updateAttribute (Attribute.fromNumFunction (s,r)))
@@ -99,7 +98,7 @@ fun unfoldTypeDNF [] = (false,[])
 fun satisfyTypeDNF tF =
     let fun iterate x =
             let (*val _ = print ("\n       length of DNF: " ^ Int.toString (length x))*)
-                val (changed,x') =  unfoldTypeDNF (List.take (x,10000) handle Subscript => ((*print " --uncut";*) x))
+                val (changed,x') =  unfoldTypeDNF (List.take (x,1000) handle Subscript => ((*print " --uncut";*) x))
             in if null x' then raise Unsatisfiable
                else (if changed
                      then iterate x'
@@ -111,7 +110,7 @@ fun satisfyTypeDNF tF =
         fun avgComplexity L = List.avgIndexed clauseComplexity L handle Empty => 1.0
 
         val sattF = iterate tF
-        val dat = case avgDepthAndBreadth sattF of (x,y) => (x,y,avgComplexity sattF)
+        val dat = case (avgDepthAndBreadth sattF handle Empty => (print "argh...";raise Empty)) of (x,y) => (x,y,avgComplexity sattF)
     in (sattF, dat)
     end;
 
@@ -128,9 +127,9 @@ fun satisfyPattern p C P =
         fun makeTypeListFromHoles M = Property.toListHandlingNegatives fneg M
 
         fun toLTTN x = (([Property.LabelOf x],
-                         case Property.getTokens x of [] => [Property.LabelOf x] | L => L,
-                         (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
-                         Real.floor (occurrences x))
+                         case (Property.getTokens x handle Property.NoAttribute _ => []) of [] => [Property.LabelOf x] | L => L,
+                               (makeTypeListFromHoles (Property.getHoles x), Property.getTypeOfValue x)),
+                               Real.floor (occurrences x))
 
         fun findAndUpdateByTypes ((l,tks,(ts,t)),i) [] = [((l,tks,(ts,t)),i)]
           | findAndUpdateByTypes ((l,tks,(ts,t)),i) (((l',tks',(ts',t')),i')::L) =
@@ -172,7 +171,9 @@ fun depth C p = avgDepth (treesFromPattern C p)
 fun breadth C p = avgBreadth (treesFromPattern C p)
 
 *)
-fun arity p = if Property.kindOf p = Kind.Pattern then Property.size (Property.getHoles p) else List.length (#1 (Type.getInOutTypes (Property.getTypeOfValue p)))
+fun arity p = if Property.kindOf p = Kind.Pattern then Property.size (Property.getHoles p)
+         else if Property.kindOf p = Kind.Token then List.length (#1 (Type.getInOutTypes (Property.getTypeOfValue p)))
+         else raise Property.Error ("no type expected from property " ^ Property.toString p)
 fun distinctArity p = real (Property.countUnique (Property.getHoles p))
 
 

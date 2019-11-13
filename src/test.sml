@@ -250,7 +250,7 @@ fun cognitiveScores u qL crunch =
     in (print csvText)
     end;
 
-val B = loadQs "birds";
+val B = loadQs "medical";
 val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Token);
 val C' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) C
 val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Pattern);

@@ -9,25 +9,22 @@ instrumental_tokens, "$node : {type := node;
                                  occurrences := 12}"
 instrumental_types,"node, arrow"
 instrumental_patterns, "$path : {type := path;
-                                  holes := [node => log(#t)];
-                                  occurrences := 20;
-                                  tokens := [];
-                                  token_registration := 2},
+                                 holes := [node => log(#t)];
+                                 occurrences := 20;
+                                 token_registration := 2},
                         $path_equivalence : {type := observation;
                                              holes := [path => 2];
                                              occurrences := 190;
-                                             tokens := [];
                                              token_registration := 3},
                         $subtree : {type := tree;
                                     holes := [node => #t];
                                     occurrences := 6;
-                                    tokens := [];
                                     token_registration := 3}"
 instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
                     $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
                     $total_leaves_1 : {description := the sum of all leaf values is 1},
                     $equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
-                    $path_sum : {description := the value of arrow a -> c is the sum over b of the values of the paths a -> b -> c in a different tree}"
+                    $total_paths : {description := the value of a node is the sum of values of all the paths going through the node},"
 instrumental_tactics,"assign_value_to_arrow : {patterns := 0;
                                                laws := 1;
                                                inference_type := calc;
@@ -79,7 +76,7 @@ relevant_patterns,"$description : {type := statement;
                                                 tokens := [];
                                                 token_registration := 3},
                    $instruction : {type := instruction;
-                                   holes := [VP => 1.];
+                                   holes := [VP => 1];
                                    occurrences := 1;
                                    tokens := [];
                                    token_registration := 1},

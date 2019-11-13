@@ -117,22 +117,26 @@ fun typeFromAttributes [] = NONE
 
 exception NoAttribute of string;
 
-fun getTypeOfValue (_,_,A) = case typeFromAttributes A of SOME t => t
-                                                     | NONE => raise NoAttribute "type";
+fun getTypeOfValue (k, Label v,A) = (case typeFromAttributes A of SOME t => t
+                                                        | NONE => raise NoAttribute ("type"))
+  | getTypeOfValue (k,v,A) = raise NoAttribute "type";
 
 fun getHoles (_,_,[]) = raise NoAttribute "holes"
   | getHoles (k,v,(a::L)) = Attribute.getHoles a handle Match => getHoles (k,v,L);
 
-fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s] | _ => raise Error "IMPOSSIBLE ERROR") else raise NoAttribute "tokens"
+fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s] | _ => raise Error "IMPOSSIBLE ERROR")
+                    else raise ((*print ("no tokens attribute for " ^ Kind.toString k ^ "-" ^ stringOfValue v) ; *)
+                                NoAttribute "tokens")
   | getTokens (k,v,(a::L)) = Attribute.getTokens a handle Match => getTokens (k,v,L);
 
 fun getContent (_,_,[]) = raise NoAttribute "content"
   | getContent (k,v,(a::L)) = Attribute.getContent a handle Match => getContent (k,v,L);
 
-fun getNumFunction s (_,_,[]) = raise NoAttribute s
+fun getNumFunction s (k, v,[]) = ((*print ("no numFunction attribute " ^ s ^ " for property " ^ Kind.toString k ^ "-" ^ stringOfValue v ^ "\n"); *)
+                                  raise NoAttribute s)
   | getNumFunction s (k,v,(a::L)) =
     (case Attribute.getNumFunction a of (s',n) =>
-        (if s' = s then (s',n) else getNumFunction s (k,v,L))) handle Match => getNumFunction s (k,v,L);
+        (if s' = s then (s',n) else getNumFunction s (k,v,L))) handle Match => getNumFunction s (k,v,L) ;
 
 fun getStringFunction s (_,_,[]) = raise NoAttribute s
   | getStringFunction s (k,v,(a::L)) =

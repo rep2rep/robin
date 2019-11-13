@@ -17,6 +17,9 @@ sig
     val modulate : importance -> real -> real;
     val fromString : string -> importance;
     val toString : importance -> string;
+
+    val max : (importance * importance) -> importance;
+    val min : (importance * importance) -> importance;
   (*)  val fromReal : real -> importance;*)
 
 end;
@@ -49,6 +52,9 @@ fun toString x = if x < 0.0 then "Noise"
             else if x <= 2.0/3.0 then "Medium"
             else if x <= 1.0 then "High"
             else (print "bad importance value"; raise Match);
+
+val max = Real.max;
+val min = Real.min;
 (*)
 fun compare (a, b) = let
     fun ordify Noise = ~1

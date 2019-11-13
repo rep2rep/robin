@@ -19,12 +19,12 @@ instrumental_patterns,"$in_same_row : {type := relation;
                                           occurrences := 6;
                                           tokens := [];
                                           token_registration := 2},
-                       $value_relative_to_row_total : {type := real observation;
+                       $value_relative_to_row_total : {type := real measurement;
                                                        holes := [cell => 1];
                                                        occurrences := 1;
                                                        tokens := [$cell_r];
                                                        token_registration := 2},
-                       $value_relative_to_column_total : {type := real observation;
+                       $value_relative_to_column_total : {type := real measurement;
                                                           holes := [cell => 1];
                                                           occurrences := 1;
                                                           tokens := [$cell_r];
@@ -92,21 +92,21 @@ relevant_tokens,"0.04 : {type := real;
                  $comma : {type := delimiter;
                            occurrences := 1}"
 relevant_patterns,"$in_same_row : {type := relation;
-                                       holes := [cell => 2];
-                                       occurrences := 18;
-                                       tokens := [];
-                                       token_registration := 2},
+                                   holes := [cell => 2];
+                                   occurrences := 18;
+                                   tokens := [];
+                                   token_registration := 2},
                    $in_same_column : {type := relation;
                                       holes := [cell => 2];
                                       occurrences := 18;
                                       tokens := [];
                                       token_registration := 2},
-                   $value_relative_to_row_total : {type := real observation;
+                   $value_relative_to_row_total : {type := real measurement;
                                                    holes := [cell => 1];
                                                    occurrences := 5;
                                                    tokens := [$cell_r];
                                                    token_registration := 2},
-                   $value_relative_to_column_total : {type := real observation;
+                   $value_relative_to_column_total : {type := real measurement;
                                                       holes := [cell => 1];
                                                       occurrences := 5;
                                                       tokens := [$cell_r];

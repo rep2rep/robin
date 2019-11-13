@@ -19,7 +19,7 @@ instrumental_patterns, "$last_of_row : {type := cell;
                                             occurrences := 3;
                                             tokens := [];
                                             token_registration := 2},
-                        $value_relative_to_total : {type := real observation;
+                        $value_relative_to_total : {type := real measurement;
                                                    holes := [cell => 1];
                                                    occurrences := 9;
                                                    tokens := [];

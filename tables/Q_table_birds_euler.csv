@@ -9,7 +9,7 @@ instrumental_patterns, "|| : {type := real;
                                holes := [set => 1];
                                tokens := [|. |];
                                occurrences := 7;
-                               token_registration := 2},
+                               token_registration := 1},
                         $set_ratio : {type := formula;
                                       holes := [set => 2. real => 1];
                                       tokens := [=. |. |];
