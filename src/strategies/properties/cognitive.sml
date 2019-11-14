@@ -267,17 +267,17 @@ fun expressionComplexity qT =
 
         fun f (p,gs) =
             let val x = QProperty.withoutImportance p
-                val _ = print ("\n   " ^ (Property.toString x))
+                val _ = print ("\n    " ^ (Property.toString x))
                 val (L,(d,b,complexity)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
                                                                   (map QProperty.withoutImportance C)
                                                                   (map QProperty.withoutImportance P)
                                                 handle Pattern.Unsatisfiable => ([],(1.0,1.0,1.0))
-                val g = Math.pow(List.sum gs,1.0)
-                val _ = print ("\n       length of final DNF: " ^ (Int.toString (length L)))
-                val _ = print ("\n       complexity: " ^ (Real.toString complexity) ^ " ")
-                val _ = print ("\n       gravity: " ^ (Real.toString g) ^ " ")
-                val _ = print ("\n       depth: " ^ (Real.toString d) ^ " ")
-                val _ = print ("\n       breadth: " ^ (Real.toString b) ^ " ")
+                val g = List.sumIndexed (fn x => Math.pow(x,2.0)) gs
+                val _ = print ("\n        length of final DNF: " ^ (Int.toString (length L)))
+                val _ = print ("\n        complexity: " ^ (Real.toString complexity) ^ " ")
+                val _ = print ("\n        gravity: " ^ (Real.toString g) ^ " ")
+                val _ = print ("\n        depth: " ^ (Real.toString d) ^ " ")
+                val _ = print ("\n        breadth: " ^ (Real.toString b) ^ " ")
             in  g * complexity
             end
 (*
@@ -404,11 +404,11 @@ fun inferenceType qT =
                     #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
         val S = QPropertySet.map wt T
         fun assess (_,s) = if s = "assign" then 1.0
-                  else if s = "match" then 2.0
-                  else if s = "subst" then 4.0
-                  else if s = "calc" then 8.0
-                  else if s = "transformation" then 16.0
-                  else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
+                      else if s = "match" then 2.0
+                      else if s = "subst" then 4.0
+                      else if s = "calc" then 8.0
+                      else if s = "transformation" then 16.0
+                      else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
     in List.weightedAvgIndexed (#1) assess S handle Empty => Real.posInf
     end;
 

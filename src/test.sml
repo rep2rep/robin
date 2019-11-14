@@ -123,9 +123,9 @@ fun quantityScale_score u qL crunch=
     end;
 
 fun expressionComplexity_score u qL crunch=
-    let fun f ((q,r),x) = let (*val _ = print ("\n" ^ r ^ "... ")*)
+    let fun f ((q,r),x) = let val _ = print ("\n" ^ r ^ "... ")
                               val v = CognitiveProperties.expressionComplexity (CognitiveProperties.modifyImportances u x)
-                            (*  val _ = print ("\n")*)
+                              val _ = print ("\n")
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
