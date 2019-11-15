@@ -32,7 +32,7 @@ sig
   val quantityScale : qtable -> real;
 
   val expressionComplexity : qtable (*-> rstable*) -> real;
-  val arity : qtable -> real;
+(*)  val arity : qtable -> real;*)
   val inferenceType : qtable -> real;
 
   val problemSpaceBranchingFactor : qtable -> rstable -> real;
@@ -227,7 +227,7 @@ fun expressionRegistration qT rT =
     in Math.sqrt(numberOfPatternsModulatedSquared qT) * (List.avgIndexed modereg M)
     end;
 
-
+(*
 fun arity qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
@@ -246,7 +246,7 @@ fun arity qT =
         fun weighing x = gravity x / (importanceNorm * patternNorm)
 
     in Math.sqrt(List.weightedSumIndexed (fn x => Math.pow(logGravity x,2.0)) ar (nonTrivialTokens @ P))
-    end
+    end*)
 
 
 fun expressionComplexity qT =
@@ -265,27 +265,38 @@ fun expressionComplexity qT =
 
         val clusteredPatterns = clusterByHoles ((map Pattern.fromQToken nonTrivialTokens) @ P)
 
-        fun f (p,gs) =
+        val n = numberOfTokens qT / numberOfTokenTypes qT
+        fun ar x = let val i = Pattern.arity (QProperty.withoutImportance x)
+                       val a = if i = ~3 then n else
+                               if i = ~2 then Math.sqrt n else
+                               if i = ~1 then Math.ln n else
+                                  real i
+                    in Math.pow(a,2.0)
+                    end
+
+        fun cpx (p,gs) =
             let val x = QProperty.withoutImportance p
                 val _ = print ("\n    " ^ (Property.toString x))
                 val (L,(d,b,complexity)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
                                                                   (map QProperty.withoutImportance C)
                                                                   (map QProperty.withoutImportance P)
                                                 handle Pattern.Unsatisfiable => ([],(1.0,1.0,1.0))
+                val arity = ar p
                 val g = List.sumIndexed (fn x => Math.pow(x,2.0)) gs
-                val _ = print ("\n        length of final DNF: " ^ (Int.toString (length L)))
-                val _ = print ("\n        complexity: " ^ (Real.toString complexity) ^ " ")
-                val _ = print ("\n        gravity: " ^ (Real.toString g) ^ " ")
-                val _ = print ("\n        depth: " ^ (Real.toString d) ^ " ")
-                val _ = print ("\n        breadth: " ^ (Real.toString b) ^ " ")
-            in  g * complexity
+                val _ = print ("\n        length of final DNF  : " ^ (Int.toString (length L)))
+                val _ = print ("\n        depth                : " ^ (Real.toString d) ^ " ")
+                val _ = print ("\n        breadth              : " ^ (Real.toString b) ^ " ")
+                val _ = print ("\n        unweighted complexity: " ^ (Real.toString complexity) ^ " ")
+                val _ = print ("\n        arity                : " ^ (Real.toString arity) ^ " ")
+                val _ = print ("\n        gravity              : " ^ (Real.toString g) ^ " ")
+            in  g * (complexity + arity)
             end
 (*
         val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
         val patternNorm = Math.ln(1.0 + numberOfPatternsModulated qT)/Math.ln(2.0)
         fun weighing x = gravity x / (importanceNorm * patternNorm)
 *)
-    in Math.sqrt(List.sumIndexed f clusteredPatterns)
+    in Math.sqrt(List.sumIndexed cpx clusteredPatterns)
     end;
 
 
@@ -400,7 +411,7 @@ fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT
 
 fun inferenceType qT =
     let val T = collectOfKindPresentInQ qT Kind.Tactic;
-        fun wt x = (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) * (Importance.weight (QProperty.importanceOf x)),
+        fun wt x = (Math.ln(#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x))) * (Importance.weight (QProperty.importanceOf x)),
                     #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
         val S = QPropertySet.map wt T
         fun assess (_,s) = if s = "assign" then 1.0
@@ -425,7 +436,7 @@ fun problemSpaceBranchingFactor qT rT =
           | dotProduct  _ _ = raise Match;
         val l = PropertySet.map (fn x => Math.pow(real bl, lawParams x)) T
         val p = PropertySet.map (fn x => Math.pow(bp, patternParams x)) T
-        val result = dotProduct l p
+        val result = Math.ln(dotProduct l p)
     in if Real.==(result,0.0) then Real.posInf else result
     end;
 
@@ -433,7 +444,7 @@ fun solutionDepth qT =
     let val T = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic);
         val occs = List.sumIndexed (fn t => #2 (Property.getNumFunction "uses" t) handle Property.NoAttribute _ => 0.0) T
         val trans = List.exists (fn t => #2 (Property.getStringFunction "inference_type" t) = "transformation") T
-    in if trans then Real.posInf else occs
+    in if trans then Real.posInf else Math.ln(occs)
     end;
 
 end;

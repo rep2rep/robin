@@ -119,7 +119,7 @@ fun satisfyPattern p C P =
     let val occurrences = #2 o (Property.getNumFunction "occurrences")
         val tkPatterns = map fromToken C
         val nty = List.length (List.removeDuplicates (map Property.getTypeOfValue tkPatterns))
-        val nt = List.sumIndexed occurrences C / real nty
+        val nt = (List.sumIndexed occurrences C) (*)/ real nty*)
         fun fneg x = if x = ~1 then Real.floor (Math.ln nt)
                       else if x = ~2 then Real.floor (Math.sqrt nt)
                       else if x = ~3 then Real.floor nt

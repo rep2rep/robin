@@ -131,12 +131,13 @@ fun expressionComplexity_score u qL crunch=
     in crunch (map f qL)
     end;
 
+(*
 fun arity_score u qL crunch=
     let fun f ((q,r),x) = let val v = CognitiveProperties.arity (CognitiveProperties.modifyImportances u x)
                           in (((q,r),x), v)
                           end;
     in crunch (map f qL)
-    end;
+    end;*)
 
 fun inferenceType_score u qL crunch=
     let fun f ((q,r),x) = let val v = CognitiveProperties.inferenceType (CognitiveProperties.modifyImportances u x)
@@ -224,12 +225,12 @@ fun cognitiveScores u qL crunch =
         val c6 = map (fn (_,v) => v) (numberOfExpressionTypes_score u qL crunch)
         val c7 = map (fn (_,v) => v) (quantityScale_score u qL crunch)
         val c8 = map (fn (_,v) => v) (expressionComplexity_score u qL crunch)
-        val c9 = map (fn (_,v) => v) (arity_score u qL crunch)
+  (*    val c9 = map (fn (_,v) => v) (arity_score u qL crunch)*)
         val c10 = map (fn (_,v) => v) (inferenceType_score u qL crunch)
         val c11 = map (fn (_,v) => v) (subRSVariety_score u qL crunch)
         val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
         val c13 = map (fn (_,v) => v) (solutionDepth_score u qL crunch)
-        val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13]
+        val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,(*c9,*)c10,c11,c12,c13]
         val userS = (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^")"
         val csvText = "\n\n" ^
                       (String.concat (List.intersperse " , " (userS::rss)) ^ "  \n") ^
@@ -241,7 +242,7 @@ fun cognitiveScores u qL crunch =
                       (String.concat (List.intersperse " , " ("number of expression types" :: map printableNumber c6)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("quantity scale":: map printableNumber c7)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression complexity":: map printableNumber c8)) ^ "  \n") ^
-                      (String.concat (List.intersperse " , " ("arity":: map printableNumber c9)) ^ "  \n") ^
+                (*    (String.concat (List.intersperse " , " ("arity":: map printableNumber c9)) ^ "  \n") ^*)
                       (String.concat (List.intersperse " , " ("inference type":: map printableNumber c10)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("subRS variety":: map printableNumber c11)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("problem-space branching factor":: map printableNumber c12)) ^ "   \n")^
