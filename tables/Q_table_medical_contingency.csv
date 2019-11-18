@@ -2,12 +2,7 @@ medical,contingency
 mode,"sentential, grid"
 error_allowed, 0
 answer_type, real
-instrumental_tokens,"$cell_r : {type := cell;
-                                content := real;
-                                occurrences := 9},
-                     $cell_c : {type := cell;
-                                content := class;
-                                occurrences := 7}"
+instrumental_tokens,""
 instrumental_types,"cell"
 instrumental_patterns,"$in_same_row : {type := relation;
                                        holes := [cell => 2];
@@ -43,7 +38,13 @@ instrumental_tactics,"fill_cell : {patterns := 1;
                               laws := 0;
                               inference_type := calc;
                               uses := 1}"
-relevant_tokens,"0.04 : {type := real;
+relevant_tokens,"$cell_r : {type := cell;
+                            content := real;
+                            occurrences := 9},
+                 $cell_c : {type := cell;
+                            content := class;
+                            occurrences := 7},
+                 0.04 : {type := real;
                          occurrences := 2},
                  0.95 : {type := real;
                          occurrences := 1},
