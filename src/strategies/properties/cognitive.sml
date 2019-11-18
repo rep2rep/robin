@@ -411,7 +411,7 @@ fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT
 
 fun inferenceType qT =
     let val T = collectOfKindPresentInQ qT Kind.Tactic;
-        fun wt x = (Math.ln(#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x))) * (Importance.weight (QProperty.importanceOf x)),
+        fun wt x = (Math.ln(1.0 + #2 (Property.getNumFunction "uses" (QProperty.withoutImportance x))) * (Importance.weight (QProperty.importanceOf x)),
                     #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
         val S = QPropertySet.map wt T
         fun assess (_,s) = if s = "assign" then 1.0
