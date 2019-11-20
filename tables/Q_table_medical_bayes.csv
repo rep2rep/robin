@@ -33,6 +33,12 @@ instrumental_patterns,"$conditional_Pr : {type := formula;
                                      tokens := [\Pr. =];
                                      udepth := 2;
                                      token_registration := 1},
+                        $disjoint_events : {type := formula;
+                                            holes := [event => 2];
+                                            occurrences := 0;
+                                            tokens := [\cap. =. \emptyset];
+                                            udepth := 2;
+                                            token_registration := 1},
                         $equality_chain : {type := proof;
                                             holes := [real => #t];
                                             occurrences := 0;
@@ -41,7 +47,8 @@ instrumental_patterns,"$conditional_Pr : {type := formula;
                                             token_registration := 1}"
 instrumental_laws, "$Bayes'_theorem : {description := foundational theorem of conditional probability},
                     $law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
-                    $unit_measure : {description := probability values over an exhaustive event set add up to 1}"
+                    $unit_measure : {description := probability values over an exhaustive event set add up to 1},
+                    $complement_disjoint : {description := x and \bar x are disjoint}"
 instrumental_tactics,"by_theorem : {laws := 1;
                                     patterns := 1;
                                     inference_type := match;
