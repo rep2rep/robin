@@ -47,7 +47,7 @@ fun import filename =
         use (makeFilename filename);
         IMPORTED_ := (List.hd (!IMPORTING_STACK_))::(!IMPORTED_);
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
-    ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
+    ) handle e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise e);
 
 
 fun spread f (a, b) = (f a, f b);
