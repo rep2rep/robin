@@ -4,7 +4,7 @@ token-0, token-$dot,0.5
 token-\Omega,type-region,0.5
 token-+,pattern-$union AND pattern-$disjoint AND law-$area_additivity,1
 token--,pattern-$difference AND pattern-$disjoint AND law-$area_additivity,1
-token-*,pattern-$rectangle AND pattern-$size,0.9
+token-* OR token-\cdot,pattern-$rectangle AND pattern-$size,0.9
 token-\div,pattern-$relative_size,0.9
 token-\cup,pattern-$union,1
 token-\cap,pattern-$intersection,1
