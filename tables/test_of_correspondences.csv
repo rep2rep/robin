@@ -1,0 +1,10 @@
+token-\Pr, token-\div OR token-\Pr, 0.9
+token-\cap AND pattern-$independent_events, token-* AND NOT (token-\cap AND pattern-$independent_events), 0.9
+token-\cup AND pattern-$disjoint_events, token-+ AND NOT (token-\cup AND pattern-$disjoint_events), 0.9
+token-\mid, token-\div AND NOT token-\mid, 0.9
+token-\Omega, token-1 AND NOT token-\Omega, 0.9
+token-,
+pattern-,
+pattern-,
+pattern-,
+law-,
