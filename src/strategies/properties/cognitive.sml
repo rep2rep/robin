@@ -31,8 +31,7 @@ sig
 
   val quantityScale : qtable -> real;
 
-  val expressionComplexity : qtable (*-> rstable*) -> real;
-(*)  val arity : qtable -> real;*)
+  val expressionComplexity : qtable -> real;
   val inferenceType : qtable -> real;
 
   val problemSpaceBranchingFactor : qtable -> rstable -> real;
@@ -67,11 +66,6 @@ fun modifyImportances u qT =
                 QProperty.fromPair (p, Importance.weight(1.0 + u*i - u))
     in QPropertySet.fromList (QPropertySet.map updImportance qT)
     end;
-
-
-(* C and W are meant to be set per property/process, while T is meant to be set
-   from the User Profile. *)
-fun sigmoid C W T x = 1.0 - (1.0 / (1.0 + Math.pow(C,((x-T)/W))));
 
 fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false)
                                                          orelse (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false))
@@ -182,8 +176,6 @@ fun tokenRegistration qT =
                               (* if token does not appear directly on patterns, but a hole with
                               the type of the token does, approximate it with that*)
                           end
-        val importanceNorm = List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) C
-        fun weighing tk = gravity tk / importanceNorm
         val totalSum = List.weightedSumIndexed gravity ((regOfTk tkregs) o QProperty.withoutImportance) C
     in totalSum
     end;
@@ -193,8 +185,6 @@ fun numberOfPatternsModulated qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) P
-        fun weighing x = gravity x / importanceNorm
     in List.sumIndexed gravity (P @ nonTrivialC)
     end;
 
@@ -202,16 +192,12 @@ fun numberOfPatternsModulatedSquared qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) P
-        fun weighing x = gravity x / importanceNorm
     in List.sumIndexed (fn x => Math.pow(gravity x,2.0)) (P @ nonTrivialC)
     end;
 
 fun numberOfObjectsModulated qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
         val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (P @ C)
-        fun weighing x = gravity x / importanceNorm
     in List.sumIndexed gravity (P @ C)
     end;
 
@@ -226,28 +212,6 @@ fun expressionRegistration qT rT =
                    else (print "unknown mode"; raise Match)
     in Math.sqrt(numberOfPatternsModulatedSquared qT) * (List.avgIndexed modereg M)
     end;
-
-(*
-fun arity qT =
-    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-        val n = numberOfTokens qT / numberOfTokenTypes qT
-        fun ar p = let val i = Pattern.arity (QProperty.withoutImportance p)
-                       val a = if i = ~3 then n else
-                               if i = ~2 then Math.sqrt n else
-                               if i = ~1 then Math.ln n else
-                                  real i
-                    in Math.pow(a,2.0)
-                    end
-
-        val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
-        val patternNorm = numberOfPatternsModulated qT
-        fun weighing x = gravity x / (importanceNorm * patternNorm)
-
-    in Math.sqrt(List.weightedSumIndexed (fn x => Math.pow(logGravity x,2.0)) ar (nonTrivialTokens @ P))
-    end*)
-
 
 fun expressionComplexity qT =
     let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
@@ -291,11 +255,8 @@ fun expressionComplexity qT =
                 val _ = print ("\n        gravity              : " ^ (Real.toString g) ^ " ")
             in  g * (complexity + arity)
             end
-(*
-        val importanceNorm = 1.0 + List.sumIndexed (fn x => Importance.weight (QProperty.importanceOf x)) (nonTrivialTokens @ P)
-        val patternNorm = Math.ln(1.0 + numberOfPatternsModulated qT)/Math.ln(2.0)
-        fun weighing x = gravity x / (importanceNorm * patternNorm)
-*)
+
+
     in Math.sqrt(List.sumIndexed cpx clusteredPatterns)
     end;
 
@@ -341,10 +302,6 @@ fun quantityScale qT =
         val interval = List.filter intervalCheck pL
         val ordinal = List.filter ordinalCheck pL
         val nominal = List.filter nominalCheck pL
-
-        val importanceNorm = 1.0 + List.sumIndexed (fn (x,_) => Importance.weight (QProperty.importanceOf x)) pL
-        val objectNorm = Math.ln(1.0 + numberOfObjectsModulated qT)/Math.ln(2.0)
-        fun f (x,n) = n / (importanceNorm * objectNorm)
 
         val s = 8.0*(List.sumIndexed #2 ratio)
               + 4.0*(List.sumIndexed #2 interval)
@@ -397,9 +354,6 @@ fun conceptMapping kind idealqT qT =
 
         val rd = List.sumIndexed assess_rd (QPropertySet.toList idealqT)
         val oe = (List.avgIndexed assess_oe (QPropertySet.toList qT')) * (real (QPropertySet.size idealqT))
-(*)
-        fun globalOE i = (List.avgIndexed (assess_oe) clusteredqT) * real (QPropertySet.size X) handle Empty => 0.0
-        val oeL = map globalOE clusteredIdealqT*)
 
     in rd + oe
     end;
