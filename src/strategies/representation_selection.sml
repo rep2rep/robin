@@ -129,6 +129,8 @@ fun propInfluence (q, r, s) =
                                                                qProps rProps;
             in map liftImportance correspondences end;
 
+        val typeMatches = typeCorrespondences matches qProps';
+
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
         (* Sort correspondences from most to least important *)
@@ -153,7 +155,7 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.foldl mix s (sort matches);
+        val s' = List.foldl mix s ((sort matches) @ typeMatches);
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("
