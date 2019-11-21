@@ -37,7 +37,7 @@ sig
     val endomap : (t -> t) -> t set -> t set;
     val filter : (t -> bool) -> t set -> t set;
     val foldl : (t * 'a -> 'a) -> 'a -> t set -> 'a;
-    val foldr: (t * 'a -> 'a) -> 'a -> t set -> 'a;
+    val foldr : (t * 'a -> 'a) -> 'a -> t set -> 'a;
     val find : (t -> bool) -> t set -> t option;
 
     val size : t set -> int;
