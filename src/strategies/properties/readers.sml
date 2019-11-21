@@ -143,7 +143,7 @@ local
         end;
 
 
-    val stringProduct = (map op^) o List.product
+    val stringProduct = map (^) o List.product
 
     val generate_property_names = fn _ =>
         let val its = ["tokens", "types", "patterns"]
