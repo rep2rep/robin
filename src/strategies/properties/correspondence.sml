@@ -145,7 +145,8 @@ fun liftImportances qs (l, _, _) =
                                 qFind
                                 qs l;
         val allImportances = QPropertySet.map
-                                 (fn q => QProperty.logGravity q handle Property.NoAttribute _ => QProperty.importanceOf q) matchedQProps;
+                                 (fn q => QProperty.logGravity q handle Property.NoAttribute _ => QProperty.importanceOf q)
+                                 matchedQProps;
     in
         allImportances
     end;
