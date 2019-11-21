@@ -33,12 +33,12 @@ token-greater_than,token->,1
 token-equals OR token-is,token-=,1
 token-sum,token-\sum,1
 token-to_the_power_of OR token-squared,token-^,1
-fact-*associative, import-real_number_arithmetic, 1
-fact-*commutative, import-real_number_arithmetic, 1
-fact-+associative, import-real_number_arithmetic, 1
-fact-+commutative, import-real_number_arithmetic, 1
-fact-distributive, import-real_number_arithmetic, 1
-fact-+zero, import-real_number_arithmetic, 1
-fact-+inverse, import-real_number_arithmetic, 1
-fact-*one, import-real_number_arithmetic, 1
-fact-*inverse, import-real_number_arithmetic, 1
+law-*associative, import-real_number_arithmetic, 1
+law-*commutative, import-real_number_arithmetic, 1
+law-+associative, import-real_number_arithmetic, 1
+law-+commutative, import-real_number_arithmetic, 1
+law-distributive, import-real_number_arithmetic, 1
+law-+zero, import-real_number_arithmetic, 1
+law-+inverse, import-real_number_arithmetic, 1
+law-*one, import-real_number_arithmetic, 1
+law-*inverse, import-real_number_arithmetic, 1

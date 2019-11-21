@@ -1,13 +1,58 @@
 contingency,
 mode,"sentential,grid"
 types,"string,real,formula,cell,column,row"
-tokens,"$cell : {type:= cell}, + : {type:= real * real -> real}, - : {type:= real * real -> real}, * : {type:= real * real -> real}, / : {type:= real * real -> real}, = : {type:= real * real -> bool}, SUM : {type:= cell set -> real}, PRODUCT: {type:= cell set -> real}"
-patterns,"$ordered_row : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $ordered_column : {holes:=[real=>sqrt(#t). cell=>sqrt(#t)]}, $equal_values : {holes:=[real=>2]}, $column : {holes:=[cell=>sqrt(#t)]}, $row : {holes:=[cell=>sqrt(#t)]}"
+tokens,"$cell : {type:= cell},
+        + : {type:= real * real -> real},
+        - : {type:= real * real -> real},
+        * : {type:= real * real -> real},
+        / : {type:= real * real -> real},
+        = : {type:= real * real -> formula},
+        SUM : {type:= cell set -> real},
+        PRODUCT: {type:= cell set -> real}"
+patterns,"$in_same_row : {type := relation;
+                                       holes := [cell => 2];
+                                       occurrences := 6;
+                                       tokens := [];
+                                       token_registration := 2},
+           $in_same_column : {type := relation;
+                              holes := [cell => 2];
+                              occurrences := 6;
+                              tokens := [];
+                              token_registration := 2},
+           $last_of_row : {type := cell;
+                             holes := [row => 1];
+                             occurrences := 6;
+                             token_registration := 2},
+           $last_of_column : {type := cell;
+                               holes := [column => 1];
+                               occurrences := 6;
+                               token_registration := 2},
+           $value_relative_to_row_total : {type := real measurement;
+                                           holes := [cell => 1];
+                                           occurrences := 1;
+                                           tokens := [$cell_r];
+                                           token_registration := 2},
+           $value_relative_to_column_total : {type := real measurement;
+                                              holes := [cell => 1];
+                                              occurrences := 1;
+                                              tokens := [$cell_r];
+                                              token_registration := 2}"
 token_imports,"base_10_real_numerals, latin_alphabet"
 grammatical_complexity,type-3
 rigorous,TRUE
-facts,"$row_total,$column_total,$total_1"
-fact_imports,NONE
-tactics,"add_value, add_formula, get_value, compare_values"
+laws,"$row_total,$column_total,$total_1"
+law_imports,NONE
+tactics,"fill_cell : {patterns := 1;
+                       laws := 1;
+                       inference_type := assign},
+          rewrite : {patterns := 1;
+                     laws := 1;
+                     inference_type := subst},
+          calc : {patterns := 1;
+                  laws := 0;
+                  inference_type := calc},
+          observational_calc : {patterns := 1;
+                                laws := 0;
+                                inference_type := calc}"
 inferential_complexity,2
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological}, colour:{}"

@@ -22,6 +22,7 @@ structure RobinLib : ROBINLIB =
 struct
 
 val IMPORTING_STACK_ : string list ref = ref [];
+
 val IMPORTED_ : string list ref = ref ["util.robinlib"];
 
 fun makeFilename str =
@@ -63,6 +64,7 @@ sig
     include LIST;
 
     val remove : ''a -> ''a list -> ''a list;
+    val removeDuplicates : ''a list -> ''a list;
 
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
 
@@ -71,9 +73,18 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
 
+    val filterOption : ('a option) list -> 'a list;
+
+    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool
+
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
+    val product : ('a list * 'b list) -> ('a * 'b) list;
+
     val toString : ('a -> string) -> 'a list -> string;
+
+    val unfold : ('a -> ('b * 'a) option) -> 'a -> 'b list;
+    val replicate : int -> 'a -> 'a list;
 
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
@@ -81,6 +92,17 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
+    val weightedSumIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val sumIndexed : ('a -> real) -> 'a list -> real;
+    val weightedSum : (real -> real) -> real list -> real;
+    val sum : real list -> real;
+
+    val weightedAvgIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val avgIndexed : ('a -> real) -> 'a list -> real;
+    val weightedAvg : (real -> real) -> real list -> real;
+    val avg : real list -> real;
+    val argmax : ('a -> real) -> 'a list -> ('a * real);
+    val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
 
 structure List : LIST =
@@ -89,6 +111,9 @@ struct
 open List;
 
 fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
+
+fun removeDuplicates [] = []
+  | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
@@ -130,9 +155,56 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs
+fun filterOption [] = []
+  | filterOption (NONE :: L) = filterOption L
+  | filterOption ((SOME x) :: L) = x :: filterOption L;
+
+fun findAndRemove _ _ [] = (false,[])
+  | findAndRemove f x (a::L) =
+      if f (x, a) then (true,L)
+      else let val (found,L') = findAndRemove f x L
+           in (found,a::L')
+           end;
+
+fun isPermutationOf _ [] [] = true
+  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemove f a B
+                                 in if found then isPermutationOf f A B'
+                                    else false
+                                 end
+  | isPermutationOf _ _ _ = false;
+
+
+fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+
+fun product (xs, ys) =
+    let
+        fun joinall ans x [] = ans
+          | joinall ans x (y::ys) = joinall ((x, y)::ans) x ys
+        fun cartprod ans [] _ = List.rev(ans)
+          | cartprod ans _ [] = List.rev(ans)
+          | cartprod ans (x::xs) ys = cartprod (joinall ans x ys) xs ys;
+    in
+        cartprod [] xs ys
+    end;
 
 fun toString fmt items = "[" ^ String.concatWith ", " (map fmt items) ^ "]";
+
+fun unfold f seed =
+    let
+        fun unfold' f seed ans =
+            case f seed of
+                NONE => ans
+              | SOME (x, next) => (unfold' f next (x::ans));
+    in
+        List.rev (unfold' f seed [])
+    end;
+
+fun replicate n x =
+    let fun gen 0 = NONE
+          | gen n = SOME (x, n-1)
+    in
+        unfold gen n
+    end;
 
 fun max _ [] = raise List.Empty
   | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
@@ -156,6 +228,35 @@ fun takeWhile pred list =
                                       else List.rev ans;
     in takeWhile' list []
     end;
+
+fun weightedSumIndexed w f L =
+    List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;
+
+fun weightedSum w L = weightedSumIndexed w (fn x => x) L;
+
+fun sumIndexed f L = weightedSumIndexed (fn _ => 1.0) f L;
+fun sum L = weightedSumIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun weightedAvgIndexed w f L = if null L then raise Empty else (weightedSumIndexed w f L) / (sumIndexed w L)
+
+fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
+
+fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
+fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun argmax _ [] = raise Match
+  | argmax f [x] = (x, f x)
+  | argmax f (x::L) = let val r = argmax f L
+                          val v = f x
+                      in if v > #2 r then (x,v) else r
+                      end;
+
+fun argmin _ [] = raise Match
+  | argmin f [x] = (x, f x)
+  | argmin f (x::L) = let val r = argmin f L
+                          val v = f x
+                      in if v < #2 r then (x,v) else r
+                      end;
 
 end;
 
@@ -213,3 +314,5 @@ fun lookaheadN (istr, count) =
     end;
 
 end;
+
+open RobinLib;

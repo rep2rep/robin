@@ -12,5 +12,5 @@ token-squared,pattern-$square,0.9
 token-times,pattern-$rectangle,0.9
 token-odd,pattern-$ell,1
 tactic-induction,tactic-constructive_omega_rule,0.75
-fact-$+-commutative,tactic-count_equal,1
-fact-$+-associative,tactic-count_equal,1
+law-$+-commutative,tactic-count_equal,1
+law-$+-associative,tactic-count_equal,1
