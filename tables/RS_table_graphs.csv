@@ -1,7 +1,7 @@
 graphs,
 mode,"connection"
 rigorous,TRUE
-types,"vertex, vertex * vertex -> graph, graph, integer, abc_string"
+types,"vertex, vertex * vertex -> graph, graph"
 tokens,"$vertex : {type := vertex},
         $edge : {type:= vertex * vertex -> graph}"
 patterns,"$complete : {type := graph;
@@ -23,7 +23,7 @@ patterns,"$complete : {type := graph;
                       holes := [vertex => sqrt(#t).
                                 vertex * vertex -> graph => #t];
                       token_registration := 1}"
-token_imports,"latin_alphabet"
+token_imports,"latin_alphabet,base_10_real_numerals"
 laws,"$count_invariant : {description := the scale and arrangement of the graph has no impact on the connections or size}"
 law_imports,NONE
 tactics,"edge_add,

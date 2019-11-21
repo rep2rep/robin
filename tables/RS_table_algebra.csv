@@ -11,14 +11,16 @@ tokens,"= : {type := integer * integer -> formula},
         * : {type := integer * integer -> integer},
         \div : {type := integer * integer -> integer},
         ^ : {type := integer * integer -> integer},
-        \sum : {type:= 'a set * ('a -> integer) -> integer},
-        \vee : {type:= formula * formula -> formula},
-        \neg : {type:= formula -> formula}"
+        \sum : {type := 'a set * ('a -> integer) -> integer},
+        \vee : {type := formula * formula -> formula},
+        \neg : {type := formula -> formula}"
 patterns,"$binary_operation : {holes := [integer => 3.
                                          integer * integer -> integer => 1];
+                               type := formula;
                                tokens := [=];
                                token_registration := 3},
           $equality_chain : {holes := [formula=>#t];
+                             type := formula;
                              tokens := [=];
                              token_registration := 3},
           $big_operator : {holes := ['a set => 1.
