@@ -1,7 +1,6 @@
 signature IMPORTANCE =
 sig
 
-    (*datatype importance = Noise | Zero | Low | Medium | High;*)
     type importance = real;
 
     val High : importance;
@@ -20,7 +19,6 @@ sig
 
     val max : (importance * importance) -> importance;
     val min : (importance * importance) -> importance;
-  (*)  val fromReal : real -> importance;*)
 
 end;
 
@@ -34,12 +32,11 @@ val Zero = 0.0;
 val Low = 0.2;
 val Medium = 0.6;
 val High = 1.0;
-(*
-datatype importance = Noise | Zero | Low | Medium | High;*)
+
 val equal = Real.==;
 val compare = Real.compare;
 fun weight x = Real.max(0.0,x);
-fun modulate x r = x * r;
+fun modulate x r = (weight x) * r;
 fun fromString "Noise" = Noise
   | fromString "Zero" = Zero
   | fromString "Low" = Low
@@ -55,46 +52,5 @@ fun toString x = if x < 0.0 then "Noise"
 
 val max = Real.max;
 val min = Real.min;
-(*)
-fun compare (a, b) = let
-    fun ordify Noise = ~1
-      | ordify Zero = 0
-      | ordify Low = 1
-      | ordify Medium = 2
-      | ordify High = 3;
-in
-    Int.compare (ordify a, ordify b)
-end;*)
-(*
-fun weight Noise = 0.0
-  | weight Zero = 0.0
-  | weight Low = 0.2
-  | weight Medium = 0.6
-  | weight High = 1.0;
 
-fun modulate Noise x = 0.0
-  | modulate Zero x = 0.0
-  | modulate Low x = 0.2 * x
-  | modulate Medium x = 0.6 * x
-  | modulate High x = x;
-
-fun fromString "Noise" = SOME Noise
-  | fromString "Zero" = SOME Zero
-  | fromString "Low" = SOME Low
-  | fromString "Medium" = SOME Medium
-  | fromString "High" = SOME High
-  | fromString _ = NONE;
-
-fun toString Noise = "Noise"
-  | toString Zero = "Zero"
-  | toString Low = "Low"
-  | toString Medium = "Medium"
-  | toString High = "High";
-
-fun fromReal r = if r < 0.0 then Noise
-            else if r >= 0.0 andalso r <= 0.0 then Zero
-            else if r > 0.0 andalso r <= 0.3 then Low
-            else if r > 0.3 andalso r <= 0.7 then Medium
-            else High;
-*)
 end;
