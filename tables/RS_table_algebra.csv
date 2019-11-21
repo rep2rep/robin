@@ -1,4 +1,4 @@
-arithmetic_algebra,
+algebra,
 mode,"sentential"
 rigorous,TRUE
 types,"integer,real,formula,proof"

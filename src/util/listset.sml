@@ -13,6 +13,8 @@ sig
 
     val removeDuplicates : 'a eqf -> 'a list -> 'a list;
 
+    val insert : 'a eqf -> 'a list -> 'a -> 'a list;
+
     val union : 'a eqf -> 'a list -> 'a list -> 'a list;
     val intersection : 'a eqf -> 'a list -> 'a list -> 'a list;
     val difference : 'a eqf -> 'a list -> 'a list -> 'a list;
@@ -42,6 +44,8 @@ fun removeDuplicates eq lst =
     end;
 
 fun contains eq xs x = List.exists (fn y => eq (x, y)) xs;
+
+fun insert eq xs x = if contains eq xs x then xs else x::xs;
 
 fun union eq xs ys = removeDuplicates eq (xs @ ys);
 

@@ -6,6 +6,10 @@ signature ATTRIBUTE =
 sig
   structure M : MULTISET;
   type T;
+
+  val sameSort : T * T -> bool
+  val equal : T * T -> bool;
+
   val fromType : Type.T -> T;
   val fromHoles : Type.T M.multiset -> T;
   val fromContent : Type.T -> T;
@@ -21,6 +25,8 @@ sig
   val getNumFunction : T -> string * real;
   val getStringFunction : T -> string * string;
   val getFeature : T -> string;
+
+  val updateNumFunction : string -> (real -> real) -> T -> T;
 
   val fromString : string -> T;
   val toString : T -> string;
@@ -43,6 +49,24 @@ struct
              | NumFunction of string * real (* e.g., frequency := 4 *)
              | StringFunction of string * string (* e.g., registration := icon *)
              | Feature of string;
+
+  fun sameSort ((IsOfType _), (IsOfType _)) = true
+    | sameSort ((Holes _), (Holes _)) = true
+    | sameSort ((Tokens _), (Tokens _)) = true
+    | sameSort ((Content _), (Content _)) = true
+    | sameSort ((NumFunction (s,_)), (NumFunction (s',_))) = (s = s')
+    | sameSort ((StringFunction (s,_)), (StringFunction (s',_))) = (s = s')
+    | sameSort ((Feature s), (Feature s')) = (s = s')
+    | sameSort _ = false
+
+  fun equal ((IsOfType t), (IsOfType t')) = (t = t')
+    | equal ((Holes m), (Holes m')) = M.equal (m,m')
+    | equal ((Tokens C), (Tokens C')) = List.isPermutationOf (fn (x,y) => x = y) C C'
+    | equal ((Content t), (Content t')) = (t = t')
+    | equal ((NumFunction (s,n)), (NumFunction (s',n'))) = (s = s' andalso Real.==(n,n'))
+    | equal ((StringFunction (s,r)), (StringFunction (s',r'))) = (s = s' andalso r = r')
+    | equal ((Feature s), (Feature s')) = (s = s')
+    | equal _ = false
 
   fun fromType t = IsOfType t;
   fun fromHoles H = Holes H;
@@ -67,6 +91,10 @@ struct
   fun getNumFunction (NumFunction (s,n)) = (s,n)
     | getNumFunction _ = raise Match;
 
+  fun updateNumFunction s' f (NumFunction (s,n)) = if s' = s then NumFunction (s,f n)
+                                                    else NumFunction (s,n)
+    | updateNumFunction _ _ a = a;
+
   fun getStringFunction (StringFunction (s,s')) = (s,s')
     | getStringFunction _ = raise Match;
 
@@ -87,8 +115,11 @@ struct
   fun intFromString s =
       case Int.fromString s of
               SOME n => n
-            | NONE => if s = "#t" then ~1 else if s = "sqrt(#t)" then ~2 else if s = "log(#t)" then ~3
-                        else (print ("bad numerical expression: " ^ s); raise Parser.ParseError);
+            | NONE => if s = "#t" then ~3 else
+                      if s = "sqrt(#t)" then ~2 else
+                      if s = "log(#t)" then ~1
+                        else (print ("bad numerical expression: " ^ s);
+                              raise Parser.ParseError);
 
   fun makeHoleList [] = []
     | makeHoleList (a::L) =
@@ -117,7 +148,7 @@ struct
       else if x = "holes" then Holes (holeMultisetFromString y)
       else if x = "tokens" then Tokens (tokenListFromString y)
       else case Real.fromString y of SOME n => NumFunction (x,n)
-                                   | NONE => (print ("reading attribute: " ^ x ^ " := " ^ y); StringFunction (x,y));
+                                   | NONE => StringFunction (x,y);
 
   val fromString = attributeFromPair o decomposeAttribute;
 

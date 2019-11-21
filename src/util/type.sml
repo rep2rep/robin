@@ -79,11 +79,11 @@ fun getNewVariable () = let val (v, s) = Stream.step (!newVariable');
 fun pairToList (Pair (x,y)) = (pairToList x) @ (pairToList y)
   | pairToList x = [x]
 
-fun getInOutTypes (Ground x) = ([], [Ground x])
-  | getInOutTypes (Var x) = ([], [Var x])
-  | getInOutTypes (Pair (x,y)) = ([], (pairToList x) @ (pairToList y))
-  | getInOutTypes (Function (x,y)) = let val (x',y') = getInOutTypes y; in ((pairToList x) @ x', y') end
-  | getInOutTypes (Constructor (s,x)) = ([], [Constructor (s,x)])
+fun getInOutTypes (Ground x) = ([], Ground x)
+  | getInOutTypes (Var x) = ([], Var x)
+  | getInOutTypes (Pair (x,y)) = let val (xT,xt) = getInOutTypes x val (yT,yt) = getInOutTypes y in (xT @ yT, Pair (xt,yt)) end
+  | getInOutTypes (Function (x,y)) = let val (yT,yt) = getInOutTypes y; in ((pairToList x) @ yT, yt) end
+  | getInOutTypes (Constructor (s,x)) = ([], Constructor (s,x))
 
 fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
   | dimensionality _ =  1

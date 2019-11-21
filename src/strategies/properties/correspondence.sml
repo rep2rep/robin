@@ -17,6 +17,8 @@ sig
     type 'a corrformula;
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
+    val flip : real -> correspondence -> correspondence;
+
     val equal : correspondence -> correspondence -> bool;
     val stronger : correspondence -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
@@ -39,10 +41,6 @@ end;
 structure Correspondence : CORRESPONDENCE =
 struct
 
-structure S = PropertySet;
-
-structure D = PropertyDictionary;
-
 structure F = Formula(struct
                        val neg = "NOT";
                        val conj = "AND";
@@ -56,10 +54,11 @@ type 'a corrformula = 'a F.formula;
 type correspondence = Property.property corrformula * Property.property corrformula * real;
 
 fun strength (_, _, s) = s;
+fun flip r (a,b,s) = (b,a,s*r);
 
-fun matchTree ps p =
+fun matchTree setMatch ps p =
     let
-        fun a x = PropertySet.isMatchedIn x ps;
+        fun a x = setMatch x ps;
         fun n x = not x;
         fun c (x, y) = x andalso y;
         fun d (x, y) = x orelse y;
@@ -67,43 +66,47 @@ fun matchTree ps p =
         F.fold a n c d p
     end;
 
+fun propertyMatchTree ps p = matchTree (PropertySet.isMatchedIn) ps p;
+
 (* TODO: Show that this returns an empty list when matchTree ps p
          would return false, and a nonempty list when matchTree ps p
          would return true. Better would be to show that the properties
          returned are exactly those that occur in the formula that are
          not also negated in the formula, but that might be quite tricky. *)
-fun collectMatches ps p =
+fun collectMatches fromList match findMatch ps p =
     let
         fun removeOne [] a zs = zs
-          | removeOne (x::xs) a zs = if Property.match(x, a)
+          | removeOne (x::xs) a zs = if match(x, a)
                                      then (removeOne xs a zs)
                                      else (removeOne xs a (x::zs));
         fun removeAll xs zs = List.foldr
                                   (fn (x, zs) => removeOne zs x [])
                                   zs xs;
-        fun collectMatches' ps t =
+        fun collectMatchesHelper ps t =
             let
-                fun a x = if (PropertySet.isMatchedIn x ps) then ([x], []) else ([], []);
+                fun a x = case (findMatch x ps) of
+                              SOME x => ([x], [])
+                            | NONE => ([], []);
                 fun n (x, y) = (y, x);
                 fun c ((x, y), (x', y')) = (x@x', y@y');
-                fun d ((x, y), (x', y')) =
-                    let
-                        val option1 = removeAll y x;
-                        val option2 = removeAll y' x';
-                    in
-                        if List.null option1 then (x', y') else (x, y)
-                    end;
+                fun d ((x, y), (x', y')) = (x@x', y@y');
             in
                 F.fold a n c d t
             end;
-        val (keep, remove) = collectMatches' ps p;
+        val (keep, remove) = collectMatchesHelper ps p;
     in
-        S.fromList (removeAll remove keep)
+        fromList (removeAll remove keep)
     end;
 
-fun leftMatches ps (p, _, _) = collectMatches ps p;
+fun propertyCollectMatches ps p =
+    collectMatches
+        (PropertySet.fromList) (Property.match)
+        (fn x => fn xs => if PropertySet.isMatchedIn x xs then SOME x else NONE)
+        ps p;
 
-fun rightMatches ps (_, p, _) = collectMatches ps p;
+fun leftMatches ps (p, _, _) = propertyCollectMatches ps p;
+
+fun rightMatches ps (_, p, _) = propertyCollectMatches ps p;
 
 fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r);
 
@@ -170,3 +173,17 @@ fun fromString s =
          | Kind.KindError => raise ParseError;
 
 end;
+
+
+fun allCorrespondenceMatches corrs qProps rProps =
+    let
+        fun alreadyCorr cs c = List.exists (Correspondence.matchingProperties c) cs;
+        val baseCorrs = List.filter (Correspondence.match qProps rProps) corrs;
+        val identities = PropertySet.map
+                             Correspondence.identity
+                             (PropertySet.collectLeftMatches qProps rProps);
+        val newIdentities = List.filter (fn c => not (alreadyCorr baseCorrs c))
+                                        identities;
+    in
+        newIdentities @ baseCorrs
+    end;

@@ -48,7 +48,7 @@ fun labelR str =
     in [(Property.Label v, A)]
     end;
 
-fun listOf reader str = if str = "NONE" then []
+fun listOf reader str = if str = "NONE" orelse str = "" then []
                         else List.flatmap reader (Parser.splitStrip "," str);
 
 fun collection str = listOf (fn s => [s]) str;
@@ -81,9 +81,9 @@ end;
 
 
 local
-    open Importance;
     open PropertyReader;
     fun stripImportance vals = map (fn (l, (f, p, i)) => (l, (f, p))) vals;
+
 
     val RSProperties = [
         ("mode",
@@ -94,9 +94,9 @@ local
          (labelR, Kind.GrammaticalComplexity)),
         ("rigorous",
          (booleanR, Kind.Rigorous)),
-        ("facts",
-         (listOf labelR, Kind.Fact)),
-        ("fact_imports",
+        ("laws",
+         (listOf labelR, Kind.Law)),
+        ("law_imports",
          (listOf labelR, Kind.Import)),
         ("tactics",
          (listOf labelR, Kind.Tactic)),
@@ -111,34 +111,56 @@ local
         ("patterns",
          (listOf labelR, Kind.Pattern))
     ];
-    val QProperties = [
-        ("error_allowed",
-         (labelR, Kind.ErrorAllowed, High)),
-        ("answer_type",
-         (listOf typeR, Kind.Type, High)),
-        ("instrumental_tokens",
-         (listOf labelR, Kind.Token, Medium)),
-        ("instrumental_types",
-         (listOf typeR, Kind.Type, Medium)),
-        ("instrumental_patterns",
-         (listOf labelR, Kind.Pattern, Medium)),
-        ("instrumental_facts",
-         (listOf labelR, Kind.Fact, Medium)),
-        ("instrumental_tactics",
-         (listOf labelR, Kind.Tactic, Medium)),
-        ("relevant_tokens",
-         (listOf labelR, Kind.Token, Low)),
-        ("relevant_related_tokens",
-         (listOf labelR, Kind.Token, Low)),
-        ("num_tokens",
-         (numberR, Kind.NumTokens, Zero)),
-        ("num_distinct_tokens",
-         (numberR, Kind.NumDistinctTokens, Zero)),
-        ("noise_tokens",
-         (listOf labelR, Kind.Token, Noise)),
-        ("noise_related_tokens",
-         (listOf labelR, Kind.Token, Noise))
-    ];
+
+
+    fun importanceOfPrefix p =
+        if p = "essential" orelse p = "answer" then Importance.High else
+        if p = "instrumental" then Importance.Medium else
+        if p = "relevant" then Importance.Low else
+        if p = "circumstantial" then Importance.Zero else
+        if p = "noise" then Importance.Noise
+        else Importance.Zero;
+
+    fun qTagToTriple t =
+        let val (p,_,k) = Parser.breakOn "_" t
+            val importance = if t = "error_allowed" then Importance.High else if t = "mode" then Importance.Zero else importanceOfPrefix p
+            fun keywordToReaderKind s =
+                if String.isPrefix "type" s then (listOf typeR, Kind.Type) else
+                if String.isPrefix "token" s then (listOf labelR, Kind.Token) else
+                if String.isPrefix "pattern" s then (listOf labelR, Kind.Pattern) else
+                if String.isPrefix "law" s then (listOf labelR, Kind.Law) else
+                if String.isPrefix "tactic" s then (listOf labelR, Kind.Tactic) else
+                if String.isPrefix "related" s then keywordToReaderKind (#3 (Parser.breakOn "_" k)) else
+                (* treating related equal to present *)
+                  raise Match;
+
+            val (reader,kind) =
+                if t = "mode" then (listOf labelR, Kind.Mode)
+                else if t = "error_allowed" then (labelR, Kind.ErrorAllowed)
+                else keywordToReaderKind k handle Match => (Logging.error ("Error reading: "^ t); raise Match)
+
+        in (reader,kind,importance)
+        end;
+
+
+    val stringProduct = map (op ^) o List.product
+
+    val generate_property_names = fn _ =>
+        let val its = ["tokens", "types", "patterns"]
+            val its' = ["laws", "tactics"]
+            val imps = ["instrumental_", "relevant_"]
+            val imps' = ["noise_"]
+        in (stringProduct (imps, (its @ its'))) @ (stringProduct (imps', its))
+        end;
+
+    (* now the available Q properties are generated systematically.
+      No "related tactics" or "related laws", because it's nonsense.
+      Also no "noise tactics" or "noise laws". *)
+    val QProperties = map (fn s => (s, qTagToTriple s)) (["mode",
+                                                          "error_allowed",
+                                                          "answer_type"]
+                                                        @ generate_property_names ());
+
     val QandRSProperties = [
     ];
 in

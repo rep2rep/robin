@@ -1,14 +1,12 @@
-intsum,
+intsum,dots
 error_allowed,0
 answer_type,integer
 instrumental_types,"arrangement"
 instrumental_tokens,"$dot"
 instrumental_patterns,"$rectangle,$triangle"
-instrumental_facts,"$count_invariant"
+instrumental_laws,"$count_invariant"
 instrumental_tactics,"$constructive_omega_rule,$stack_vertical,$stack_horizontal"
 relevant_tokens,""
-relevant_related_tokens,""
 num_tokens,10
 num_distinct_tokens,1
 noise_tokens,""
-noise_related_tokens,""

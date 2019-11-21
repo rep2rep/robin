@@ -1,0 +1,6 @@
+type-cell,type-event OR type-occurrence,0.5
+token-SUM,token-\cup,0.25
+token-PRODUCT,token-\cap,0.25
+law-$row_total AND law-$column_total,law-$law_of_total_probability,1
+law-$row_total OR law-$column_total,law-$sigma_additivity,0.25
+law-total-1,law-$unit_measure,1

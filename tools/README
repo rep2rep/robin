@@ -1,0 +1,8 @@
+To generate the CSVs for the pseudo Q tables, run
+    python3 tools/generate_all_pseudoQ.py | make repl
+
+Once you have the tables, run
+    python3 tools/csvtotex.py
+
+To generate the output PDF, run
+    cd pseudo_tables && latexmk -pdf bigtable && cd ..

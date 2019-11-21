@@ -4,13 +4,13 @@ signature MULTISET =
 sig
     type t;
     type 'a multiset;
-
     exception NegativeCount of (t * int);
 
     val empty : unit -> t multiset;
     val fromList : t list -> t multiset;
     val fromPairList : (t * int) list -> t multiset;
     val toList : t multiset -> t list;
+    val toListHandlingNegatives : (int -> int) -> t multiset -> t list;
     val toPairList : t multiset -> (t * int) list;
     val toString : t multiset -> string;
 
@@ -59,8 +59,13 @@ structure D = Dictionary(struct
                           end);
 type 'a multiset = ('a, int) D.dict;
 
-
 exception NegativeCount of (t * int);
+
+
+fun fromCountPairsHF' f ans [] = List.rev ans
+  | fromCountPairsHF' f ans ((x, 0)::xs) = fromCountPairsHF' f ans xs
+  | fromCountPairsHF' f ans ((x, i)::xs) = if i > 0 then fromCountPairsHF' f (x::ans) ((x, i-1)::xs) else fromCountPairsHF' f ans ((x, f i)::xs);
+fun fromCountPairsHF f xs = fromCountPairsHF' f [] xs;
 
 fun fromCountPairs' ans [] = List.rev ans
   | fromCountPairs' ans ((x, 0)::xs) = fromCountPairs' ans xs
@@ -76,12 +81,13 @@ fun toCountPairs' ans [] = List.rev ans
 fun toCountPairs xs = toCountPairs' [] (List.mergesort O.compare xs);
 
 
-
 val empty = D.empty;
 val fromPairList = D.fromPairList;
 val toPairList = D.toPairList;
 val fromList = fromPairList o toCountPairs;
 val toList = fromCountPairs o toPairList;
+fun toListHandlingNegatives f m = fromCountPairsHF f (toPairList m);
+
 fun toString items =
     let
         val printThreshold = 100;
@@ -124,7 +130,7 @@ fun filter f xs = D.filter f xs;
 fun foldl f a xs = List.foldl f a (toList xs);
 fun foldr f a xs = List.foldr f a (toList xs);
 
-fun size xs = D.foldr (fn ((x, i), v) => i + v) 0 xs;
+fun size xs = D.foldr (fn ((x, i), v) => if i >=0 then i + v else Int.min (i,v)) 0 xs; (* note that negative multiplicities are taken as "infinite", and smaller negatives are larger cardinal infinites*)
 fun countUnique xs = D.size xs;
 
 fun equal (xs, ys) = D.equal (xs, ys);

@@ -1,0 +1,95 @@
+birds,expeuler
+mode,"containment"
+error_allowed, 0
+answer_type, real
+instrumental_tokens,"$contour: {type := contour;
+                                occurrences := 2}"
+instrumental_types,"zone"
+instrumental_patterns, "$whole : {type := zone;
+                                   holes := [];
+                                   occurrences := 1;
+                                   tokens := [$rectangle];
+                                   token_registration := 1},
+                        $intersection : {type := zone;
+                                         holes := [zone => 2];
+                                         occurrences := 3; comment := cannot handle much larger numbers;
+                                         udepth := 1;
+                                         tokens := [];
+                                         token_registration := 1},
+                        $difference: {type := zone;
+                                      holes := [zone => 2];
+                                      occurrences := 3; comment := cannot handle larger numbers;
+                                      udepth := 1;
+                                      tokens := [];
+                                      token_registration := 1},
+                       $external_reference: {type := reference;
+                                             holes := [statement => 1];
+                                             occurrences := 1; comment := cannot handle larger numbers;
+                                             udepth := 1;
+                                             tokens := [];
+                                             token_registration := 3}"
+instrumental_laws, "$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
+                    $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection}"
+instrumental_tactics,"transform : {patterns := 1;
+                                   laws := 1;
+                                   inference_type := transformation;
+                                   uses := 1}"
+relevant_tactics,"observe : {patterns := 1;
+                                 laws := 0;
+                                 inference_type := match;
+                                 uses := 0}"
+relevant_tokens,"birds : {type := set;
+                          occurrences := 5},
+                 flying : {type := set;
+                           occurrences := 4},
+                 animals : {type := set;
+                           occurrences := 3},
+                 $shade : {type := colour * zone -> zone;
+                           occurrences := 1},
+                 calculate : {type := class -> instruction;
+                              occurrences := 1},
+                 the : {type := class -> class;
+                        occurrences := 2},
+                 value : {type := class;
+                         occurrences := 1},
+                 of : {type := class * class -> class;
+                        occurrences := 1},
+                 the : {type := class -> class;
+                        occurrences := 1},
+                 shaded : {type := class -> class;
+                      occurrences := 1},
+                 region : {type := class;
+                           occurrences := 1},
+                 $label_container : {type := class -> label;
+                                     occurrences := 3},
+                 $rectangle : {type := contour;
+                               occurrences := 1}"
+relevant_patterns, "$union: {type := zone;
+                             holes := [zone => 2];
+                             occurrences := 1; comment := cannot handle larger numbers;
+                             tokens := [];
+                             token_registration := 1},
+                    $zone_determined_by_contour : {type := zone;
+                                                   holes := [contour => 1];
+                                                   occurrences := 3;
+                                                   tokens := [];
+                                                   token_registration := 1},
+                     $labelled_zone : {type := figure;
+                                       holes := [zone=>1. label=>1];
+                                       occurrences := 3;
+                                       udepth := 1;
+                                       tokens := [];
+                                       token_registration := 1},
+                     $description : {type := statement;
+                                     holes := [class => log(#t)];
+                                     udepth := 1;
+                                     occurrences := 2;
+                                     tokens := [];
+                                     token_registration := 1},
+                     $reference_by_description : {type := reference;
+                                                  holes := [statement => 1. zone => 1];
+                                                  occurrences := 1;
+                                                  udepth := 1;
+                                                  tokens := [];
+                                                  token_registration := 3}"
+noise_tokens,""
