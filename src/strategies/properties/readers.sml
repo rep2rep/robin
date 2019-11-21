@@ -150,7 +150,7 @@ local
             val its' = ["laws", "tactics"]
             val imps = ["instrumental_", "relevant_"]
             val imps' = ["noise_"]
-        in (stringProduct imps (its @ its')) @ (stringProduct imps' its)
+        in (stringProduct (imps, (its @ its'))) @ (stringProduct (imps', its))
         end;
 
     (* now the available Q properties are generated systematically.
