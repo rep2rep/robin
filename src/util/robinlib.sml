@@ -79,7 +79,7 @@ sig
 
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
-    val cartesianProduct : 'a list -> 'b list -> ('a * 'b) list;
+    val product : 'a list -> 'b list -> ('a * 'b) list;
 
     val toString : ('a -> string) -> 'a list -> string;
 
@@ -176,7 +176,7 @@ fun isPermutationOf _ [] [] = true
 
 fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
 
-fun cartesianProduct xs ys =
+fun product xs ys =
     let
         fun joinall ans x [] = ans
           | joinall ans x (y::ys) = joinall ((x, y)::ans) x ys
