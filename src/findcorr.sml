@@ -22,6 +22,8 @@ structure TableDict = Dictionary(struct
 
 structure FindCorrs = DiscoverCorrespondences;
 
+exception Return of int;
+
 fun filesMatchingPrefix dir prefix =
     let
         fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -43,7 +45,8 @@ fun parseArgs NONE =
                 [] => (NONE, NONE)
               | [rs] => (SOME rs, NONE)
               | [rs, count] => (SOME rs, Int.fromString count)
-              | (rs::count::_) => (Logging.error ("Ignoring extra arguments..."); (SOME rs, Int.fromString count));
+              | (rs::count::_) => (Logging.error ("Ignoring extra arguments...");
+                                   (SOME rs, Int.fromString count));
     in configuration end
   | parseArgs (SOME args) = args;
 
@@ -55,7 +58,9 @@ fun repl state =
         fun eval s i = case i of
                            SOME i => (let val ((c, r), t) = Stream.step s
                                       in (SOME t,  fmt c r) end
-                                      handle Subscript => (NONE, "\nAll out of suggestions!\n"))
+                                      handle Subscript =>
+                                             (NONE,
+                                              "\nAll out of suggestions!\n"))
                          | NONE => (NONE, "\nBye!\n");
 
         val read = TextIO.inputLine TextIO.stdIn;
@@ -87,8 +92,7 @@ fun requestInput prompt =
     in case read of SOME v => v
                   | NONE => "" end;
 
-exception Return of int;
-fun main () =
+fun loadTables () =
     let
         fun loadRS name =
             let val _ = Logging.write ("Loading RS table " ^ name ^ "... \n");
@@ -103,29 +107,57 @@ fun main () =
                       else map (fn rs => "tables/RS_table_" ^ rs ^ ".csv") rss;
         val corrFiles = if List.null corrs
                         then filesMatchingPrefix "tables/" "correspondences_"
-                        else map (fn c => "tables/correspondences_" ^ c ^ ".csv") corrs;
-        val correspondences = List.concat (map PropertyTables.loadCorrespondenceTable
-                                               corrFiles);
+                        else map (fn c => "tables/correspondences_" ^ c ^ ".csv")
+                                 corrs;
+        val correspondences = List.concat
+                                  (map PropertyTables.loadCorrespondenceTable
+                                       corrFiles);
         val allRSs = TableDict.unionAll
                          (map loadRS rsFiles);
-        val _ = Logging.write ("RS Tables found: " ^ (List.toString (fn s => s) (TableDict.keys allRSs)) ^ "\n");
+        val _ = Logging.write ("RS Tables found: "
+                               ^ (List.toString (fn s => s)
+                                                (TableDict.keys allRSs))
+                               ^ "\n");
+    in
+        (allRSs, correspondences)
+    end;
 
-        val (rsname, rscount) = parseArgs NONE;
-
+fun focusRS allRSs rsname =
+    let
         val newRSName = case rsname of
-                            SOME name => (Logging.write ("Taking " ^ name ^ " as the new RS.\n"); name)
-                          | NONE => Parser.stripSpaces (requestInput "Which is the new RS? ");
+                            SOME name => (Logging.write
+                                              ("Taking " ^ name
+                                               ^ " as the new RS.\n"); name)
+                          | NONE => Parser.stripSpaces
+                                        (requestInput "Which is the new RS? ");
         val newRS = TableDict.get allRSs newRSName
                     handle TableDict.KeyError =>
-                           (Logging.error ("No RS named "^newRSName^"!\n"); PropertySet.empty (); raise Return 1);
+                           (Logging.error ("No RS named " ^ newRSName ^ "!\n");
+                            PropertySet.empty (); raise Return 1);
         val _ = TableDict.remove allRSs newRSName;
         val oldRSs = TableDict.values allRSs;
+    in
+        (newRS, oldRSs)
+    end;
+
+fun main () =
+    let
+        val (allRSs, correspondences) = loadTables ();
+        val (rsname, rscount) = parseArgs NONE;
+        val (newRS, oldRSs) = focusRS allRSs rsname;
+
         val state = (correspondences, oldRSs, newRS);
         val _ = if Option.isSome rscount then ()
                 else print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
         fun strongEnough (_, _, v) = true; (* Real.abs(v) > 0.2; *)
-        fun reflexive (a, b, _) = Correspondence.F.equal (fn (p, q) => Property.compare (p, q) = EQUAL) (a, b);
-        val suggestions = Stream.filter (fn (c, r) => strongEnough c andalso not (reflexive c)) (FindCorrs.discover state);
+        fun reflexive (a, b, _) = Correspondence.F.equal
+                                      (fn (p, q) =>
+                                          Property.compare (p, q) = EQUAL)
+                                      (a, b);
+        val suggestions = Stream.filter
+                              (fn (c, r) => strongEnough c
+                                            andalso not (reflexive c))
+                              (FindCorrs.discover state);
     in
         case rscount of
             NONE => repl suggestions
@@ -137,13 +169,18 @@ fun main () =
     handle Return i => i
          | exn =>
            let
-               fun printError exn (SOME {file,startLine,startPosition,endLine,endPosition}) =
+               fun printError exn (SOME {file,
+                                         startLine, startPosition,
+                                         endLine, endPosition}) =
                    Logging.error ("Exception at " ^ file
-                                  ^ ":" ^ (Int.toString startLine) ^ ":" ^ (Int.toString startPosition)
-                                  ^ "-" ^ (Int.toString endLine) ^ ":" ^ (Int.toString endPosition) ^ "\n"
+                                  ^ ":" ^ (Int.toString startLine)
+                                  ^ ":" ^ (Int.toString startPosition)
+                                  ^ "-" ^ (Int.toString endLine)
+                                  ^ ":" ^ (Int.toString endPosition) ^ "\n"
                                   ^ (exnMessage exn) ^ "\n")
-                 | printError exn NONE = Logging.error ("An exception occurred at an unknown location.\n"
-                                                        ^ (exnMessage exn) ^ "\n");
+                 | printError exn NONE = Logging.error (
+                       "An exception occurred at an unknown location.\n"
+                       ^ (exnMessage exn) ^ "\n");
            in
                printError exn (PolyML.Exception.exceptionLocation exn);
                PolyML.Exception.reraise exn
