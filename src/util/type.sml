@@ -10,7 +10,7 @@ sig
                | Pair of T * T
                | Function of T * T
                | Constructor of string * T;
-    val getInOutTypes : T -> (T list * T list);
+    val getInOutTypes : T -> (T list * T);
     val outputArity : T -> int;
     val inputArity : T -> int;
     val order : T -> int;
@@ -83,7 +83,7 @@ fun getInOutTypes (Ground x) = ([], Ground x)
   | getInOutTypes (Var x) = ([], Var x)
   | getInOutTypes (Pair (x,y)) = let val (xT,xt) = getInOutTypes x val (yT,yt) = getInOutTypes y in (xT @ yT, Pair (xt,yt)) end
   | getInOutTypes (Function (x,y)) = let val (yT,yt) = getInOutTypes y; in ((pairToList x) @ yT, yt) end
-  | getInOutTypes (Constructor (s,x)) = ([], Constructor (s,x))
+  | getInOutTypes (Constructor (s,x)) = ([], Constructor (s,x));
 
 fun dimensionality (Pair (s,t)) = dimensionality s + dimensionality t
   | dimensionality _ =  1

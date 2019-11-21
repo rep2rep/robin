@@ -31,6 +31,9 @@ sig
 
     val identity : Property.property -> correspondence;
 
+    val liftImportances : QPropertySet.t QPropertySet.set ->
+                          correspondence -> Importance.importance list;
+
     val strength : correspondence -> real;
     val toString : correspondence -> string;
     val fromString : string -> correspondence;
@@ -108,7 +111,8 @@ fun leftMatches ps (p, _, _) = propertyCollectMatches ps p;
 
 fun rightMatches ps (_, p, _) = propertyCollectMatches ps p;
 
-fun match qs rs (q, r, _) = (matchTree qs q) andalso (matchTree rs r);
+fun match qs rs (q, r, _) =
+    (propertyMatchTree qs q) andalso (propertyMatchTree rs r);
 
 fun matchExists qs rs cs = List.exists (match qs rs) cs;
 
@@ -142,6 +146,28 @@ fun stronger (q, r, s) (q', r', s') =
     s >= s';
 
 fun identity p = (F.Atom p, F.Atom p, 1.0);
+
+fun liftImportances qs (l, _, _) =
+    let
+        fun qListMatch (ps, qs) = QPropertySet.equal (ps, qs);
+        fun qFind p qs =
+            let
+                val qs' = QPropertySet.filterMatches p qs;
+            in
+                if QPropertySet.isEmpty qs' then NONE
+                else SOME qs'
+            end;
+        fun qFromList xs = QPropertySet.unionAll xs;
+        val matchedQProps = collectMatches
+                                qFromList
+                                qListMatch
+                                qFind
+                                qs l;
+        val allImportances = QPropertySet.map
+                                 (fn q => #2 (QProperty.toPair q)) matchedQProps;
+    in
+        allImportances
+    end;
 
 fun toString (q, r, s) =
     let
