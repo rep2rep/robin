@@ -230,11 +230,7 @@ fun takeWhile pred list =
     end;
 
 fun weightedSumIndexed w f L =
-    let fun withWeightList' (h::t) (h'::t') = h * (f h') + withWeightList' t t'
-          | withWeightList' [] [] = 0.0
-          | withWeightList' _ _ = (print "impossible size in weightedSum"; raise Match)
-    in withWeightList' (map w L) L
-    end;
+    List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;
 
 fun weightedSum w L = weightedSumIndexed w (fn x => x) L;
 
