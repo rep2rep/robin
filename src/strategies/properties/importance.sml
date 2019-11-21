@@ -48,7 +48,7 @@ fun toString x = if x < 0.0 then "Noise"
             else if x <= 1.0/3.0 then "Low"
             else if x <= 2.0/3.0 then "Medium"
             else if x <= 1.0 then "High"
-            else if x > 1.0 then "Super High (thanks logGravity!)"
+            else if x > 1.0 then "Super High (thanks logGravity)"
             else (print "bad importance value"; raise Match);
 
 val max = Real.max;
