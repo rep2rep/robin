@@ -142,15 +142,14 @@ local
         in (reader,kind,importance)
         end;
 
-
-    val stringProduct = (map op^) o List.product
+    val stringProduct = map (^) o List.product
 
     val generate_property_names = fn _ =>
         let val its = ["tokens", "types", "patterns"]
             val its' = ["laws", "tactics"]
             val imps = ["instrumental_", "relevant_"]
             val imps' = ["noise_"]
-        in (stringProduct imps (its @ its')) @ (stringProduct imps' its)
+        in (stringProduct (imps, (its @ its'))) @ (stringProduct (imps', its))
         end;
 
     (* now the available Q properties are generated systematically.
