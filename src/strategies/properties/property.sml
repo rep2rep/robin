@@ -125,15 +125,13 @@ fun getHoles (_,_,[]) = raise NoAttribute "holes"
   | getHoles (k,v,(a::L)) = Attribute.getHoles a handle Match => getHoles (k,v,L);
 
 fun getTokens (k,v,[]) = if k = Kind.Token then (case v of Label s => [s] | _ => raise Error "IMPOSSIBLE ERROR")
-                    else raise ((*print ("no tokens attribute for " ^ Kind.toString k ^ "-" ^ stringOfValue v) ; *)
-                                NoAttribute "tokens")
+                    else raise NoAttribute "tokens"
   | getTokens (k,v,(a::L)) = Attribute.getTokens a handle Match => getTokens (k,v,L);
 
 fun getContent (_,_,[]) = raise NoAttribute "content"
   | getContent (k,v,(a::L)) = Attribute.getContent a handle Match => getContent (k,v,L);
 
-fun getNumFunction s (k, v,[]) = ((*print ("no numFunction attribute " ^ s ^ " for property " ^ Kind.toString k ^ "-" ^ stringOfValue v ^ "\n"); *)
-                                  raise NoAttribute s)
+fun getNumFunction s (k, v,[]) = raise NoAttribute s
   | getNumFunction s (k,v,(a::L)) =
     (case Attribute.getNumFunction a of (s',n) =>
         (if s' = s then (s',n) else getNumFunction s (k,v,L))) handle Match => getNumFunction s (k,v,L) ;
@@ -275,8 +273,6 @@ fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString 
 fun fromString s =
     case Parser.splitStrip "," (Parser.removeParens s) of
         [a, b] => (case Importance.fromString b of b' => (Property.fromString a, b'))
-                (*)      SOME b' => (Property.fromString a, b')
-                    | NONE => raise ParseError)*)
       | _ => raise ParseError;
 fun toPair (s, i) = (s, i);
 fun fromPair (s, i) = (s, i);
