@@ -114,16 +114,16 @@ local
 
 
     fun importanceOfPrefix p =
-        if p = "essential" orelse p = "answer" then Importance.fromString "High" else
-        if p = "instrumental" then Importance.fromString "Medium" else
-        if p = "relevant" then Importance.fromString "Low" else
-        if p = "circumstantial" then Importance.fromString "Zero" else
-        if p = "noise" then Importance.fromString "Noise"
-        else Importance.fromString "Zero";
+        if p = "essential" orelse p = "answer" then Importance.High else
+        if p = "instrumental" then Importance.Medium else
+        if p = "relevant" then Importance.Low else
+        if p = "circumstantial" then Importance.Zero else
+        if p = "noise" then Importance.Noise
+        else Importance.Zero;
 
     fun qTagToTriple t =
         let val (p,_,k) = Parser.breakOn "_" t
-            val importance = if t = "error_allowed" then Importance.fromString "High" else if t = "mode" then Importance.fromString "Zero" else importanceOfPrefix p
+            val importance = if t = "error_allowed" then Importance.High else if t = "mode" then Importance.Zero else importanceOfPrefix p
             fun keywordToReaderKind s =
                 if String.isPrefix "type" s then (listOf typeR, Kind.Type) else
                 if String.isPrefix "token" s then (listOf labelR, Kind.Token) else
@@ -143,12 +143,7 @@ local
         end;
 
 
-    (* String functions. Shouldn't really be here but meh *)
-    fun addPrefixToAll s (s':: L) = (s ^ s') :: addPrefixToAll s L
-      | addPrefixToAll _ [] = [];
-    fun stringProduct [] L = []
-      | stringProduct L [] = L
-      | stringProduct (s::L) L' = addPrefixToAll s L' @ stringProduct L L';
+    val stringProduct = (map op^) o List.product
 
     val generate_property_names = fn _ =>
         let val its = ["tokens", "types", "patterns"]
