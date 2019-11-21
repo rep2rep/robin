@@ -145,7 +145,8 @@ fun liftImportances qs (l, _, _) =
                                 qFind
                                 qs l;
         val allImportances = QPropertySet.map
-                                 (fn q => #2 (QProperty.toPair q)) matchedQProps;
+                                 (fn q => QProperty.logGravity q handle Property.NoAttribute _ => QProperty.importanceOf q)
+                                 matchedQProps;
     in
         allImportances
     end;
@@ -205,7 +206,7 @@ fun typeCorrespondences corrs qProps =
     let fun tCorrs q =
             let val p = QProperty.withoutImportance q
                 val t = Property.getTypeOfValue p handle Property.NoAttribute _ => raise skipProp
-                val singletonT = PropertySet.fromList [(Property.fromKindValueAttributes (Kind.Type, Property.Type t, []))]
+                val singletonT = PropertySet.fromList [Property.fromKindValueAttributes (Kind.Type, Property.Type t, [])]
                 val singletonP = PropertySet.fromList [p]
                 val g = QProperty.logGravity q handle Property.NoAttribute _ => 0.0
                 fun mkCorrs [] = []
