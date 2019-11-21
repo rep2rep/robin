@@ -13,6 +13,7 @@ sig
 
     datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
+
     structure M : MULTISET;
     val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
@@ -71,6 +72,7 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Raw s) = "RAW: " ^ s;
 
 type property = (Kind.kind * value * Attribute.T list);
+
 structure M = Attribute.M
 
 fun toListHandlingNegatives f m = M.toListHandlingNegatives f m;
@@ -117,8 +119,8 @@ fun typeFromAttributes [] = NONE
 
 exception NoAttribute of string;
 
-fun getTypeOfValue (k, Label v,A) = (case typeFromAttributes A of SOME t => t
-                                                        | NONE => raise NoAttribute ("type"))
+fun getTypeOfValue (k, Label v,A) =
+    (case typeFromAttributes A of SOME t => t | NONE => raise NoAttribute "type")
   | getTypeOfValue (k,v,A) = raise NoAttribute "type";
 
 fun getHoles (_,_,[]) = raise NoAttribute "holes"
