@@ -1,4 +1,5 @@
 import "util.logging";
+import "util.dictionary";
 
 import "strategies.properties.tables";
 import "strategies.properties.discover_correspondences";
@@ -12,6 +13,12 @@ Logging.enable ();
 val _ = registerPropertyReaders
             PropertyTables.setQGenerators
             PropertyTables.setRSGenerators;
+
+structure TableDict = Dictionary(struct
+                                  type k = string;
+                                  val compare = String.compare;
+                                  val fmt = (fn s => s);
+                                  end);
 
 structure FindCorrs = DiscoverCorrespondences;
 
@@ -85,8 +92,9 @@ fun main () =
     let
         fun loadRS name =
             let val _ = Logging.write ("Loading RS table " ^ name ^ "... \n");
+                fun toDict (rs, props) = TableDict.fromPairList [(rs, props)];
             in
-                PropertyTables.loadRepresentationTable name
+                toDict (PropertyTables.loadRepresentationTable name)
             end;
         val rss = [];
         val corrs = [];
@@ -98,20 +106,20 @@ fun main () =
                         else map (fn c => "tables/correspondences_" ^ c ^ ".csv") corrs;
         val correspondences = List.concat (map PropertyTables.loadCorrespondenceTable
                                                corrFiles);
-        val allRSs = PropertyTables.FileDict.unionAll
+        val allRSs = TableDict.unionAll
                          (map loadRS rsFiles);
-        val _ = Logging.write ("RS Tables found: " ^ (List.toString (fn s => s) (PropertyTables.FileDict.keys allRSs)) ^ "\n");
+        val _ = Logging.write ("RS Tables found: " ^ (List.toString (fn s => s) (TableDict.keys allRSs)) ^ "\n");
 
         val (rsname, rscount) = parseArgs NONE;
 
         val newRSName = case rsname of
                             SOME name => (Logging.write ("Taking " ^ name ^ " as the new RS.\n"); name)
                           | NONE => Parser.stripSpaces (requestInput "Which is the new RS? ");
-        val newRS = PropertyTables.FileDict.get allRSs newRSName
-                    handle PropertyTables.FileDict.KeyError =>
+        val newRS = TableDict.get allRSs newRSName
+                    handle TableDict.KeyError =>
                            (Logging.error ("No RS named "^newRSName^"!\n"); PropertySet.empty (); raise Return 1);
-        val _ = PropertyTables.FileDict.remove allRSs newRSName;
-        val oldRSs = PropertyTables.FileDict.values allRSs;
+        val _ = TableDict.remove allRSs newRSName;
+        val oldRSs = TableDict.values allRSs;
         val state = (correspondences, oldRSs, newRS);
         val _ = if Option.isSome rscount then ()
                 else print ("Press <enter> to view suggestions, ctrl-D to exit.\n");
