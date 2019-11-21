@@ -34,7 +34,7 @@ struct
 exception KindError;
 type kind = string;
 
-val Dummy = "dummy";
+val Dummy = "__";
 val Token = "token";
 val Type = "type";
 val Law = "law";
