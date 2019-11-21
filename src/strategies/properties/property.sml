@@ -261,6 +261,9 @@ sig
     val withoutImportance : property -> Property.property;
     val kindOf : property -> Kind.kind;
     val importanceOf : property -> Importance.importance;
+
+    val gravity : property -> real;
+    val logGravity : property -> real;
 end;
 
 
@@ -281,6 +284,14 @@ fun fromPair (s, i) = (s, i);
 fun withoutImportance (s, _) = s;
 fun kindOf (s, _) = Property.kindOf s;
 fun importanceOf (_, i) = i;
+
+(* gravity gives weight 0 to things with 0 occurrences, but grows linearly with occurrences *)
+fun gravity x = (Importance.weight (importanceOf x))
+                * #2 (Property.getNumFunction "occurrences" (withoutImportance x))
+
+(* logGravity cares less about occurrences, but in fact gives positive weight to things with 0 occurrences. *)
+fun logGravity x = (Importance.weight (importanceOf x))
+                    * (Math.ln(2.0 + #2 (Property.getNumFunction "occurrences" (withoutImportance x)))/Math.ln(2.0))
 
 end;
 
@@ -310,7 +321,6 @@ fun collectOfKind ps k =
     let fun isOfKind p = Property.kindOf p = k;
     in filter isOfKind ps
     end;
-
 
 end;
 
@@ -351,5 +361,12 @@ fun filterMatches p qs =
     end;
 
 fun isMatchedIn p qs = not (isEmpty (filterMatches p qs));
+
+
+fun collectOfKindPresentInQ qS k =
+    filter
+      (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false)
+               orelse (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false))
+      (collectOfKind qS k)
 
 end;
