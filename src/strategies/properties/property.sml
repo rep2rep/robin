@@ -13,6 +13,7 @@ sig
 
     datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
     type property;
+
     structure M : MULTISET;
     val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
     val toPairList : Type.T M.multiset -> (Type.T * int) list;
@@ -71,6 +72,7 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Raw s) = "RAW: " ^ s;
 
 type property = (Kind.kind * value * Attribute.T list);
+
 structure M = Attribute.M
 
 fun toListHandlingNegatives f m = M.toListHandlingNegatives f m;
@@ -117,8 +119,8 @@ fun typeFromAttributes [] = NONE
 
 exception NoAttribute of string;
 
-fun getTypeOfValue (k, Label v,A) = (case typeFromAttributes A of SOME t => t
-                                                        | NONE => raise NoAttribute ("type"))
+fun getTypeOfValue (k, Label v,A) =
+    (case typeFromAttributes A of SOME t => t | NONE => raise NoAttribute "type")
   | getTypeOfValue (k,v,A) = raise NoAttribute "type";
 
 fun getHoles (_,_,[]) = raise NoAttribute "holes"
@@ -259,6 +261,9 @@ sig
     val withoutImportance : property -> Property.property;
     val kindOf : property -> Kind.kind;
     val importanceOf : property -> Importance.importance;
+
+    val gravity : property -> real;
+    val logGravity : property -> real;
 end;
 
 
@@ -279,6 +284,14 @@ fun fromPair (s, i) = (s, i);
 fun withoutImportance (s, _) = s;
 fun kindOf (s, _) = Property.kindOf s;
 fun importanceOf (_, i) = i;
+
+(* gravity gives weight 0 to things with 0 occurrences, but grows linearly with occurrences *)
+fun gravity x = (Importance.weight (importanceOf x))
+                * #2 (Property.getNumFunction "occurrences" (withoutImportance x))
+
+(* logGravity cares less about occurrences, but in fact gives positive weight to things with 0 occurrences. *)
+fun logGravity x = (Importance.weight (importanceOf x))
+                    * (Math.ln(2.0 + #2 (Property.getNumFunction "occurrences" (withoutImportance x)))/Math.ln(2.0))
 
 end;
 
@@ -308,7 +321,6 @@ fun collectOfKind ps k =
     let fun isOfKind p = Property.kindOf p = k;
     in filter isOfKind ps
     end;
-
 
 end;
 
@@ -349,5 +361,12 @@ fun filterMatches p qs =
     end;
 
 fun isMatchedIn p qs = not (isEmpty (filterMatches p qs));
+
+
+fun collectOfKindPresentInQ qS k =
+    filter
+      (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false)
+               orelse (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false))
+      (collectOfKind qS k)
 
 end;

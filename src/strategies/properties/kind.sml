@@ -3,6 +3,7 @@ sig
     exception KindError;
     eqtype kind;
 
+    val Dummy : kind;
     val Token : kind;
     val Type : kind;
     val Law : kind;
@@ -33,6 +34,7 @@ struct
 exception KindError;
 type kind = string;
 
+val Dummy = "__";
 val Token = "token";
 val Type = "type";
 val Law = "law";

@@ -164,7 +164,8 @@ fun liftImportances qs (l, _, _) =
                                 qFind
                                 qs l;
         val allImportances = QPropertySet.map
-                                 (fn q => #2 (QProperty.toPair q)) matchedQProps;
+                                 (fn q => QProperty.logGravity q handle Property.NoAttribute _ => QProperty.importanceOf q)
+                                 matchedQProps;
     in
         allImportances
     end;
@@ -200,7 +201,6 @@ fun fromString s =
 
 end;
 
-
 fun allCorrespondenceMatches corrs qProps rProps =
     let
         fun alreadyCorr cs c = List.exists (Correspondence.matchingProperties c) cs;
@@ -213,3 +213,26 @@ fun allCorrespondenceMatches corrs qProps rProps =
     in
         newIdentities @ baseCorrs
     end;
+
+
+local
+  structure F = Correspondence.F;
+  exception skipProp;
+in
+  fun typeCorrespondences corrs qProps =
+      let fun tCorrs q =
+              let val p = QProperty.withoutImportance q
+                  val t = Property.getTypeOfValue p handle Property.NoAttribute _ => raise skipProp
+                  val singletonT = PropertySet.fromList [Property.fromKindValueAttributes (Kind.Type, Property.Type t, [])]
+                  val singletonP = PropertySet.fromList [p]
+                  val g = QProperty.logGravity q handle Property.NoAttribute _ => 0.0
+                  fun mkCorrs [] = []
+                    | mkCorrs (((x,y,s),i)::L) =
+                        if PropertySet.isEmpty (Correspondence.leftMatches singletonT (x,y,s))
+                        then (if PropertySet.isEmpty (Correspondence.leftMatches singletonP (x,y,s)) then mkCorrs L else raise skipProp)
+                        else ((F.Atom p, F.Atom (Property.fromKindValueAttributes (Kind.Dummy, Property.Label ("\"" ^ F.toString Property.toString y ^ "\""), [])),s), i*g) :: mkCorrs L
+              in mkCorrs corrs
+              end handle skipProp => [] (* This is the hackiest thing ever, but it should take care of cases when there is already a correspondence for the property, so we don't need to add it from its type *)
+      in List.concat (QPropertySet.map tCorrs qProps)
+      end;
+end;
