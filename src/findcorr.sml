@@ -2,6 +2,7 @@ import "util.logging";
 import "util.dictionary";
 
 import "strategies.properties.tables";
+import "strategies.properties.correspondence_graph";
 import "strategies.properties.discover_correspondences";
 
 (* To see a full trace of the algorithm, we enable logging.
@@ -119,7 +120,7 @@ fun loadTables () =
                                                 (TableDict.keys allRSs))
                                ^ "\n");
     in
-        (allRSs, correspondences)
+        (allRSs, CorrespondenceGraph.fromList correspondences)
     end;
 
 fun focusRS allRSs rsname =

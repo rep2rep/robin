@@ -8,7 +8,7 @@ import "strategies.properties.correspondence_graph";
 signature DISCOVERCORRESPONDENCES = sig
 
     (* Correspondences, Old RSs, New RS *)
-    type state = Correspondence.correspondence list *
+    type state = CorrespondenceGraph.corrgraph *
                  PropertySet.t PropertySet.set list *
                  PropertySet.t PropertySet.set;
 
@@ -17,7 +17,9 @@ signature DISCOVERCORRESPONDENCES = sig
                     | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
                     (* | KIND of Property.property * Property.property *)
                     | ATTRIBUTE of Property.property * Property.property
-                    | VALUE of Property.property * Property.property;
+                                   * Correspondence.correspondence
+                    | VALUE of Property.property * Property.property
+                               * Correspondence.correspondence;
 
     val reasonString : reason -> string;
     val discover : state -> (Correspondence.correspondence * reason) Stream.stream;
@@ -27,7 +29,7 @@ end;
 
 structure DiscoverCorrespondences : DISCOVERCORRESPONDENCES = struct
 
-type state = Correspondence.correspondence list *
+type state = CorrespondenceGraph.corrgraph *
              PropertySet.t PropertySet.set list *
              PropertySet.t PropertySet.set;
 
@@ -36,7 +38,9 @@ datatype reason = IDENTITY of Property.property
                 | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
                 (* | KIND of Property.property * Property.property *)
                 | ATTRIBUTE of Property.property * Property.property
-                | VALUE of Property.property * Property.property;
+                               * Correspondence.correspondence
+                | VALUE of Property.property * Property.property
+                           * Correspondence.correspondence;
 
 fun reasonString (IDENTITY p) =
     "The property " ^ (Property.toString p) ^ " corresponds to itself"
@@ -44,9 +48,9 @@ fun reasonString (IDENTITY p) =
     "Reversed from " ^ (Correspondence.toString c)
   | reasonString (COMPOSITION (c1, c2)) =
     "Composed from " ^ (Correspondence.toString c1) ^ " and " ^ (Correspondence.toString c2)
-  | reasonString (ATTRIBUTE (p1, p2)) =
+  | reasonString (ATTRIBUTE (p1, p2, _)) =
     "Found a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2)
-  | reasonString (VALUE (p1, p2)) =
+  | reasonString (VALUE (p1, p2, _)) =
     "This is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
 local fun covered c c' =
@@ -57,11 +61,8 @@ in fun corrExists c cs = List.exists (covered c) cs end;
 fun anyCommonCorrs cs cs' = List.exists (fn c => corrExists c cs') cs;
 
 fun doCorrespond cs (p1, p2) =
-    let fun findMatch qs rs = case List.filter (Correspondence.match qs rs) cs of
-                                  [] => NONE
-                                | x => SOME x;
-    in findMatch (PropertySet.fromList [p1]) (PropertySet.fromList [p2]) end;
-
+    List.filter (Correspondence.match (PropertySet.fromList [p1])
+                                      (PropertySet.fromList [p2])) cs;
 fun makeCorr' s (p, q) =
     (Correspondence.F.Atom p, Correspondence.F.Atom q, s);
 
@@ -77,7 +78,9 @@ fun corrToPairs (p, q, v) =
         val (pClauses, qClauses) = spread (Stream.fromList o Correspondence.F.clauses) (p, q);
         val basePairs = Stream.product pClauses qClauses;
     in
-        Stream.mapPartial formulaToValue basePairs
+        Stream.map
+            (fn c' => (c', (p, q, v)))
+            (Stream.mapPartial formulaToValue basePairs)
     end;
 
 fun streamSetProduct ps qs = (uncurry Stream.product) (spread (Stream.fromList o PropertySet.toList) (ps, qs));
@@ -86,33 +89,47 @@ local
     fun getAttr' f [] = raise Match
       | getAttr' f (a::attrs) = f a handle Match => getAttr' f attrs;
     fun getAttr f = (getAttr' f) o Property.attributesOf;
-    fun propertyFromType t = Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
-    fun propertyFromToken s = Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
-    fun unifyish (f, g) = let val (genf, fsubs) = Type.generalise f;
-                              val (geng, gsubs) = Type.generalise g;
-                              fun simplify [] = []
-                                | simplify ((x, y)::xs) = if List.exists (fn (a, b) => a = x orelse b = y orelse a = y orelse b = x) xs
-                                                          then raise Type.TUNIFY else (x, y)::(simplify xs);
-                              fun lookup v [] = NONE
-                                | lookup v ((x,y)::xs) = if v = y then SOME (Type.Ground x) else lookup v xs;
-                              fun align [] = []
-                                | align ((Type.Var x, Type.Var y)::us) = let val x' = lookup x fsubs;
-                                                                             val y' = lookup y gsubs;
-                                                                         in case (x', y') of
-                                                                                (SOME a, SOME b) => (a, b)::(align us)
-                                                                              | _ => (align us) end
-                                | align (_::us) = align us;
-                              val unifications = simplify (Type.unify [(genf, geng)]) handle Type.TUNIFY => raise Match;
-                          in align unifications end;
-    fun allCorrStrength cs s = let val (h, t) = Stream.step s
-                               in case doCorrespond cs h of
-                                      NONE => NONE
-                                    | SOME cs' => Option.map (fn vs => (map Correspondence.strength cs')@vs) (allCorrStrength cs t)
-                               end handle Subscript => NONE;
-    fun attrCorrStrength p cs opts = case allCorrStrength cs opts of
-                                         SOME vs => let val vMax = List.max Real.compare vs;
-                                                    in SOME (p, vMax) end
-                                       | NONE => raise Match;
+    fun propertyFromType t =
+        Property.fromKindValueAttributes (Kind.Type, Property.Type t, []);
+    fun propertyFromToken s =
+        Property.fromKindValueAttributes (Kind.Token, Property.Label s, []);
+    fun unifyish (f, g) =
+        let val (genf, fsubs) = Type.generalise f;
+            val (geng, gsubs) = Type.generalise g;
+            fun simplify [] = []
+              | simplify ((x, y)::xs) =
+                if List.exists (fn (a, b) => a = x
+                                             orelse b = y
+                                             orelse a = y
+                                             orelse b = x) xs
+                then raise Type.TUNIFY
+                else (x, y)::(simplify xs);
+            fun lookup v [] = NONE
+              | lookup v ((x,y)::xs) = if v = y
+                                       then SOME (Type.Ground x)
+                                       else lookup v xs;
+            fun align [] = []
+              | align ((Type.Var x, Type.Var y)::us) =
+                let val x' = lookup x fsubs;
+                    val y' = lookup y gsubs;
+                in case (x', y') of
+                       (SOME a, SOME b) => (a, b)::(align us)
+                     | _ => (align us) end
+              | align (_::us) = align us;
+            val unifications = simplify (Type.unify [(genf, geng)])
+                               handle Type.TUNIFY => raise Match;
+        in align unifications end;
+    fun allCorrStrength cs s =
+        let val (h, t) = Stream.step s
+        in case doCorrespond cs h of
+               [] => []
+             | cs' => cs' @ (allCorrStrength cs t)
+        end handle Subscript => [];
+    fun attrCorrStrength (p,q) cs opts =
+        case allCorrStrength cs opts of
+            [] => raise Match
+          | vs => let val (cMax, vMax) = List.argmax Correspondence.strength vs;
+                  in SOME ((p, q, cMax), vMax) end;
     val getType = getAttr Attribute.getType;
     val getHoles = getAttr Attribute.getHoles;
     val getTokens = getAttr Attribute.getTokens;
@@ -122,7 +139,7 @@ fun checkAttrCorr cs (a, b) =
     let (*  Type * Type  *)
         val (at, bt) = spread getType (a, b);
         (* Need to check if there are holes: if so, we ignore this type match *)
-        val _ = if fails (fn () => spread getHoles (a, b)) then ()  else raise Match;
+        val _ = if fails (fn () => spread getHoles (a, b)) then () else raise Match;
         val unified = Stream.fromList (unifyish (at, bt));
         val typePairs = Stream.map (spread propertyFromType) unified;
     in
@@ -266,7 +283,9 @@ fun discoverAttribute (cs, rss, rs') =
     let
         val potentialCorrs = Stream.flatmap (fn rs => streamSetProduct rs rs') (Stream.fromList rss);
         val matchingAttrs = Stream.mapPartial (checkAttrCorr cs) potentialCorrs;
-        val corrs = Stream.map (fn (pq, s) => (makeCorr' s pq, ATTRIBUTE pq)) matchingAttrs;
+        val corrs = Stream.map (fn ((p, q, c), s) =>
+                                   (makeCorr' s (p, q), ATTRIBUTE (p, q, c)))
+                               matchingAttrs;
     in
         chooseNew corrs cs
     end handle List.Empty => NONE;
@@ -275,13 +294,18 @@ fun discoverValue (cs, rss, rs') =
     let
         val allProps = PropertySet.union rs' (PropertySet.unionAll rss);
         fun sourceProperty p = PropertySet.filterMatches p allProps;
-        fun sourcePropPairs ((p, q), s) = let val pqs = streamSetProduct (sourceProperty p) (sourceProperty q)
-                                          in Stream.map (fn v => (v, s)) pqs end;
-        val matchingValues = Stream.flatmap corrToPairs ((uncurry Stream.interleave) (findMatches (Stream.fromList cs) rs'));
+        fun sourcePropPairs (((p, q), s), c) =
+            let val pqs = streamSetProduct (sourceProperty p) (sourceProperty q)
+            in Stream.map (fn v => ((v, s), c)) pqs end;
+        val matchingValues = Stream.flatmap corrToPairs
+                                            ((uncurry Stream.interleave)
+                                                 (findMatches (Stream.fromList cs) rs'));
+        (* matchingValues : (((property * property) * real) * correspondence) stream *)
         val attachedAttrs = Stream.flatmap sourcePropPairs matchingValues;
-        fun findAttrs (v, s) = Stream.map (fn p => (p, v, s)) (potentialAttrCorr v);
+        fun findAttrs (((a, b), s), c) = Stream.map (fn p => (p, (a,b,c), s))
+                                                    (potentialAttrCorr (a, b));
         val attrOptions = Stream.flatmap findAttrs attachedAttrs;
-        val corrs = Stream.map (fn (pq, ab, s) => (makeCorr' s pq, VALUE ab)) attrOptions;
+        val corrs = Stream.map (fn (pq, abc, s) => (makeCorr' s pq, VALUE abc)) attrOptions;
     in
         chooseNew corrs cs
     end handle List.Empty => NONE;
@@ -297,21 +321,25 @@ fun discover state' =
                       (* discoverKind, *)
                       discoverAttribute,
                       discoverValue];
-        fun insert ans c [] = c::ans
-          | insert ans c (c'::cs) = if (Correspondence.sameProperties c c')
-                                    then
-                                        if (Correspondence.strength c) > (Correspondence.strength c')
-                                        then ans @ (c::cs)
-                                        else ans @ (c'::cs)
-                                    else insert (c'::ans) c cs;
-        fun addCorr c (cs, rss, rs') = case c of
-                                           SOME (c', _) => (insert [] c' cs, rss, rs')
-                                         | NONE => (cs, rss, rs');
+        fun insert cg c (IDENTITY _) =
+            CorrespondenceGraph.insert cg c
+          | insert cg c (REVERSAL p) =
+            CorrespondenceGraph.insertWithParents cg c [p]
+          | insert cg c (COMPOSITION (p, q)) =
+            CorrespondenceGraph.insertWithParents cg c [p, q]
+          | insert cg c (ATTRIBUTE (_, _, p)) =
+            CorrespondenceGraph.insertWithParents cg c [p]
+          | insert cg c (VALUE (_, _, p)) =
+            CorrespondenceGraph.insertWithParents cg c [p];
+        fun addCorr NONE s = s
+          | addCorr (SOME (c', r)) (cs, rss, rs') = (insert cs c' r, rss, rs');
         fun extractCorr (corr, _, _) = corr;
         fun generator (corr, rules, state) =
             let
+                fun listy (cs, rss, rs') =
+                    (CorrespondenceGraph.toList cs, rss, rs');
                 val state' = addCorr corr state;
-                val newCorr = Option.oneOf rules state';
+                val newCorr = Option.oneOf rules (listy state');
             in
                 case newCorr of
                     (* We shuffle the rules to guarantee some variety *)
