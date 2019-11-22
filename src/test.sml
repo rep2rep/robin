@@ -53,7 +53,7 @@ fun crunch_raw L =
     let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
         val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
         val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
-                                          then 1.0 * (1.0 + (max + min) / 2.0)
+                                          then ((max - min) / real (length L)) + (max + min) / 2.0
                                           else if Real.== (v, Real.negInf)
                                                 then 1.0 * (min - 1.0)
                                                 else  1.0 * v)) L

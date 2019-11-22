@@ -359,10 +359,10 @@ fun inferenceType qT =
                     #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
         val S = QPropertySet.map wt T
         fun assess (_,s) = if s = "assign" then 1.0
-                      else if s = "match" then 2.0
-                      else if s = "subst" then 4.0
-                      else if s = "calc" then 8.0
-                      else if s = "transformation" then 16.0
+                      else if s = "match" then 4.0
+                      else if s = "subst" then 5.0
+                      else if s = "calc" then 6.0
+                      else if s = "transformation" then 12.0
                       else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
     in List.weightedAvgIndexed (#1) assess S handle Empty => Real.posInf
     end;
@@ -375,20 +375,18 @@ fun problemSpaceBranchingFactor qT rT =
         fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Property.NoAttribute _ => 0.0
         val bl = PropertySet.size L
         val bp = numberOfPatternsModulated qT
-        fun dotProduct [] [] = 0.0
-          | dotProduct (h::t) (h'::t') = (h * h') + dotProduct t t'
-          | dotProduct  _ _ = raise Match;
-        val l = PropertySet.map (fn x => Math.pow(real bl, lawParams x)) T
-        val p = PropertySet.map (fn x => Math.pow(bp, patternParams x)) T
-        val result = Math.ln(dotProduct l p)
-    in if Real.==(result,0.0) then Real.posInf else result
+        val sumProd = List.foldr (fn ((x,y),n) => x * y + n) 0.0
+        val lp = PropertySet.map (fn x => (Math.pow(real bl, lawParams x), Math.pow(bp, patternParams x))) T
+
+        val trans = List.exists (fn t => #2 (Property.getStringFunction "inference_type" t) = "transformation") (PropertySet.toList T)
+    in if trans then Real.posInf else Math.ln(sumProd lp)/Math.ln(2.0)
     end;
 
 fun solutionDepth qT =
     let val T = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic);
-        val occs = List.sumIndexed (fn t => #2 (Property.getNumFunction "uses" t) handle Property.NoAttribute _ => 0.0) T
+        val uses = List.sumIndexed (fn t => #2 (Property.getNumFunction "uses" t) handle Property.NoAttribute _ => 0.0) T
         val trans = List.exists (fn t => #2 (Property.getStringFunction "inference_type" t) = "transformation") T
-    in if trans then Real.posInf else Math.ln(occs)
+    in if trans then Real.posInf else Math.ln(1.0 + uses)/Math.ln(2.0)
     end;
 
 end;
