@@ -67,16 +67,6 @@ fun modifyImportances u qT =
     in QPropertySet.fromList (QPropertySet.map updImportance qT)
     end;
 
-fun collectOfKindPresentInQ qS k = QPropertySet.filter (fn x => (#2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false)
-                                                         orelse (#2 (Property.getNumFunction "uses" (QProperty.withoutImportance x)) > 0.0 handle Property.NoAttribute _ => false))
-                                                       (QPropertySet.collectOfKind qS k)
-
-fun gravity x = (Importance.weight (QProperty.importanceOf x))
-                  * #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x))
-
-fun logGravity x = (Importance.weight (QProperty.importanceOf x))
-                  * Math.ln(2.0 + #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)))/Math.ln(2.0)
-
 fun numberOfTokens qT =
     let val C = QPropertySet.toList (QPropertySet.collectOfKind qT Kind.Token)
     in List.sumIndexed (#2 o (Property.getNumFunction "occurrences") o QProperty.withoutImportance) C
@@ -92,7 +82,7 @@ fun varietyOfTokens qT =
 
 
 fun numberOfTokenTypes qT =
-    let val C = collectOfKindPresentInQ qT Kind.Token
+    let val C = QPropertySet.collectOfKindPresentInQ qT Kind.Token
         val T = QPropertySet.map (fn x => (Property.getTypeOfValue (QProperty.withoutImportance x), QProperty.importanceOf x)) C
         fun updI (x,i) [] = [(x,i)]
           | updI (x,i) ((x',i')::L) = if x = x' then (x,Importance.max (i,i'))::L else (x',i') :: updI (x,i) L
@@ -103,8 +93,8 @@ fun numberOfTokenTypes qT =
 
 
 fun numberOfExpressionTypes qT =
-    let val P = collectOfKindPresentInQ qT Kind.Pattern
-        val C = collectOfKindPresentInQ qT Kind.Token
+    let val P = QPropertySet.collectOfKindPresentInQ qT Kind.Pattern
+        val C = QPropertySet.collectOfKindPresentInQ qT Kind.Token
         fun getNonTrivialExpressionTypes [] = []
           | getNonTrivialExpressionTypes ((x,i)::X) =
             let val (typs,t) = Type.getInOutTypes (Property.getTypeOfValue x)
@@ -121,8 +111,8 @@ fun numberOfExpressionTypes qT =
 
 
 fun numberOfPatterns qT =
-    let val P = QPropertySet.map QProperty.withoutImportance (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.map QProperty.withoutImportance (collectOfKindPresentInQ qT Kind.Token)
+    let val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialC = List.filter (fn c => Pattern.arity c <> 0) C
     in List.sumIndexed (#2 o (Property.getNumFunction "occurrences")) (P @ nonTrivialC)
     end;
@@ -130,7 +120,7 @@ fun numberOfPatterns qT =
 
 
 fun varietyOfExpressions qT =
-    let val P = collectOfKindPresentInQ qT Kind.Pattern
+    let val P = QPropertySet.collectOfKindPresentInQ qT Kind.Pattern
     in real (QPropertySet.size P)
     end;
 
@@ -139,8 +129,8 @@ fun subRSVariety rT = real (PropertySet.size (PropertySet.collectOfKind rT Kind.
 
 
 fun tokenRegistration qT =
-    let val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-        val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
+    let val C = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
+        val P = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
         val patterns = P @ (map Pattern.fromQToken nonTrivialTokens)
         fun getReg c = #2 (Property.getNumFunction "token_registration" c) handle Property.NoAttribute _ => 1.0
@@ -176,29 +166,29 @@ fun tokenRegistration qT =
                               (* if token does not appear directly on patterns, but a hole with
                               the type of the token does, approximate it with that*)
                           end
-        val totalSum = List.weightedSumIndexed gravity ((regOfTk tkregs) o QProperty.withoutImportance) C
+        val totalSum = List.weightedSumIndexed QProperty.gravity ((regOfTk tkregs) o QProperty.withoutImportance) C
     in totalSum
     end;
 
 
 fun numberOfPatternsModulated qT =
-    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+    let val P = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-    in List.sumIndexed gravity (P @ nonTrivialC)
+    in List.sumIndexed QProperty.gravity (P @ nonTrivialC)
     end;
 
 fun numberOfPatternsModulatedSquared qT =
-    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+    let val P = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialC = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
-    in List.sumIndexed (fn x => Math.pow(gravity x,2.0)) (P @ nonTrivialC)
+    in List.sumIndexed (fn x => Math.pow(QProperty.gravity x,2.0)) (P @ nonTrivialC)
     end;
 
 fun numberOfObjectsModulated qT =
-    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
-    in List.sumIndexed gravity (P @ C)
+    let val P = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
+    in List.sumIndexed QProperty.gravity (P @ C)
     end;
 
 fun expressionRegistration qT rT =
@@ -214,15 +204,15 @@ fun expressionRegistration qT rT =
     end;
 
 fun expressionComplexity qT =
-    let val P = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Pattern)
-        val C = QPropertySet.toList (collectOfKindPresentInQ qT Kind.Token)
+    let val P = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Pattern)
+        val C = QPropertySet.toList (QPropertySet.collectOfKindPresentInQ qT Kind.Token)
         val nonTrivialTokens = List.filter (fn c => Pattern.arity (QProperty.withoutImportance c) <> 0) C
 
-        fun findAndUpdateByHoles p [] = [(p,[logGravity p])]
+        fun findAndUpdateByHoles p [] = [(p,[QProperty.logGravity p])]
           | findAndUpdateByHoles p ((p',gs)::L) =
             if Property.sameHoles (QProperty.withoutImportance p, QProperty.withoutImportance p') andalso
                Property.sameTokens (QProperty.withoutImportance p, QProperty.withoutImportance p')
-            then (p, logGravity p :: gs) :: L
+            then (p, QProperty.logGravity p :: gs) :: L
             else (p', gs) :: findAndUpdateByHoles p L;
         fun clusterByHoles [] = []
           | clusterByHoles (p::L) = findAndUpdateByHoles p (clusterByHoles L);
@@ -287,7 +277,7 @@ fun quantityScale qT =
         val corrT' = map (Correspondence.flip 1.0) corrT
 
         fun tp x = (QPropertySet.toList (PropertyTables.transformQProperty x arithT (corrT @ corrT')),
-                    logGravity x handle Property.NoAttribute _ => 1.0)
+                    QProperty.logGravity x handle Property.NoAttribute _ => 1.0)
         fun conc [] = []
           | conc ((t,n)::L) = (map (fn x => (x,n/(real (length t)))) t) @ conc L
         val pL = conc (QPropertySet.map tp qT)
@@ -364,7 +354,7 @@ fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT
 
 
 fun inferenceType qT =
-    let val T = collectOfKindPresentInQ qT Kind.Tactic;
+    let val T = QPropertySet.collectOfKindPresentInQ qT Kind.Tactic;
         fun wt x = (Math.ln(1.0 + #2 (Property.getNumFunction "uses" (QProperty.withoutImportance x))) * (Importance.weight (QProperty.importanceOf x)),
                     #2 (Property.getStringFunction "inference_type" (QProperty.withoutImportance x)))
         val S = QPropertySet.map wt T
