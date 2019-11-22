@@ -3,6 +3,8 @@ import "strategies.properties.correspondence";
 signature CORRESPONDENCEGRAPH =
 sig
 
+    exception MissingNode;
+
     type corrgraph;
 
     val toList : corrgraph -> Correspondence.correspondence list;
@@ -14,6 +16,7 @@ sig
                             Correspondence.correspondence list ->
                             corrgraph;
 
+    val hasDescendents : corrgraph -> Correspondence.correspondence -> bool;
     val directDescendents : corrgraph ->
                             Correspondence.correspondence ->
                             Correspondence.correspondence list;
@@ -26,6 +29,8 @@ end;
 structure CorrespondenceGraph :> CORRESPONDENCEGRAPH =
 struct
 
+exception MissingNode;
+
 datatype corrnode = CorrNode of (Correspondence.correspondence ref
                                  * corrnode ref list);
 type corrgraph = corrnode list;
@@ -34,7 +39,8 @@ type corrgraph = corrnode list;
 fun getNode cg c = List.hd (List.filter
                                 (fn CorrNode (c', ds) =>
                                     Correspondence.equal c (!c'))
-                                cg);
+                                cg)
+                   handle List.Empty => raise MissingNode;
 
 val fromList = map (fn c => CorrNode (ref c, []));
 
