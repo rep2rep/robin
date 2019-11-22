@@ -52,6 +52,11 @@ fun insertWithParents cg c ps =
     in
         (new) :: (map linkNew cg)
     end;
+
+fun hasDescendents cg c =
+    case getNode cg c of
+        CorrNode (_, ds) => List.null ds;
+
 fun directDescendents cg c =
     let
         val CorrNode (c', ds) = getNode cg c;
