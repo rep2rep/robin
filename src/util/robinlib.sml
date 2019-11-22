@@ -86,8 +86,9 @@ sig
 
     val filterOption : ('a option) list -> 'a list;
 
-    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool
+    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool;
 
+    val mapArgs : ('a -> 'b) -> 'a list -> ('a * 'b) list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
     val product : ('a list * 'b list) -> ('a * 'b) list;
@@ -116,6 +117,7 @@ sig
     val avgIndexed : ('a -> real) -> 'a list -> real;
     val weightedAvg : (real -> real) -> real list -> real;
     val avg : real list -> real;
+
     val argmax : ('a -> real) -> 'a list -> ('a * real);
     val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
@@ -189,7 +191,9 @@ fun isPermutationOf _ [] [] = true
   | isPermutationOf _ _ _ = false;
 
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+fun mapArgs f xs = map (fn x => (x, f x)) xs;
+
+fun flatmap f xs = concat (map f xs);
 
 fun product (xs, ys) =
     let
