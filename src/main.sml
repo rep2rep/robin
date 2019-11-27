@@ -38,6 +38,7 @@ fun parseArgs () =
 fun main () =
     let
         val today = Date.fmt "%Y-%m-%d" (Date.fromTimeLocal (Time.now()));
+        val version = "robin-" ^ ROBIN_VERSION;
         val ((qName, qRep), numAlternatives, rss, corrs) = parseArgs ();
         val rsFiles = if List.null rss
                       then filesMatchingPrefix "tables/" "RS_table_"
@@ -45,7 +46,10 @@ fun main () =
         val corrFiles = if List.null corrs
                         then filesMatchingPrefix "tables/" "correspondences_"
                         else map (fn c => "tables/correspondences_" ^ c ^ ".csv") corrs;
-        val _ = Logging.write ("BEGIN algorithm-trace-" ^ today ^ "\n");
+        val _ = Logging.write ("BEGIN algorithm-trace-"
+                               ^ today
+                               ^ " with "
+                               ^ version ^ "\n");
         val _ = RepSelect.init(rsFiles, corrFiles,
                                ["tables/Q_table_"
                                 ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
