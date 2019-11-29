@@ -54,7 +54,7 @@ fun reasonString (IDENTITY p) =
     "This is potentially a common attribute between " ^ (Property.toString p1) ^ " and " ^ (Property.toString p2) ^ ", which correspond";
 
 local fun covered c c' =
-          (Correspondence.sameProperties c c' (* andalso ((Correspondence.strength c) <= (Correspondence.strength c')) *));
+          (Correspondence.sameProperties c c'  andalso ((Correspondence.strength c) <= (Correspondence.strength c')) );
           (* orelse (Correspondence.implies c c'); (* A more general rule already exists *) *)
 in fun corrExists c cs = List.exists (covered c) cs end;
 
@@ -331,6 +331,13 @@ fun discover state' =
             CorrespondenceGraph.insertWithParents cg c [p]
           | insert cg c (VALUE (_, _, p)) =
             CorrespondenceGraph.insertWithParents cg c [p];
+        (* fun insert ans c [] = c::ans *)
+        (*   | insert ans c (c'::cs) = if (Correspondence.sameProperties c c') *)
+        (*                             then *)
+        (*                                 if (Correspondence.strength c) > (Correspondence.strength c') *)
+        (*                                 then ans @ (c::cs) *)
+        (*                                 else ans @ (c'::cs) *)
+        (*                             else insert (c'::ans) c cs; *)
         fun addCorr NONE s = s
           | addCorr (SOME (c', r)) (cs, rss, rs') = (insert cs c' r, rss, rs');
         fun extractCorr (corr, _, _) = corr;
