@@ -31,6 +31,9 @@ patterns,"$rectangle : {type := region;
           $intersection : {type := region;
                            holes := [region => 2];
                            token_registration := 1},
+          $same_region : {type := relationship;
+                          holes := [region =>2];
+                          token_registration := 1},
           $disjoint : {type := relation;
                        holes := [region => 2];
                        token_registration := 1},

@@ -102,7 +102,11 @@ relevant_tokens,"P : {type := set;
                  and : {type := CONJ;
                         occurrences := 1},
                  shaded : {type := ADJ;
-                           occurrences := 1}"
+                           occurrences := 1},
+                 $same_zone : {type := relationship;
+                               holes := [zone => 2];
+                               occurrences := 3;
+                               token_registration := 1}"
 relevant_patterns,"$containment : {type := relation;
                                    holes := [zone => 2];
                                    token_registration := 1;

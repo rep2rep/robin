@@ -85,6 +85,10 @@ relevant_patterns,"$containment : {type := relation;
                                            holes := [VP => 1];
                                            token_registration := 1;
                                            occurrences := 1},
+                   $same_zone : {type := relationship;
+                                 holes := [zone => 2];
+                                 occurrences := 3;
+                                 token_registration := 1},
                    APfromADJ : {type := AP;
                                 holes := [ADJ => 1];
                                 occurrences := 2;

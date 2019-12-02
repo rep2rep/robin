@@ -10,7 +10,7 @@ token-\cup,pattern-$union,1
 token-\cap,pattern-$intersection,1
 token-\Pr,pattern-$size OR pattern-$relative_size,1
 token-\mid,pattern-$relative_size,0.5
-token-= : {type := real * real -> formula},pattern-$same OR pattern-$same_size,0.5
+token-=,pattern-$same_region OR pattern-$same_size,1
 law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
 law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
 law-$non_negative_probability,law-$non_negative_area,1
