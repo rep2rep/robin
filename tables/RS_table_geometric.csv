@@ -13,7 +13,7 @@ patterns,"$rectangle : {type := region;
           $relative_size : {type := real measurement;
                             holes := [region => 2];
                             token_registration := 1},
-          $rectangles_side : {type := relation;
+          $rectangles_side : {type := relationship;
                               holes := [region => 1. segment => 1];
                               token_registration := 1},
           $difference: {type := region;
@@ -25,7 +25,7 @@ patterns,"$rectangle : {type := region;
           $sectioned_segment : {type := segment;
                                 holes := [segment => 2];
                                 token_registration := 1},
-          $rectangles_side : {type := relation;
+          $rectangles_side : {type := relationship;
                               holes := [region => 1. segment => 1];
                               token_registration := 1},
           $intersection : {type := region;
@@ -34,7 +34,7 @@ patterns,"$rectangle : {type := region;
           $same_region : {type := relationship;
                           holes := [region =>2];
                           token_registration := 1},
-          $disjoint : {type := relation;
+          $disjoint : {type := relationship;
                        holes := [region => 2];
                        token_registration := 1},
           $reference_by_label : {type := reference;

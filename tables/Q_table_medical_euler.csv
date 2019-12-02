@@ -16,7 +16,7 @@ instrumental_patterns,"|| : {type := real;
                                      token_registration := 1;
                                      udepth := 3;
                                      occurrences := 3},
-                       $containment : {type := relation;
+                       $containment : {type := relationship;
                                        holes := [zone => 2];
                                        token_registration := 1;
                                        occurrences := 2},
@@ -107,7 +107,7 @@ relevant_tokens,"P : {type := set;
                                holes := [zone => 2];
                                occurrences := 3;
                                token_registration := 1}"
-relevant_patterns,"$containment : {type := relation;
+relevant_patterns,"$containment : {type := relationship;
                                    holes := [zone => 2];
                                    token_registration := 1;
                                    occurrences := 7},
