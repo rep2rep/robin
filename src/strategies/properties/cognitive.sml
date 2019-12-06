@@ -193,12 +193,12 @@ fun numberOfObjectsModulated qT =
 
 fun expressionRegistration qT rT =
     let val M = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Mode)
-        fun modereg x = if Property.LabelOf x = "grid" then 1.0
-                   else if Property.LabelOf x = "containment" then 1.0
-                   else if Property.LabelOf x = "axial" then 2.0
+        fun modereg x = if Property.LabelOf x = "containment" then 1.0
                    else if Property.LabelOf x = "sentential" then 2.0
+                   else if Property.LabelOf x = "grid" then 2.0
+                   else if Property.LabelOf x = "axial" then 2.0
+                   else if Property.LabelOf x = "proportional" then 2.0
                    else if Property.LabelOf x = "connection" then 3.0
-                   else if Property.LabelOf x = "proportional" then 3.0
                    else (print "unknown mode"; raise Match)
     in Math.sqrt(numberOfPatternsModulatedSquared qT) * (List.avgIndexed modereg M)
     end;
