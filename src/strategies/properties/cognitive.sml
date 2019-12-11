@@ -230,19 +230,19 @@ fun expressionComplexity qT =
 
         fun cpx (p,gs) =
             let val x = QProperty.withoutImportance p
-                val _ = print ("\n    " ^ (Property.toString x))
+        (*        val _ = print ("\n    " ^ (Property.toString x))*)
                 val (L,(d,b,complexity)) = Pattern.satisfyPattern (QProperty.withoutImportance p)
                                                                   (map QProperty.withoutImportance C)
                                                                   (map QProperty.withoutImportance P)
                                                 handle Pattern.Unsatisfiable => ([],(1.0,1.0,1.0))
                 val arity = ar p
                 val g = List.sumIndexed (fn x => Math.pow(x,2.0)) gs
-                val _ = print ("\n        length of final DNF  : " ^ (Int.toString (length L)))
+        (*        val _ = print ("\n        length of final DNF  : " ^ (Int.toString (length L)))
                 val _ = print ("\n        depth                : " ^ (Real.toString d) ^ " ")
                 val _ = print ("\n        breadth              : " ^ (Real.toString b) ^ " ")
                 val _ = print ("\n        unweighted complexity: " ^ (Real.toString complexity) ^ " ")
                 val _ = print ("\n        arity                : " ^ (Real.toString arity) ^ " ")
-                val _ = print ("\n        gravity              : " ^ (Real.toString g) ^ " ")
+                val _ = print ("\n        gravity              : " ^ (Real.toString g) ^ " ")*)
             in  g * (complexity + arity)
             end
 
@@ -312,7 +312,7 @@ fun conceptMapping kind idealqT qT =
         fun clusterByImportance [] = []
           | clusterByImportance (x::L) = findAndInsertByImportance x (clusterByImportance L)
 
-        val qT' = QPropertySet.filter (fn x => Property.kindOf (QProperty.withoutImportance x) = kind andalso present x) qT
+        val qT' = QPropertySet.filter (fn x => (*Property.kindOf (QProperty.withoutImportance x) = kind andalso*) present x handle Property.NoAttribute _ => false) qT
         val clusteredqT = clusterByImportance (QPropertySet.toList qT')
         val clusteredIdealqT = clusterByImportance (QPropertySet.toList idealqT)
 

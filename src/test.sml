@@ -220,7 +220,7 @@ fun cognitiveScores u qL crunch =
         val c1 = map (fn (_,v) => v) (tokenRegistration_score u qL crunch)
         val c2 = map (fn (_,v) => v) (expressionRegistration_score u qL crunch)
         val c3 = map (fn (_,v) => v) (tokenConceptMapping_score u qL crunch)
-        val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)
+  (*    val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)*)
         val c5 = map (fn (_,v) => v) (numberOfTokenTypes_score u qL crunch)
         val c6 = map (fn (_,v) => v) (numberOfExpressionTypes_score u qL crunch)
         val c7 = map (fn (_,v) => v) (quantityScale_score u qL crunch)
@@ -230,14 +230,14 @@ fun cognitiveScores u qL crunch =
         val c11 = map (fn (_,v) => v) (subRSVariety_score u qL crunch)
         val c12 = map (fn (_,v) => v) (problemSpaceBranchingFactor_score u qL crunch)
         val c13 = map (fn (_,v) => v) (solutionDepth_score u qL crunch)
-        val totals = Vect.vectorSum [c1,c2,c3,c4,c5,c6,c7,c8,(*c9,*)c10,c11,c12,c13]
+        val totals = Vect.vectorSum [c1,c2,c3,(*c4,*)c5,c6,c7,c8,(*c9,*)c10,c11,c12,c13]
         val userS = (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^")"
         val csvText = "\n\n" ^
                       (String.concat (List.intersperse " , " (userS::rss)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("token registration" :: map printableNumber c1)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression registration" :: map printableNumber c2)) ^ "  \n") ^
-                      (String.concat (List.intersperse " , " ("token-concept mapping" :: map printableNumber c3)) ^ "  \n") ^
-                      (String.concat (List.intersperse " , " ("expression-concept mapping" :: map printableNumber c4)) ^ "  \n") ^
+                      (String.concat (List.intersperse " , " ("concept mapping" :: map printableNumber c3)) ^ "  \n") ^
+                (*    (String.concat (List.intersperse " , " ("expression-concept mapping" :: map printableNumber c4)) ^ "  \n") ^*)
                       (String.concat (List.intersperse " , " ("number of token types" :: map printableNumber c5)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("number of expression types" :: map printableNumber c6)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("quantity scale":: map printableNumber c7)) ^ "  \n") ^

@@ -1,5 +1,7 @@
-type-number,type-segment OR type-region,0.75
-type-occurrence OR type-class,type-segment OR type-region,1
+type-ratio OR pattern-$class_ratio,type-segment OR type-region OR pattern-$relative_size OR pattern-$size,1
+type-occurrence OR type-class,type-segment OR type-region,0.75
+type-type-N,type-region,0.25
+pattern-$conditional_probability,pattern-$relative_size AND pattern-$contained,1
 token-none OR token-empty, token-$dot OR token-$segment,1
 token-zero, token-$dot,1
 token-universe OR token-all,type-region,1
@@ -7,13 +9,13 @@ token-plus,tactic-join,0.25
 token-minus,tactic-delete,0.25
 token-times,tactic-area,0.25
 token-divided_by,tactic-compare_sizes,0.75
-token-union OR token-or,tactic-join,1
+token-union OR token-or,pattern-$union,1
 token-intersection OR token-and,tactic-distinguish,1
 token-probability,tactic-area OR tactic-compare_sizes,1
-token-given OR token-if,tactic-focus_on_region,1
-token-if AND (NOT token-given),tactic-focus_on_region,-0.25
-token-equals,tactic-observe,1
+token-given OR token-if,pattern-$intersection,0.25
+token-not,pattern-$difference,0.5
+token-if,pattern-$intersection,0.25
+token-equals OR token-is,pattern-$same_region,1
 law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
 law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
-law-$non_negative_probability,law-non-negative-area,1
-pattern-$class_ratio,pattern-$section,1
+law-$non_negative_probability,law-non_negative_area,1

@@ -13,6 +13,9 @@ patterns,"$rectangle : {type := region;
           $relative_size : {type := real measurement;
                             holes := [region => 2];
                             token_registration := 1},
+          $contained : {type := relationship;
+                         holes := [region => 2];
+                         token_registration := 1},
           $rectangles_side : {type := relationship;
                               holes := [region => 1. segment => 1];
                               token_registration := 1},
