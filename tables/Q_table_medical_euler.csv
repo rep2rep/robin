@@ -16,7 +16,7 @@ instrumental_patterns,"|| : {type := real;
                                      token_registration := 1;
                                      udepth := 3;
                                      occurrences := 3},
-                       $containment : {type := relation;
+                       $containment : {type := relationship;
                                        holes := [zone => 2];
                                        token_registration := 1;
                                        occurrences := 2},
@@ -103,7 +103,7 @@ relevant_tokens,"P : {type := set;
                         occurrences := 1},
                  shaded : {type := ADJ;
                            occurrences := 1}"
-relevant_patterns,"$containment : {type := relation;
+relevant_patterns,"$containment : {type := relationship;
                                    holes := [zone => 2];
                                    token_registration := 1;
                                    occurrences := 7},
@@ -124,6 +124,10 @@ relevant_patterns,"$containment : {type := relation;
                                   holes := [zone => 2];
                                   occurrences := 6;
                                   token_registration := 1},
+                  $same_zone : {type := relationship;
+                                holes := [zone => 2];
+                                occurrences := 3;
+                                token_registration := 1},
                    $reference_by_texture : {type := reference;
                                             holes := [texture => 1. zone => 1];
                                             token_registration := 3;

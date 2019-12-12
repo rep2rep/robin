@@ -9,12 +9,12 @@ tokens,"$cell : {type:= cell},
         = : {type:= real * real -> formula},
         SUM : {type:= cell set -> real},
         PRODUCT: {type:= cell set -> real}"
-patterns,"$in_same_row : {type := relation;
+patterns,"$in_same_row : {type := relationship;
                                        holes := [cell => 2];
                                        occurrences := 6;
                                        tokens := [];
                                        token_registration := 2},
-           $in_same_column : {type := relation;
+           $in_same_column : {type := relationship;
                               holes := [cell => 2];
                               occurrences := 6;
                               tokens := [];
