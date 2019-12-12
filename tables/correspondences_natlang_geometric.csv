@@ -1,6 +1,5 @@
-type-ratio OR pattern-$class_ratio,type-segment OR type-region OR pattern-$relative_size OR pattern-$size,1
-type-occurrence OR type-class,type-segment OR type-region,0.75
-type-type-N,type-region,0.25
+type-ratio OR pattern-$class_ratio,pattern-$relative_size OR pattern-$size,1
+type-occurrence OR type-class OR type-N,type-segment OR type-region,0.75
 pattern-$conditional_probability,pattern-$relative_size AND pattern-$contained,1
 token-none OR token-empty, token-$dot OR token-$segment,1
 token-zero, token-$dot,1
@@ -18,4 +17,4 @@ token-if,pattern-$intersection,0.25
 token-equals OR token-is,pattern-$same_region,1
 law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
 law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
-law-$non_negative_probability,law-non_negative_area,1
+law-$non_negative_probability,law-$non_negative_area,1

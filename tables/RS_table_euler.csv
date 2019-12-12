@@ -10,7 +10,7 @@ patterns,"$disjoint :{type := relationship; holes :=[zone=>2]},
           $contained:{type := relationship; holes :=[zone=>2]},
           $intersection:{type := zone; holes :=[zone=>2]},
           $union:{type := zone; holes :=[zone=>2]},
-          $same_zone : {type := relationship; holes := [zone =>2];token_registration := 1}"
+          $same_zone : {type := relationship; holes := [zone =>2]; token_registration := 1}"
 law_imports,NONE
 tactics,"add_contour : {laws := 0;
                         patterns := 0},

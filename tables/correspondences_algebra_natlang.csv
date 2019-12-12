@@ -1,6 +1,6 @@
 type-integer,type-number,0.9
 type-integer,type-integer,1
-type-integer,type-number AND type-integer,-0.9
+type-integer,(NOT type-number) OR (NOT type-integer),0.9
 token-0,token-zero,1
 token-1,token-one,1
 token-2,token-two,1
