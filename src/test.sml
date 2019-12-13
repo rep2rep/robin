@@ -62,9 +62,13 @@ fun crunch_raw L =
     end;
 
 fun crunch_norm L =
-    let val max = #2 (List.argmax #2 L)
-        val min = #2 (List.argmin #2 L)
-        val normL = map (fn (x,v) => (x, 1.0 * (v - min) / (max - min))) L
+    let val max = #2 (List.argmax (fn x => if Real.==(#2 x,Real.posInf) then Real.negInf else #2 x) L)
+        val min = #2 (List.argmin (fn x => if Real.==(#2 x,Real.negInf) then Real.posInf else #2 x) L)
+        val normL = map (fn (x,v) => (x, if Real.== (v, Real.posInf)
+                                          then ((((max - min) / real (length L)) + (max + min) / 2.0) - min) /  (max - min)
+                                          else if Real.== (v, Real.negInf)
+                                                then (1.0 * (min - 1.0) - min) / (max - min)
+                                                else 100.0 * (v - min) / (max - min))) L
         val sorted = List.mergesort RS_order normL
     in sorted
     end;
@@ -251,6 +255,52 @@ fun cognitiveScores u qL crunch =
     in (print csvText)
     end;
 
+
+    fun numberWithCellColour x = (printableNumber x) ^ "\\cellcolor{darkgray!" ^ printableNumber ((Math.ln (1.0+x))/Math.ln 1.12) ^ "}";
+
+    fun cognitiveScores_latex u qL crunch =
+        let val w1 = 1.0
+            val w2 = 2.0
+            val w3 = 4.0
+            val u1 = 0.5
+            val u2 = 1
+            val u3 = 2
+            val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
+            val [w1,w2,w3,w5,w6,w7,w8,w10,w11,w12,w13] = [0.5,0.5,2.0,1.0,1.0,2.0,2.0,2.0,4.0,4.0,4.0]
+            val c1 = map (fn (_,v) => w1*v) (tokenRegistration_score u qL crunch)
+            val c2 = map (fn (_,v) => w2*v) (expressionRegistration_score u qL crunch)
+            val c3 = map (fn (_,v) => w3*v) (tokenConceptMapping_score u qL crunch)
+      (*    val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)*)
+            val c5 = map (fn (_,v) => w5*v) (numberOfTokenTypes_score u qL crunch)
+            val c6 = map (fn (_,v) => w6*v) (numberOfExpressionTypes_score u qL crunch)
+            val c7 = map (fn (_,v) => w7*v) (quantityScale_score u qL crunch)
+            val c8 = map (fn (_,v) => w8*v) (expressionComplexity_score u qL crunch)
+      (*    val c9 = map (fn (_,v) => v) (arity_score u qL crunch)*)
+            val c10 = map (fn (_,v) => w10*v) (inferenceType_score u qL crunch)
+            val c11 = map (fn (_,v) => w11*v) (subRSVariety_score u qL crunch)
+            val c12 = map (fn (_,v) => w12*v) (problemSpaceBranchingFactor_score u qL crunch)
+            val c13 = map (fn (_,v) => w13*v) (solutionDepth_score u qL crunch)
+            val totals = Vect.vectorSum [c1,c2,c3,(*c4,*)c5,c6,c7,c8,(*c9,*)c10,c11,c12,c13]
+            val userS = (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^")"
+            val latexText = "\n\n" ^
+                          (String.concat (List.intersperse " & " (userS::rss)) ^ "\\\\ \n") ^
+                          (String.concat (List.intersperse " & " ("tr" :: map numberWithCellColour (c1))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("er" :: map numberWithCellColour (c2))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("cm" :: map numberWithCellColour (c3))) ^ "\\\\  \n") ^
+                    (*    (String.concat (List.intersperse " , " ("expression-concept mapping" :: map printableNumber c4)) ^ "  \n") ^*)
+                          (String.concat (List.intersperse " & " ("tt" :: map numberWithCellColour (c5))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("et" :: map numberWithCellColour (c6))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("qs":: map numberWithCellColour (c7))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("ec":: map numberWithCellColour (c8))) ^ "\\\\  \n") ^
+                    (*    (String.concat (List.intersperse " , " ("arity":: map printableNumber c9)) ^ "  \n") ^*)
+                          (String.concat (List.intersperse " & " ("it":: map numberWithCellColour (c10))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("sr":: map numberWithCellColour (c11))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("bf":: map numberWithCellColour (c12))) ^ "\\\\  \n")^
+                          (String.concat (List.intersperse " & " ("sd":: map numberWithCellColour (c13))) ^ "\\\\  \n")
+                        (*    (String.concat (List.intersperse " , " ("Total" :: "" :: map printableNumber totals)) ^ "  \n")*)
+        in (print latexText)
+        end;
+
 val B = loadQs "medical";
 val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Token);
 val C' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) C
@@ -260,6 +310,10 @@ val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);
 val p3 = List.nth (P,2);
 
+
+val _ = cognitiveScores_latex (3.0/6.0) B crunch_norm;
+val _ = cognitiveScores_latex (5.0/6.0) B crunch_norm;
+val _ = cognitiveScores_latex (1.0/6.0) B crunch_norm;
 
 val _ = cognitiveScores (3.0/6.0) B crunch_raw;
 val _ = cognitiveScores (5.0/6.0) B crunch_raw;
