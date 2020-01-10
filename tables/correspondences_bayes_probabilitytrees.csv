@@ -8,3 +8,4 @@ law-$unit_measure,law-$total_arrows_1 OR law-$total_leaves_1,1
 law-$law_of_total_probability,law-$path_sum,1
 token-\Pr,pattern-$value_of_node OR pattern-$value_of_arrow,1
 token-=,pattern-$path_equivalence,0.75
+law-$Bayes'_theorem,law-$path_multiplication OR law-$equivalent_paths,1
