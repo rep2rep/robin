@@ -4,12 +4,12 @@ error_allowed, 0
 answer_type, real
 instrumental_tokens,""
 instrumental_types,"cell"
-instrumental_patterns,"$in_same_row : {type := relation;
+instrumental_patterns,"$in_same_row : {type := relationship;
                                        holes := [cell => 2];
                                        occurrences := 6;
                                        tokens := [];
                                        token_registration := 2},
-                       $in_same_column : {type := relation;
+                       $in_same_column : {type := relationship;
                                           holes := [cell => 2];
                                           occurrences := 6;
                                           tokens := [];
@@ -94,12 +94,12 @@ relevant_tokens,"$cell_r : {type := cell;
                       occurrences := 0},
                  $comma : {type := delimiter;
                            occurrences := 1}"
-relevant_patterns,"$in_same_row : {type := relation;
+relevant_patterns,"$in_same_row : {type := relationship;
                                    holes := [cell => 2];
                                    occurrences := 18;
                                    tokens := [];
                                    token_registration := 2},
-                   $in_same_column : {type := relation;
+                   $in_same_column : {type := relationship;
                                       holes := [cell => 2];
                                       occurrences := 18;
                                       tokens := [];

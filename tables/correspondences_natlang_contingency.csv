@@ -1,4 +1,5 @@
-type-class OR type-occurrence,type-cell,0.75
+type-class OR type-occurrence OR type-N,type-column OR type-row,0.75
+pattern-$conditional_probability OR pattern-$class_ratio,pattern-$value_relative_to_row_total OR pattern-$value_relative_to_column_total,0.75
 token-union,token-SUM,0.25
 token-intersection,token-PRODUCT,0.25
 token-probability,tactic-get_value OR tactic-compare_values,0.5
