@@ -1,5 +1,6 @@
 import "util.logging";
 import "util.set";
+import "util.listset";
 import "util.dictionary";
 import "util.csv";
 
@@ -44,28 +45,23 @@ fun init (repTables, corrTables, qTables) = let
         handle TableDict.KeyError => (Logging.error "An RS table has been duplicated"; raise TableDict.KeyError);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
 
-    fun dedupCorrespondences [] = []
-      | dedupCorrespondences (x::xs) = let
-          fun removeCorr y [] = []
-            | removeCorr y (z::zs) =
-              if Correspondence.matchingProperties y z
-              then (
-                  if Correspondence.equal y z then
-                      removeCorr y zs
-                  else
-                      (Logging.error ("ERROR: Conflicting correspondences:\n");
-                       Logging.error ("\t" ^
-                                      (Correspondence.toString y) ^
-                                      "\n");
-                       Logging.error ("\t" ^
-                                      (Correspondence.toString z) ^
-                                      "\n");
-                       raise Fail "Conflicting correspondence values")
-              )
-              else z::(removeCorr y zs);
-      in
-          x::(dedupCorrespondences (removeCorr x xs))
-      end;
+    fun dedupCorrespondences cs =
+        let fun eq (x, y) =
+                if Correspondence.matchingProperties x y
+                then if Correspondence.equal x y
+                     then true
+                     else (Logging.error
+                               ("ERROR: Conflicting correspondences:\n");
+                           Logging.error ("\t" ^
+                                          (Correspondence.toString x) ^
+                                          "\n");
+                           Logging.error ("\t" ^
+                                          (Correspondence.toString y) ^
+                                          "\n");
+                          raise Fail "Conflicting correspondence values")
+                else false;
+        in ListSet.removeDuplicates eq cs end;
+
     val correspondingTable = dedupCorrespondences (
             List.concat
                 (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
