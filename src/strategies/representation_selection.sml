@@ -34,17 +34,6 @@ val correspondingTable' = ref [];
 val propertyTableQ' = ref (TableDict.empty ());
 
 fun init (repTables, corrTables, qTables) = let
-
-    val _ = Logging.write "\n-- Load the representation tables\n";
-    fun rsTableToDict (rs, props) = TableDict.fromPairList [((rs, rs), props)];
-    val propertyTableRep =
-        TableDict.unionAll
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             rsTableToDict (PropertyTables.loadRepresentationTable t)))
-                   repTables)
-        handle TableDict.KeyError => (Logging.error "An RS table has been duplicated"; raise TableDict.KeyError);
-    val _ = Logging.write "\n-- Load the correspondence tables\n";
-
     fun dedupCorrespondences cs =
         let fun eq (x, y) =
                 if Correspondence.matchingProperties x y
@@ -62,19 +51,34 @@ fun init (repTables, corrTables, qTables) = let
                 else false;
         in ListSet.removeDuplicates eq cs end;
 
+    val _ = Logging.write "\n-- Load the correspondence tables\n";
     val correspondingTable = dedupCorrespondences (
             List.concat
                 (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                                PropertyTables.loadCorrespondenceTable t))
                      corrTables));
 
+    val _ = Logging.write "\n-- Load the representation tables\n";
+    val propertyTableRep =
+        let fun loadTable tName =
+                let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
+                    val (rs, props) = PropertyTables.loadRepresentationTable tName;
+                in ((rs, rs), props) end;
+        in TableDict.fromPairList (map loadTable repTables) end
+        handle TableDict.KeyError => (
+            Logging.error "An RS table has been duplicated";
+            raise TableDict.KeyError);
+
     val _ = Logging.write "\n-- Load the question tables\n";
-    fun qTableToDict pair = TableDict.fromPairList [pair];
     val propertyTableQ =
-        TableDict.unionAll
-            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                           qTableToDict (PropertyTables.loadQuestionTable t)))
-                 qTables);
+        let fun loadTable tName =
+                let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
+                    val (q, props) = PropertyTables.loadQuestionTable tName;
+                in (q, props) end;
+        in TableDict.fromPairList (map loadTable qTables) end
+        handle TableDict.KeyError => (
+            Logging.error "A Q table has been duplicated";
+            raise TableDict.KeyError);
 
 in
     propertyTableRep' := propertyTableRep;
@@ -99,7 +103,7 @@ fun getQTable q = (q, propertiesQ q);
 fun getRSTable rs = (rs, propertiesRS rs);
 
 (*
-propInfluence : (question * representation * float) -> (question * representation * float)
+propInfluence : (question * representation * score) -> (question * representation * score)
 For the given question and representation, adjust the score based on
 their properties.
 *)
