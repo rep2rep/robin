@@ -271,9 +271,8 @@ fun transformQPropertySet qProperties targetProperties corrTable =
             let fun liftImportance c =
                     map (fn i => (c, i))
                         (Correspondence.liftImportances qProperties c);
-                val correspondences = allCorrespondenceMatches corrTable
-                                                               sourceProps
-                                                               targetProperties;
+                val correspondences = CorrespondenceList.allMatches
+                                          corrTable sourceProps targetProperties;
             in List.flatmap liftImportance correspondences end;
         val newProperties = SQ.unionAll (List.map translateProperty matches);
         val errorAllowed = SQ.find

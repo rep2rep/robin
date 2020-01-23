@@ -115,29 +115,30 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG q = " ^ (#1 q) ^ ":" ^ (#2 q) ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
-        val qProps' = propertiesQ q;
-        val qProps = QPropertySet.withoutImportances qProps';
+        val qProps = propertiesQ q;
+        val qProps' = QPropertySet.withoutImportances qProps;
         val rProps = propertiesRS r;
-        val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
+        val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps) ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
 
         val baseMatches =
             let fun liftImportance c =
                     (c, List.max (Importance.compare)
-                            (Correspondence.liftImportances qProps' c));
-                val correspondences = allCorrespondenceMatches
+                            (Correspondence.liftImportances qProps c));
+                val correspondences = CorrespondenceList.allMatches
                                           (!correspondingTable')
-                                          qProps rProps;
+                                          qProps' rProps;
             in map liftImportance correspondences end;
 
-        val typeMatches = typeCorrespondences baseMatches qProps';
+        val typeMatches = CorrespondenceList.typeCorrespondences
+                              baseMatches qProps;
 
         (* Sort correspondences from most to least important *)
         val sort = List.mergesort
                        (Comparison.rev (fn ((_, i), (_, i')) =>
                                    Importance.compare (i, i')));
         val matches = (sort baseMatches) @ typeMatches;
-        val matchGroups = [matches]; (* TODO: MRMC *)
+        val matchGroups = CorrespondenceList.mrmc matches qProps rProps;
 
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
