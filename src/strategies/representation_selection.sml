@@ -116,7 +116,6 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps = propertiesQ q;
-        val qProps' = QPropertySet.withoutImportances qProps;
         val rProps = propertiesRS r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps) ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
@@ -127,7 +126,7 @@ fun propInfluence (q, r, s) =
                             (Correspondence.liftImportances qProps c));
                 val correspondences = CorrespondenceList.allMatches
                                           (!correspondingTable')
-                                          qProps' rProps;
+                                          qProps rProps;
             in map liftImportance correspondences end;
 
         val typeMatches = CorrespondenceList.typeCorrespondences

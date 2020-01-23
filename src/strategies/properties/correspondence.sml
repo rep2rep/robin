@@ -190,7 +190,7 @@ sig
 
     val allMatches :
         Correspondence.correspondence list
-        -> PropertySet.t PropertySet.set
+        -> QPropertySet.t QPropertySet.set
         -> PropertySet.t PropertySet.set
         -> Correspondence.correspondence list;
     val typeCorrespondences :
@@ -212,11 +212,12 @@ structure F = Correspondence.F;
 
 fun allMatches corrs qProps rProps =
     let
+        val qProps' = QPropertySet.withoutImportances qProps;
         fun alreadyCorr cs c = List.exists (Correspondence.matchingProperties c) cs;
-        val baseCorrs = List.filter (Correspondence.match qProps rProps) corrs;
+        val baseCorrs = List.filter (Correspondence.match qProps' rProps) corrs;
         val identities = PropertySet.map
                              Correspondence.identity
-                             (PropertySet.collectLeftMatches qProps rProps);
+                             (PropertySet.collectLeftMatches qProps' rProps);
         val newIdentities = List.filter (fn c => not (alreadyCorr baseCorrs c))
                                         identities;
     in

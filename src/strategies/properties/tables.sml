@@ -245,7 +245,7 @@ in
     loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
-fun transformQPropertySet qProperties targetProperties corrTable =
+fun transformQPropertySet sourceProperties targetProperties corrTable =
     let
         fun translateProperty (correspondence, importance) =
             let
@@ -256,8 +256,9 @@ fun transformQPropertySet qProperties targetProperties corrTable =
                                       Kind.NumDistinctTokens];
                 val propertyKinds = SK.difference allKinds badKinds;
                 val strength = Correspondence.strength correspondence;
-                val properties = S.filter (fn p => SK.contains propertyKinds
-                                                               (Property.kindOf p))
+                val properties = S.filter (fn p =>
+                                              SK.contains propertyKinds
+                                                          (Property.kindOf p))
                                           (Correspondence.rightMatches
                                                targetProperties correspondence);
                 val makeQProperty = fn p => QProperty.fromPair (p, importance);
@@ -266,18 +267,18 @@ fun transformQPropertySet qProperties targetProperties corrTable =
                 then qset' (S.map makeQProperty properties)
                 else SQ.empty ()
             end;
-        val sourceProps = SQ.withoutImportances qProperties;
         val matches =
             let fun liftImportance c =
                     map (fn i => (c, i))
-                        (Correspondence.liftImportances qProperties c);
+                        (Correspondence.liftImportances sourceProperties c);
                 val correspondences = CorrespondenceList.allMatches
-                                          corrTable sourceProps targetProperties;
+                                          corrTable
+                                          sourceProperties targetProperties;
             in List.flatmap liftImportance correspondences end;
         val newProperties = SQ.unionAll (List.map translateProperty matches);
-        val errorAllowed = SQ.find
-                               (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
-                               qProperties;
+        val errorAllowed =
+            SQ.find (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
+                    sourceProperties;
         val _ = case errorAllowed of
                     SOME ea => SQ.insert newProperties ea
                   | NONE => ();
