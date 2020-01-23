@@ -121,22 +121,26 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
 
-        val matches =
+        val baseMatches =
             let fun liftImportance c =
                     (c, List.max (Importance.compare)
                             (Correspondence.liftImportances qProps' c));
-                val correspondences = allCorrespondenceMatches (!correspondingTable')
-                                                               qProps rProps;
+                val correspondences = allCorrespondenceMatches
+                                          (!correspondingTable')
+                                          qProps rProps;
             in map liftImportance correspondences end;
 
-        val typeMatches = typeCorrespondences matches qProps';
+        val typeMatches = typeCorrespondences baseMatches qProps';
 
-        val modulate = Importance.modulate;
-        val strength = Correspondence.strength;
         (* Sort correspondences from most to least important *)
         val sort = List.mergesort
                        (Comparison.rev (fn ((_, i), (_, i')) =>
                                    Importance.compare (i, i')));
+        val matches = (sort baseMatches) @ typeMatches;
+        val matchGroups = [matches]; (* TODO: MRMC *)
+
+        val modulate = Importance.modulate;
+        val strength = Correspondence.strength;
         val mix = fn ((c, i), s) =>
                      let
                          val s' = s + (modulate i (strength c));
@@ -155,7 +159,7 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.foldl mix s ((sort matches) @ typeMatches);
+        val s' = List.max Real.compare (map (List.foldl mix s) matchGroups);
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("
