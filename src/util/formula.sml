@@ -15,6 +15,7 @@ signature FORMULA =
 sig
 
     exception ParseError;
+    exception NormalisationError;
 
     datatype 'a formula = Atom of 'a
                         | Neg of 'a formula
@@ -22,6 +23,9 @@ sig
                         | Disj of 'a formula * 'a formula;
 
     val normalise : 'a formula -> 'a formula;
+    val clauses : 'a formula -> ('a list * 'a list) list;
+    (* A clause is a pair of lists, the first with the positive atoms,
+       the second with the negated atoms. *)
 
     val equal : ('a * 'a -> bool) -> ('a formula * 'a formula) -> bool;
 
@@ -42,6 +46,7 @@ functor Formula(Format :
 struct
 
 exception ParseError;
+exception NormalisationError;
 
 datatype 'a formula = Atom of 'a
                     | Neg of 'a formula
@@ -50,21 +55,17 @@ datatype 'a formula = Atom of 'a
 
 fun normalise (Atom a) = Atom a
   | normalise (Neg a) =
-    let
-        val a' = normalise a;
-    in
-        case a' of
+    let val a' = normalise a;
+    in case a' of
             Atom t => Neg (Atom t)
           | Neg t => t
           | Conj (t, u) => normalise (Disj (Neg t, Neg u))
           | Disj (t, u) => normalise (Conj (Neg t, Neg u))
     end
   | normalise (Conj (a, b)) =
-    let
-        val a' = normalise a;
+    let val a' = normalise a;
         val b' = normalise b;
-    in
-        case (a', b') of
+    in case (a', b') of
             (Disj (t, u), v) => normalise (Disj (Conj (t, v),
                                                  Conj (u, v)))
           | (t, Disj(u, v)) => normalise (Disj (Conj (t, u),
@@ -72,12 +73,22 @@ fun normalise (Atom a) = Atom a
           | (u, v) => Conj (u, v)
     end
   | normalise (Disj (a, b)) =
-    let
-        val a' = normalise a;
+    let val a' = normalise a;
         val b' = normalise b;
-    in
-        Disj (a', b')
-    end;
+    in Disj (a', b') end;
+
+fun clauses f =
+    let val f' = normalise f;
+        fun clausify (Atom a) = ([a], [])
+          | clausify (Neg (Atom a)) = ([], [a])
+          | clausify (Conj (t, u)) =
+            let val (p1, n1) = clausify t;
+                val (p2, n2) = clausify u;
+            in (p1 @ p2, n1 @ n2) end
+          | clausify _ = raise NormalisationError;
+        fun clauses' (Disj (t, u)) = (clauses' t) @ (clauses' u)
+          | clauses' t = [clausify t]
+    in clauses' f' end;
 
 fun fold a _ _ _ (Atom x) = a x
   | fold a n c d (Neg x) = n(fold a n c d x)

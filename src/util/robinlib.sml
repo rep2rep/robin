@@ -15,6 +15,8 @@ sig
     val imported__asFilenames__ : unit -> string list;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val flip : ('a * 'b) -> ('b * 'a);
+    val fst : ('a * 'b) -> 'a;
+    val snd : ('a * 'b) -> 'b;
 end;
 
 
@@ -54,6 +56,10 @@ fun spread f (a, b) = (f a, f b);
 
 fun flip (a, b) = (b, a);
 
+fun fst (a, b) = a;
+
+fun snd (a, b) = b;
+
 end;
 
 
@@ -65,6 +71,7 @@ sig
 
     val remove : ''a -> ''a list -> ''a list;
     val removeDuplicates : ''a list -> ''a list;
+    val inout : 'a list -> ('a * 'a list) list;
 
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
 
@@ -114,6 +121,11 @@ fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 
 fun removeDuplicates [] = []
   | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
+
+fun inout lst =
+    let fun loop ans _ [] = List.rev ans
+          | loop ans ys (x::xs) = loop ((x, (List.rev ys)@xs)::ans) (x::ys) xs;
+    in loop [] [] lst end;
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
