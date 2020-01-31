@@ -12,7 +12,7 @@ instrumental_patterns,"$path : {type := path;
                                 holes := [node => log(#t). arrow => log(#t)];
                                 token_registration := 2;
                                 occurrences := 6},
-                       $path_equivalence : {type := relation;
+                       $path_equivalence : {type := relationship;
                                             holes := [path => 2];
                                             token_registration := 3;
                                             occurrences := 2},
@@ -61,7 +61,7 @@ relevant_patterns,"$path : {type := path;
                             holes := [node => log(#t). arrow => log(#t)];
                             token_registration := 2;
                             occurrences := 2},
-                   $path_equivalence : {type := relation;
+                   $path_equivalence : {type := relationship;
                                         holes := [path => 2];
                                         token_registration := 3;
                                         occurrences := 26},
