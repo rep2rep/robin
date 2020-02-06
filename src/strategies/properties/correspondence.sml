@@ -2,6 +2,7 @@ import "util.set";
 import "util.dictionary";
 import "util.formula";
 import "util.parser";
+import "util.algorithms";
 
 import "strategies.properties.property";
 import "strategies.properties.importance";
@@ -185,6 +186,9 @@ fun fromString s =
 
 end;
 
+
+
+
 signature CORRESPONDENCELIST =
 sig
 
@@ -277,15 +281,6 @@ fun mrmc corrs qProps rProps =
                 val redundant = difference dupU newU;
             in (length missing) + (length redundant) end;
 
-        (* Generic backtracking algorithm *)
-        fun backtrack (done : state -> bool)
-                      (next : state -> state list)
-                      (start : state) : state list =
-            let fun loop state =
-                    if done state then [state]
-                    else List.flatmap loop (next state);
-            in loop start end;
-
         (* Find the best covers of the universe from the subsets *)
         fun findCovers (universe : U) (subsets : subset list) : subset list list =
             let fun sortByScore subs =
@@ -302,7 +297,7 @@ fun mrmc corrs qProps rProps =
                     (* Add in a new subset, ordered by "best" gain *)
                     sortByScore (map (fn (s, rest') => (s::subs, rest'))
                                      (List.inout rest));
-            in map fst (backtrack done next ([], subsets)) end;
+            in map fst (Algorithms.backtrack done next ([], subsets)) end;
 
         val corrsAsSubs = List.flatmap split (map fst corrs);
         val _ = print (List.toString subsetToString corrsAsSubs ^ "\n");
