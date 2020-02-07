@@ -15,12 +15,12 @@ fun filesMatchingPrefix dir prefix =
     end;
 
 fun loadQs problem =
-    let val paths = filesMatchingPrefix "tables/" ("Q_table_" ^ problem)
+    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("Q_table_" ^ problem)
     in map PropertyTables.loadQuestionTable paths
     end;
 
 fun loadQ q rs =
-    let val paths = filesMatchingPrefix "tables/" ("Q_table_" ^ q ^ "_" ^ rs)
+    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("Q_table_" ^ q ^ "_" ^ rs)
         val L = map PropertyTables.loadQuestionTable paths
     in if length L > 1 then raise Fail "ambiguous Q" else
        if length L = 0 then raise Fail ("no Q with this name: " ^ ("Q_table_" ^ q ^ rs)) else
@@ -28,7 +28,7 @@ fun loadQ q rs =
     end;
 
 fun loadRS rs =
-    let val paths = filesMatchingPrefix "tables/" ("RS_table_" ^ rs)
+    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("RS_table_" ^ rs)
         val L = map PropertyTables.loadRepresentationTable paths
     in if length L > 1 then raise Fail "ambiguous RS" else
        if length L = 0 then raise Fail "no RS with this name" else
@@ -43,7 +43,8 @@ fun RS_order (x,y) =
                        if r = "probabilitytrees" then 5 else
                        if r = "setalgebra" then 6 else
                        if r = "euler" then 7 else
-                       if r = "expeuler" then 8 else raise Match;
+                       if r = "psdiagrams" then 8 else
+                       if r = "expeuler" then 9 else raise Match;
         val (((_,rx),_),_) = x
         val (((_,ry),_),_) = y
     in Int.compare (numify rx, numify ry)
@@ -259,10 +260,7 @@ fun cognitiveScores u qL crunch =
     fun numberWithCellColour x = (printableNumber x) ^ "\\cellcolor{darkgray!" ^ printableNumber ((Math.ln (1.0+x))/Math.ln 1.12) ^ "}";
 
     fun cognitiveScores_latex u qL crunch =
-        let val w1 = 1.0
-            val w2 = 2.0
-            val w3 = 4.0
-            val u1 = 0.5
+        let val u1 = 0.5
             val u2 = 1
             val u3 = 2
             val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
@@ -301,14 +299,15 @@ fun cognitiveScores u qL crunch =
         in (print latexText)
         end;
 
-val B = loadQs "medical";
+val B = loadQs "lightbulbs";
+(*
 val C = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Token);
-val C' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) C
+val C' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0 handle Property.NoAttribute s => (print (Property.toString x);false)) C
 val P = QPropertySet.map QProperty.withoutImportance (QPropertySet.collectOfKind (#2 (List.nth (B,0))) Kind.Pattern);
-val P' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) P
+val P' = List.filter (fn x => #2 (Property.getNumFunction "occurrences" x) > 0.0) P;
 val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);
-val p3 = List.nth (P,2);
+val p3 = List.nth (P,2);*)
 
 
 val _ = cognitiveScores_latex (3.0/6.0) B crunch_norm;

@@ -1,0 +1,52 @@
+psdiagrams,
+mode,proportional
+rigorous,TRUE
+types,"segment,formula,vertical_guide,delimiter,real,X"
+tokens,"$outcome_segment : {type := segment},
+        $target_segment : {type := segment},
+        $target_delimiter : {type := delimiter},
+        = : {type := real * real -> formula;
+             token_registration := 2},
+        / : {type := real * real -> real;
+             token_registration := 2},
+         $vertical_guide : {type := vertical_guide},
+         $mark : {type := delimiter},
+         first : {type := ADJ},
+         second : {type := ADJ},
+         target : {type := N},
+         result : {type := N},
+         trial : {type := N}"
+patterns,"joint_segments : {type := segment;
+                             holes := [segment => 2];
+                             tokens := [$mark];
+                             token_registration := 1},
+           aligned_segments : {type := relationship;
+                               holes := [segment => 2];
+                               tokens := [];
+                               token_registration := 1},
+           relative_length : {type := real;
+                              holes := [segment => 2];
+                              tokens := [];
+                              token_registration := 1},
+           segment_from_delimiters : {type := segment;
+                                      holes := [delimiter => 2];
+                                      token_registration := 1;
+                                      description := emergent ghost segments},
+           labelled_segment : {type := segment;
+                               holes := [segment => 1. X => 1];
+                               tokens := [];
+                               token_registration := 1},
+          reference_by_label : {type := reference;
+                                holes := [segment => 1. X => 1];
+                                tokens := [];
+                                token_registration := 3},
+          NPfromADJandN : {type := NP;
+                          holes := [ADJ => 1. N => 1];
+                          token_registration := 2}"
+laws,"scale_independence_of_ratio,length_additivity,aligned_segments_same_length"
+tactics,"observe : {inference_type := calc;
+                    patterns := 1;
+                    laws := 0},
+         calc : {inference_type := calc;
+                 patterns := 1;
+                 laws := 0}"

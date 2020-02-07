@@ -1,0 +1,42 @@
+areas,
+mode,proportional
+rigorous,TRUE
+types,"real,segment,contour,region,X,colour,texture"
+tokens,"$segment : {type := segment}"
+patterns,"joint_segments : {type := segment;
+                            holes := [segment => 2];
+                            tokens := [];
+                            token_registration := 1},
+           joint_regions : {type := region;
+                            holes := [region => 2];
+                            tokens := [];
+                            token_registration := 1},
+           contour_from_segments : {type := contour;
+                                    holes := [segment => log(#t)];
+                                    token_registration := 1},
+           rectangle_from_segments : {type := contour;
+                                      holes := [segment => 2];
+                                      tokens := [$segment. $segment];
+                                      token_registration := 1},
+           region_from_contour : {type := region;
+                                  holes := [contour. colour. texture]},
+           is_rectangle : {type := property;
+                           holes := [region]},
+           area_of_region : {type := real;
+                             holes := [region => 1];
+                             token_registration := 1},
+           joint_regions : {type := region;
+                            holes := [region => 2];
+                            tokens := [];
+                            token_registration := 1},
+           labelled_region : {type := region;
+                              holes := [region => 1. X => 1];
+                              tokens := [];
+                              token_registration := 1}"
+laws,"area_additivity,area_of_rectangle"
+tactics,"measure : {inference_type := transform;
+                   patterns := 1;
+                   laws := 1},
+        calc : {inference_type := calc;
+                patterns := 1;
+                laws := 0}"

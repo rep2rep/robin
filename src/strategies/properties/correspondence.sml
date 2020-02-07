@@ -191,7 +191,7 @@ fun allCorrespondenceMatches corrs qProps rProps =
         val baseCorrs = List.filter (Correspondence.match qProps rProps) corrs;
         val identities = PropertySet.map
                              Correspondence.identity
-                             (PropertySet.collectLeftMatches qProps rProps);
+                             (PropertySet.collectLeftMatches (PropertySet.filter (fn p => not (Property.kindOf p = Kind.Mode)) qProps) rProps);
         val newIdentities = List.filter (fn c => not (alreadyCorr baseCorrs c))
                                         identities;
     in
