@@ -1,6 +1,6 @@
 type-possibilities OR type-occurrence OR type-class,type-node,1
 token-intersection OR token-and,token-$arrow,0.5
-token-union OR token-or,pattern-$subtree,1
-token-universe OR token-all,pattern-$tree,0.75
-token-probability,pattern-$value_of_node OR pattern-$value_of_arrow,0.75
-token-equals,tactic-pattern-$path_equivalence,0.75
+token-union OR token-or,pattern-subtree,1
+token-universe OR token-all,pattern-tree,0.75
+token-probability,pattern-value_of_node OR pattern-value_of_arrow,0.75
+token-equals,tactic-pattern-path_equivalence,0.75

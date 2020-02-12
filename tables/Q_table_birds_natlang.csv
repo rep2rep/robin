@@ -12,17 +12,17 @@ instrumental_tokens, "probability : {type := N;
                              occurrences := 1}"
 instrumental_types, "ratio,
                      class"
-instrumental_patterns, "$class_ratio : {holes := [NP => 3];
+instrumental_patterns, "class_ratio : {holes := [NP => 3];
                                         tokens := [of. are];
                                         type := statement;
                                         occurrences := 3;
                                         token_registration := 1},
-                        $probability_of_conjunction : {holes := [NP => 3];
+                        probability_of_conjunction : {holes := [NP => 3];
                                                        tokens := [probability. of. and];
                                                        type := statement;
                                                        occurrences := 1;
                                                        token_registration := 1},
-                        $conditional_probability : {holes := [NP => 3];
+                        conditional_Probability : {holes := [NP => 3];
                                                     tokens := [probability. if];
                                                     type := statement;
                                                     occurrences := 1;
@@ -71,23 +71,23 @@ relevant_patterns, "SfromNPandVP : {type := S;
                                      holes := [VP => 1. PP => 1]; recursive;
                                      occurrences := 0;
                                      tokens := []},
-                    $CONJS : {type := S;
+                    CONJS : {type := S;
                              holes := [CONJ => 1. S => 2];
                              occurrences := 1;
                              tokens := []},
-                    $CONJN : {type := NP;
+                    CONJN : {type := NP;
                              holes := [CONJ => 1. NP => 2];
                              occurrences := 0;
                              tokens := []},
-                    $CONJV : {type := VP;
+                    CONJV : {type := VP;
                              holes := [CONJ => 1. VP => 2];
                              occurrences := 0;
                              tokens := []}"
-instrumental_laws, "$Bayes'_theorem,
-                    $law_of_total_probability,
-                    $non_negative_probability,
-                    $unit_measure,
-                    $sigma_additivity"
+instrumental_laws, "Bayes'_theorem,
+                    law_of_total_probability,
+                    non_negative_probability,
+                    unit_measure,
+                    sigma_additivity"
 instrumental_tactics,"transform : {patterns := 1;
                                    laws := 1;
                                    uses := 1;

@@ -8,23 +8,23 @@ instrumental_tokens, "$node : {type := node;
                       $arrow : {type := arrow;
                                  occurrences := 12}"
 instrumental_types,"node, arrow"
-instrumental_patterns, "$path : {type := path;
+instrumental_patterns, "path : {type := path;
                                  holes := [node => log(#t)];
                                  occurrences := 20;
                                  token_registration := 2},
-                        $path_equivalence : {type := observation;
+                        path_equivalence : {type := observation;
                                              holes := [path => 2];
                                              occurrences := 190;
                                              token_registration := 3},
-                        $subtree : {type := tree;
+                        subtree : {type := tree;
                                     holes := [node => #t];
                                     occurrences := 6;
                                     token_registration := 3}"
-instrumental_laws, "$path_multiplication : {description := the value of a node must equal the value of the path leading to it},
-                    $total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
-                    $total_leaves_1 : {description := the sum of all leaf values is 1},
-                    $equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
-                    $total_paths : {description := the value of a node is the sum of values of all the paths going through the node},"
+instrumental_laws, "path_multiplication : {description := the value of a node must equal the value of the path leading to it},
+                    total_arrows_1 : {description := the values of all arrows coming out of one node must add up to 1},
+                    total_leaves_1 : {description := the sum of all leaf values is 1},
+                    equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
+                    total_paths : {description := the value of a node is the sum of values of all the paths going through the node},"
 instrumental_tactics,"assign_value_to_arrow : {patterns := 0;
                                                laws := 1;
                                                inference_type := calc;
@@ -65,52 +65,52 @@ relevant_tokens,"1 : {type := real;
                         occurrences := 1},
                  $frame : {type := node -> node;
                             occurrences := 2}"
-relevant_patterns,"$description : {type := statement;
+relevant_patterns,"description : {type := statement;
                                     holes := [class => log(#t)];
                                     occurrences := 2;
                                     tokens := [];
                                     token_registration := 3},
-                   $reference_by_description : {type := reference;
+                   reference_by_description : {type := reference;
                                                 holes := [statement => 1. node=>1];
                                                 occurrences := 2;
                                                 tokens := [];
                                                 token_registration := 3},
-                   $instruction : {type := instruction;
+                   instruction : {type := instruction;
                                    holes := [VP => 1];
                                    occurrences := 1;
                                    tokens := [];
                                    token_registration := 1},
-                   $VPfromVandNP : {type := VP;
+                   VPfromVandNP : {type := VP;
                                     holes := [V => 1. NP => 1];
                                     occurrences := 1;
                                     tokens := [];
                                     token_registration := 1},
-                   $NPfromNPandPP : {type := NP;
+                   NPfromNPandPP : {type := NP;
                                      holes := [NP => 1. PP => 1];
                                      occurrences := 1;
                                      tokens := [];
                                      token_registration := 1},
-                   $PPfromPandNP : {type := PP;
+                   PPfromPandNP : {type := PP;
                                     holes := [P => 1. NP => 1];
                                     occurrences := 1;
                                     tokens := [];
                                     token_registration := 1},
-                   $NPfromDETandN : {type := NP;
+                   NPfromDETandN : {type := NP;
                                       holes := [DET => 1. N => 1];
                                       occurrences := 2;
                                       tokens := [];
                                       token_registration := 1},
-                   $NPfromDETandADJandN : {type := NP;
+                   NPfromDETandADJandN : {type := NP;
                                           holes := [DET => 1. ADJ => 1. N => 1];
                                           occurrences := 2;
                                           tokens := [];
                                           token_registration := 1},
-                   $NPfromADJandNP : {type := NP;
+                   NPfromADJandNP : {type := NP;
                                        holes := [ADJ => 1. NP => 1];
                                        occurrences := 1;
                                        tokens := [];
                                        token_registration := 1},
-                   $NPfromN : {type := NP;
+                   NPfromN : {type := NP;
                                 holes := [N => 2];
                                 occurrences := 1;
                                 tokens := [];

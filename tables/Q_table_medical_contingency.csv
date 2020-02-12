@@ -4,28 +4,28 @@ error_allowed, 0
 answer_type, real
 instrumental_tokens,""
 instrumental_types,"cell"
-instrumental_patterns,"$in_same_row : {type := relationship;
+instrumental_patterns,"in_same_row : {type := relationship;
                                        holes := [cell => 2];
                                        occurrences := 6;
                                        tokens := [];
                                        token_registration := 2},
-                       $in_same_column : {type := relationship;
+                       in_same_column : {type := relationship;
                                           holes := [cell => 2];
                                           occurrences := 6;
                                           tokens := [];
                                           token_registration := 2},
-                       $value_relative_to_row_total : {type := real measurement;
+                       value_relative_to_row_total : {type := real measurement;
                                                        holes := [cell => 1];
                                                        occurrences := 1;
                                                        tokens := [$cell_r];
                                                        token_registration := 2},
-                       $value_relative_to_column_total : {type := real measurement;
+                       value_relative_to_column_total : {type := real measurement;
                                                           holes := [cell => 1];
                                                           occurrences := 1;
                                                           tokens := [$cell_r];
                                                           token_registration := 2}"
-instrumental_laws,"$row_total : {description := last cell of row contains total of row},
-                   $column_total : {description := last cell of column contains total of column}"
+instrumental_laws,"row_total : {description := last cell of row contains total of row},
+                   column_total : {description := last cell of column contains total of column}"
 instrumental_tactics,"fill_cell : {patterns := 1;
                                    laws := 1;
                                    inference_type := assign;
@@ -94,47 +94,47 @@ relevant_tokens,"$cell_r : {type := cell;
                       occurrences := 0},
                  $comma : {type := delimiter;
                            occurrences := 1}"
-relevant_patterns,"$in_same_row : {type := relationship;
+relevant_patterns,"in_same_row : {type := relationship;
                                    holes := [cell => 2];
                                    occurrences := 18;
                                    tokens := [];
                                    token_registration := 2},
-                   $in_same_column : {type := relationship;
+                   in_same_column : {type := relationship;
                                       holes := [cell => 2];
                                       occurrences := 18;
                                       tokens := [];
                                       token_registration := 2},
-                   $value_relative_to_row_total : {type := real measurement;
+                   value_relative_to_row_total : {type := real measurement;
                                                    holes := [cell => 1];
                                                    occurrences := 5;
                                                    tokens := [$cell_r];
                                                    token_registration := 2},
-                   $value_relative_to_column_total : {type := real measurement;
+                   value_relative_to_column_total : {type := real measurement;
                                                       holes := [cell => 1];
                                                       occurrences := 5;
                                                       tokens := [$cell_r];
                                                       token_registration := 2},
-                   $column : {type := column;
+                   column : {type := column;
                               holes := [cell => sqrt(#t)];
                               occurrences := 4;
                               token_registration := 2},
-                   $row : {type := row;
+                   row : {type := row;
                            holes := [cell => sqrt(#t)];
                            occurrences := 4;
                            token_registration := 2},
-                   $cells_column : {type := column;
+                   cells_column : {type := column;
                                     holes := [cell => 1];
                                     occurrences := 16;
                                     token_registration := 2},
-                   $cells_row : {type := row;
+                   cells_row : {type := row;
                                   holes := [cell => 1];
                                   occurrences := 16;
                                   token_registration := 2},
-                   $infix : {type := sugar;
+                   infix : {type := sugar;
                               holes := ['a * 'b -> 'c => 1];
                               occurrences := 8;
                               token_registration := 1},
-                   $reference_by_label : {type := reference;
+                   reference_by_label : {type := reference;
                                           holes := [LAB => 1. class => 1];
                                           occurrences := 2;
                                           tokens := [];
@@ -175,7 +175,7 @@ relevant_patterns,"$in_same_row : {type := relationship;
                                holes := [N => 1];
                                occurrences := 2;
                                tokens := []},
-                   $pair : {type := class;
+                   pair : {type := class;
                             holes := [class => 2];
                             occurrences := 1;
                             tokens := [(. ). $comma]}"

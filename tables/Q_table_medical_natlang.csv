@@ -9,21 +9,21 @@ instrumental_tokens,"probability : {type := N;
                      not : {type := ADV;
                             occurrences := 1}"
 instrumental_types,""
-instrumental_patterns,"$class_ratio : {holes := [ratio => 1. PP => 1. VP => 1];
+instrumental_patterns,"class_ratio : {holes := [ratio => 1. PP => 1. VP => 1];
                                        tokens := [];
                                        type := S;
                                        occurrences := 1;
                                        token_registration := 1},
-                       $conditional_probability : {holes := [S => 2. ratio => 1];
+                       conditional_Probability : {holes := [S => 2. ratio => 1];
                                                     tokens := [probability];
                                                     type := S;
                                                     occurrences := 3;
                                                     token_registration := 1}"
-instrumental_laws,"$Bayes'_theorem,
-                   $law_of_total_probability,
-                   $non_negative_probability,
-                   $unit_measure,
-                   $sigma_additivity"
+instrumental_laws,"Bayes'_theorem,
+                   law_of_total_probability,
+                   non_negative_probability,
+                   unit_measure,
+                   sigma_additivity"
 instrumental_tactics,"transform : {patterns := 1;
                                    laws := 1;
                                    uses := 1;
@@ -172,15 +172,15 @@ relevant_patterns,"NPfromRatio : {type := NP;
                                 holes := [ADJ => 1];
                                 occurrences := 3;
                                 token_registration := 1},
-                   $CONJS : {type := S;
+                   CONJS : {type := S;
                             holes := [CONJ => 1. S => 2];
                             occurrences := 1;
                             tokens := []},
-                   $CONJN : {type := NP;
+                   CONJN : {type := NP;
                             holes := [CONJ => 1. NP => 2];
                             occurrences := 0;
                             tokens := []},
-                   $CONJV : {type := VP;
+                   CONJV : {type := VP;
                             holes := [CONJ => 1. VP => 2];
                             occurrences := 1;
                             tokens := []}"

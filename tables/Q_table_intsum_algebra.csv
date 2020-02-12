@@ -6,7 +6,7 @@ instrumental_types,"proof"
 instrumental_tokens,"\sum:{type:= 'a set * ('a -> integer) -> integer; occurrences := 1},
                      *:{type:= integer * integer -> integer; occurrences := 0},
                      =:{type:= integer * integer -> formula; occurrences := 0}"
-instrumental_patterns,"$sum : {type:= formula;
+instrumental_patterns,"sum : {type:= formula;
                                 holes := ['a set * ('a -> integer) -> integer => 1.
                                           'a set => 1.
                                           'a -> integer => 1.
@@ -14,7 +14,7 @@ instrumental_patterns,"$sum : {type:= formula;
                                 tokens := [\sum. =];
                                 token_registration := 1;
                                 occurrences := 0},
-                       $equality_chain : {type := proof;
+                       equality_chain : {type := proof;
                                           holes := [integer => log(#t)];
                                           tokens := [=];
                                           token_registration := 1;

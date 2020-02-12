@@ -2,7 +2,7 @@ type-integer,type-vertex_set OR type-edge_set,0.9
 token-+,tactic-join_graphs,0.9
 token--,tactic-remove_graph,0.9
 token-=,tactic-edge_count OR tactic-vertex_count,0.9
-pattern-_:integer=_:integer,law-$count_invariant,0.9
-token-*,pattern-$bipartite_complete,0.9
-token-0,pattern-$empty,0.9
+pattern-_:integer=_:integer,law-count_invariant,0.9
+token-*,pattern-bipartite_complete,0.9
+token-0,pattern-empty,0.9
 type-proof,tactic-vertex_count OR tactic-edge_count,0.1

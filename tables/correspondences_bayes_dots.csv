@@ -2,5 +2,5 @@ type-real,type-arrangement, 0.25
 token-1 OR token-one,token-$dot, 1
 token--,tactic-cut_horizontal OR tactic-cut_vertical OR token-cut_ell OR token-cut_square,0.5
 token-=,tactic-count_equal,1
-law-$+-commutative,tactic-count_equal,1
-law-$+-associative,tactic-count_equal,1
+law-+-commutative,tactic-count_equal,1
+law-+-associative,tactic-count_equal,1

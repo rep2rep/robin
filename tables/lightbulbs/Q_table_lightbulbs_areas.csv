@@ -12,7 +12,7 @@ relevant_tokens,"$white : {type := colour; occurrences := 2},
                  1 : {type := real; occurrences := 2},
                  0.3 : {type := real; occurrences := 2},
                  0.8 : {type := real; occurrences := 2},
-                 $measure_segment : {type := measure_segment; occurrences := 6}
+                 $measurement_segment : {type := measurement_segment; occurrences := 6}
                  calculate : {type := V; occurrences := 1},
                  the : {type := DET; occurrences := 1},
                  ratio : {type := N; occurrences := 1},

@@ -8,24 +8,24 @@ instrumental_tokens,"$node_container : {type := node;
                                         occurrences := 11},
                      $arrow : {type := arrow;
                                occurrences := 9}"
-instrumental_patterns,"$path : {type := path;
+instrumental_patterns,"path : {type := path;
                                 holes := [node => log(#t). arrow => log(#t)];
                                 token_registration := 2;
                                 occurrences := 6},
-                       $path_equivalence : {type := relationship;
+                       path_equivalence : {type := relationship;
                                             holes := [path => 2];
                                             token_registration := 3;
                                             occurrences := 2},
-                       $value_of_arrow : {type := real;
+                       value_of_arrow : {type := real;
                                           holes := [arrow => 1];
                                           occurrences := 4},
-                       $value_of_node : {type := real;
+                       value_of_node : {type := real;
                                           holes := [node => 1];
                                           occurrences := 4}"
-instrumental_laws,"$total_paths : {description := the value of a node is the sum of values of all the paths going through the node},
-                   $path_multiplication : {description := the value of a node equals the multiplication of the arrows leading to it},
-                   $total_arrows_1 : {description := the values of arrows coming out of a node add up to 1},
-                   $equivalent_paths : {description := paths with the same set of nodes in different trees have same value}"
+instrumental_laws,"total_paths : {description := the value of a node is the sum of values of all the paths going through the node},
+                   path_multiplication : {description := the value of a node equals the multiplication of the arrows leading to it},
+                   total_arrows_1 : {description := the values of arrows coming out of a node add up to 1},
+                   equivalent_paths : {description := paths with the same set of nodes in different trees have same value}"
 instrumental_tactics,"assign_value_to_arrow : {patterns := 1;
                                                laws := 1;
                                                inference_type := calc;
@@ -57,24 +57,24 @@ relevant_tokens,"$node_container : {type := node;
                       occurrences := 1},
                  calculate : {type := real -> instruction;
                               occurrences := 1}"
-relevant_patterns,"$path : {type := path;
+relevant_patterns,"path : {type := path;
                             holes := [node => log(#t). arrow => log(#t)];
                             token_registration := 2;
                             occurrences := 2},
-                   $path_equivalence : {type := relationship;
+                   path_equivalence : {type := relationship;
                                         holes := [path => 2];
                                         token_registration := 3;
                                         occurrences := 26},
-                   $subtree : {type := tree;
+                   subtree : {type := tree;
                                holes := [node => #t. arrow => #t];
                                occurrences := 4;
                                token_registration := 2},
-                   $reference_by_label : {type := reference;
+                   reference_by_label : {type := reference;
                                           holes := ['a label => 1];
                                           occurrences := 1;
                                           tokens := [$arrow_value_container];
                                           token_registration := 3},
-                   $value_of_node : {type := real measurement;
+                   value_of_node : {type := real measurement;
                                      holes := [node => 1];
                                      occurrences := 0;
                                      tokens := [];

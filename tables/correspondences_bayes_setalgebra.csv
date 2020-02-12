@@ -1,6 +1,6 @@
 type-event,type-set,1
 token-\Pr,pattern-||,0.75
-pattern-$conditional_Pr,pattern-$set_ratio,0.75
-pattern-$joint_Pr,pattern-$cardinality_of_intersection,0.75
-pattern-$union_Pr,pattern-$cardinality_of_union,0.75
-pattern-$simple_Pr,pattern-$cardinality_of_set,0.75
+pattern-conditional_Pr,pattern-set_ratio,0.75
+pattern-joint_Pr,pattern-cardinality_of_intersection,0.75
+pattern-union_Pr,pattern-cardinality_of_union,0.75
+pattern-simple_Pr,pattern-cardinality_of_set,0.75

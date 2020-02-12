@@ -13,12 +13,12 @@ tokens,"= : {type:= integer * integer -> formula},
         \sum : {type:= 'a set * ('a -> integer) -> integer},
         \vee : {type:= formula * formula -> formula},
         \neg : {type:= formula -> formula}"
-patterns,"$plus : {holes:= [integer=>3]; tokens:= [+. =]},
-          $equality_chain : {holes:=[integer=>#t]; tokens:=[=]},
-          $sum : {holes := ['a set => 1. integer => 1. 'a -> integer => 1]; tokens := [\sum. =]}"
+patterns,"plus : {holes:= [integer=>3]; tokens:= [+. =]},
+          equality_chain : {holes:=[integer=>#t]; tokens:=[=]},
+          sum : {holes := ['a set => 1. integer => 1. 'a -> integer => 1]; tokens := [\sum. =]}"
 token_imports,"base_10_real_numerals,latin_alphabet"
 grammatical_complexity,type-2
-laws,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
+laws,"+associative, +commutative, *associative, *commutative, +zero, cancellative, distributive, <transitive, <antisymmetric, +def, *def, -def, \div_def, divides_def"
 rigorous,TRUE
 law_imports,NONE
 tactics,"rewrite,lemma,calc,induction"

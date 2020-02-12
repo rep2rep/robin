@@ -20,15 +20,15 @@ instrumental_patterns,"|| : {type := real;
                              tokens := [|. |];
                              token_registration := 1;
                              occurrences := 8},
-                       $set_ratio : {type := formula;
+                       set_ratio : {type := formula;
                                      holes := [set => 2. real => 1];
                                      tokens := [=. |. |. \cdot];
                                      token_registration := 1;
                                      udepth := 3;
                                      occurrences := 3}"
-instrumental_laws,"$cardinality_additivity : {description := the size of set is the sum of disjoint parts},
-                   $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},
-                   $complement_disjoint : {description := x and the y - x are disjoint}"
+instrumental_laws,"cardinality_additivity : {description := the size of set is the sum of disjoint parts},
+                   cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},
+                   complement_disjoint : {description := x and the y - x are disjoint}"
 instrumental_tactics,"rewrite_from_theorem : {patterns := 1;
                                               laws := 1;
                                               inference_type := subst;

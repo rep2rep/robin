@@ -15,33 +15,33 @@ instrumental_tokens,"\Pr : {type := event * event -> real;
                      = : {type := real * real -> formula;
                           occurrences := 3}"
 instrumental_types,"event"
-instrumental_patterns,"$conditional_Pr : {type := formula;
+instrumental_patterns,"conditional_Pr : {type := formula;
                                           holes := [event => 2. real => 1];
                                           occurrences := 2;
                                           tokens := [\Pr. \mid. =];
                                           udepth := 3;
                                           token_registration := 1},
-                       $joint_Pr : {type := formula;
+                       joint_Pr : {type := formula;
                                     holes := [event => 2. real => 1];
                                     occurrences := 1;
                                     tokens := [\Pr. \cap. =];
                                     udepth := 3;
                                     token_registration := 1},
-                       $simple_Pr : {type := formula;
+                       simple_Pr : {type := formula;
                                      holes := [event => 1. real => 1];
                                      occurrences := 1;
                                      tokens := [\Pr. =];
                                      udepth := 2;
                                      token_registration := 1},
-                        $equality_chain : {type := formula;
+                        equality_chain : {type := formula;
                                             holes := [real => #t];
                                             occurrences := 0;
                                             tokens := [=];
                                             udepth := 1;
                                             token_registration := 1}"
-instrumental_laws, "$Bayes'_theorem : {description := foundational theorem of conditional probability},
-                    $law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
-                    $unit_measure : {description := probability values over an exhaustive event set add up to 1}"
+instrumental_laws, "Bayes'_theorem : {description := foundational theorem of conditional probability},
+                    law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
+                    unit_measure : {description := probability values over an exhaustive event set add up to 1}"
 instrumental_tactics,"rewrite : {laws := 1;
                                  patterns := 1;
                                  inference_type := subst;
@@ -84,18 +84,18 @@ relevant_tokens,"1 : {type := real;
                        occurrences := 4},
                  ) : {type := bracket;
                       occurrences := 4}"
-relevant_patterns,"$union_Pr : {type := formula;
+relevant_patterns,"union_Pr : {type := formula;
                                  holes := [event => 2. real => 1];
                                  occurrences := 0;
                                  tokens := [\Pr. \cup. =];
                                  udepth := 3;
                                  token_registration := 1},
-                   $infix : {type := syntax;
+                   infix : {type := syntax;
                               holes := ['a * 'b -> 'c => 1];
                               occurrences := 7;
                               tokens := [];
                               token_registration := 1},
-                   $bracketing : {type := syntax;
+                   bracketing : {type := syntax;
                                    holes := ['c => 1];
                                    occurrences := 7;
                                    tokens := [(. )];

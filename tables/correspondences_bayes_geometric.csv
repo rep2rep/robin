@@ -2,15 +2,15 @@ type-event,type-segment OR type-region,1
 token-\emptyset, token-$dot OR token-$segment,1
 token-0, token-$dot,0.5
 token-\Omega,type-region,0.5
-token-+,pattern-$union AND pattern-$disjoint AND law-$area_additivity,1
-token--,pattern-$difference AND pattern-$disjoint AND law-$area_additivity,1
-token-* OR token-\cdot,pattern-$rectangle AND pattern-$size,0.9
-token-\div,pattern-$relative_size,0.9
-token-\cup,pattern-$union,1
-token-\cap,pattern-$intersection,1
-token-\Pr,pattern-$size OR pattern-$relative_size,1
-token-\mid,pattern-$relative_size,0.5
-token-=,pattern-$same_region OR pattern-$same_size,1
-law-$Bayes'_theorem,law-$scale_independence_of_ratio,1
-law-$law_of_total_probability OR law-$sigma_additivity,law-$area_additivity,1
-law-$non_negative_probability,law-$non_negative_area,1
+token-+,pattern-union AND pattern-disjoint AND law-area_additivity,1
+token--,pattern-difference AND pattern-disjoint AND law-area_additivity,1
+token-* OR token-\cdot,pattern-rectangle AND pattern-size,0.9
+token-\div,pattern-relative_size,0.9
+token-\cup,pattern-union,1
+token-\cap,pattern-intersection,1
+token-\Pr,pattern-size OR pattern-relative_size,1
+token-\mid,pattern-relative_size,0.5
+token-=,pattern-same_region OR pattern-same_size,1
+law-Bayes'_theorem,law-scale_independence_of_ratio,1
+law-law_of_total_probability OR law-sigma_additivity,law-area_additivity,1
+law-non_negative_probability,law-non_negative_area,1

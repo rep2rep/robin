@@ -3,8 +3,8 @@ error_allowed,0
 answer_type,proof
 instrumental_tokens,"prove,sum,equals"
 instrumental_types,"proof,integer"
-instrumental_patterns,"$range : {tokens:=[from. to]; holes:=[int=>2]; type:=integer set}"
-instrumental_laws,"$+-commutative, $+-associative"
+instrumental_patterns,"range : {tokens:=[from. to]; holes:=[int=>2]; type:=integer set}"
+instrumental_laws,"+-commutative, +-associative"
 instrumental_tactics,"induction"
 relevant_tokens,"1,2,divided_by,minus,times,odd,series :{occurrences := 0},
                  0 :{occurrences := 0},plus :{occurrences := 0},squared :{occurrences := 0}"

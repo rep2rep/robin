@@ -1,7 +1,7 @@
 type-event,type-cell,0.75
 token-\cup,token-SUM,0.25
 token-\cap,token-PRODUCT,0.25
-token-\Pr,pattern-$value_relative_to_total OR token-$cell_r,1
-token-\Omega,pattern-$last_of_row AND pattern-$last_of_column,1
-law-$law_of_total_probability OR law-$sigma_additivity,law-$row_total AND law-$column_total,1
-law-$unit_measure,law-$total_1,1
+token-\Pr,pattern-value_relative_to_total OR token-$cell_r,1
+token-\Omega,pattern-last_of_row AND pattern-last_of_column,1
+law-law_of_total_probability OR law-sigma_additivity,law-row_total AND law-column_total,1
+law-unit_measure,law-total_1,1

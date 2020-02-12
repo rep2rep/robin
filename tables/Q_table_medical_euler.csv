@@ -10,27 +10,27 @@ instrumental_patterns,"|| : {type := real;
                              tokens := [|. |];
                              token_registration := 1;
                              occurrences := 6},
-                       $set_ratio : {type := formula;
+                       set_ratio : {type := formula;
                                      holes := [set => 2. real => 1];
                                      tokens := [=. |. |. \cdot];
                                      token_registration := 1;
                                      udepth := 3;
                                      occurrences := 3},
-                       $containment : {type := relationship;
+                       contained : {type := relationship;
                                        holes := [zone => 2];
                                        token_registration := 1;
                                        occurrences := 2},
-                       $intersection : {type := zone;
+                       intersection : {type := zone;
                                         holes := [zone => 2];
                                         occurrences := 1;
                                         token_registration := 1},
-                       $difference : {type := zone;
+                       difference : {type := zone;
                                       holes := [zone => 2];
                                       occurrences := 2;
                                       token_registration := 1}"
-instrumental_laws,"$cardinality_additivity : {description := the size of a set is the sum of disjoint parts},
-                   $cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},
-                   $complement_disjoint : {description := x and the y - x are disjoint}"
+instrumental_laws,"cardinality_additivity : {description := the size of a set is the sum of disjoint parts},
+                   cardinality_union_intersection : {description := the size of the union is the sum of the sizes minus the size of the intersection},
+                   complement_disjoint : {description := x and the y - x are disjoint}"
 instrumental_tactics,"rewrite_from_theorem : {patterns := 1;
                                               laws := 1;
                                               inference_type := subst;
@@ -103,40 +103,40 @@ relevant_tokens,"P : {type := set;
                         occurrences := 1},
                  shaded : {type := ADJ;
                            occurrences := 1}"
-relevant_patterns,"$containment : {type := relationship;
+relevant_patterns,"contained : {type := relationship;
                                    holes := [zone => 2];
                                    token_registration := 1;
                                    occurrences := 7},
-                   $intersection : {type := zone;
+                   intersection : {type := zone;
                                     holes := [zone => 2];
                                     occurrences := 6;
                                     token_registration := 1},
-                   $zone_determined_by_contour : {type := zone;
+                   zone_determined_by_contour : {type := zone;
                                                   holes := [contour => 1];
                                                   occurrences := 3;
                                                   token_registration := 1},
-                   $whole : {type := zone;
+                   whole : {type := zone;
                              holes := [zone => 2];
                              occurrences := 1;
                              tokens := [$frame];
                              token_registration := 1},
-                   $difference : {type := zone;
+                   difference : {type := zone;
                                   holes := [zone => 2];
                                   occurrences := 6;
                                   token_registration := 1},
-                  $same_zone : {type := relationship;
+                  same_zone : {type := relationship;
                                 holes := [zone => 2];
                                 occurrences := 3;
                                 token_registration := 1},
-                   $reference_by_texture : {type := reference;
+                   reference_by_texture : {type := reference;
                                             holes := [texture => 1. zone => 1];
                                             token_registration := 3;
                                             occurrences := 2},
-                   $reference_by_label : {type := reference;
+                   reference_by_label : {type := reference;
                                           holes := [set => 1. zone => 1];
                                           token_registration := 3;
                                           occurrences := 16},
-                   $instruction_from_VP : {type := instruction;
+                   instruction_from_VP : {type := instruction;
                                            holes := [VP => 1];
                                            token_registration := 1;
                                            occurrences := 1},

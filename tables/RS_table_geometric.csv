@@ -4,52 +4,52 @@ types,"point,segment,line,polygon,region,real,label"
 tokens,"$point : {type:= point},
         $segment : {type:= segment}"
 token_imports,"latin_alphabet"
-patterns,"$rectangle : {type := region;
+patterns,"rectangle : {type := region;
                         holes := [segment => 4];
                         token_registration := 1},
-          $size : {type := real measurement;
+          size : {type := real measurement;
                    holes := [region => 1];
                    token_registration := 1},
-          $relative_size : {type := real measurement;
+          relative_size : {type := real measurement;
                             holes := [region => 2];
                             token_registration := 1},
-          $contained : {type := relationship;
+          contained : {type := relationship;
                          holes := [region => 2];
                          token_registration := 1},
-          $rectangles_side : {type := relationship;
+          rectangles_side : {type := relationship;
                               holes := [region => 1. segment => 1];
                               token_registration := 1},
-          $difference: {type := region;
+          difference: {type := region;
                         holes := [region => 2];
                         token_registration := 1},
-          $union : {type := region;
+          union : {type := region;
                      holes := [region => 2];
                      token_registration := 1},
-          $sectioned_segment : {type := segment;
+          sectioned_segment : {type := segment;
                                 holes := [segment => 2];
                                 token_registration := 1},
-          $rectangles_side : {type := relationship;
+          rectangles_side : {type := relationship;
                               holes := [region => 1. segment => 1];
                               token_registration := 1},
-          $intersection : {type := region;
+          intersection : {type := region;
                            holes := [region => 2];
                            token_registration := 1},
-          $same_region : {type := relationship;
+          same_region : {type := relationship;
                           holes := [region =>2];
                           token_registration := 1},
-          $disjoint : {type := relationship;
+          disjoint : {type := relationship;
                        holes := [region => 2];
                        token_registration := 1},
-          $reference_by_label : {type := reference;
+          reference_by_label : {type := reference;
                                   holes := [class => 1. real =>1];
                                   token_registration := 3}"
 grammatical_complexity,type-3
 rigorous,TRUE
-laws,"$scale_independence_of_ratio,
-      $area_additivity,
-      $non_negative_area,
-      $length_additivity : {description := the length of a segment is the sum of the areas of its parts},
-      $area_of_rectangle : {description := the area of a rectangle is the product of its sides}"
+laws,"scale_independence_of_ratio,
+      area_additivity,
+      non_negative_area,
+      length_additivity : {description := the length of a segment is the sum of the areas of its parts},
+      area_of_rectangle : {description := the area of a rectangle is the product of its sides}"
 law_imports,NONE
 tactics,"measure : {patterns := 1;
                     laws := 1;
