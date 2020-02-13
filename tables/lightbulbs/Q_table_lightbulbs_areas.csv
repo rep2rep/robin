@@ -12,7 +12,7 @@ relevant_tokens,"$white : {type := colour; occurrences := 2},
                  1 : {type := real; occurrences := 2},
                  0.3 : {type := real; occurrences := 2},
                  0.8 : {type := real; occurrences := 2},
-                 $measurement_segment : {type := measurement_segment; occurrences := 6}
+                 $measurement_segment : {type := measurement_segment; occurrences := 6},
                  calculate : {type := V; occurrences := 1},
                  the : {type := DET; occurrences := 1},
                  ratio : {type := N; occurrences := 1},
@@ -26,27 +26,35 @@ instrumental_patterns,"joint_regions : {type := region;
                        rectangle_from_segments : {type := contour;
                                                   holes := [segment => 2];
                                                   tokens := [$segment. $segment];
+                                                  occurrences := 8;
                                                   token_registration := 1},
-                       region_from_contour : {type := region;
-                                              holes := [contour => 1. colour => 1. texture => 1];
-                                              occurrences := 2},
                        area_of_region : {type := real;
                                          holes := [region => 1];
                                          token_registration := 1;
                                          occurrences := 2},
                        is_rectangle : {type := property;
-                                       holes := [region];
-                                       occurrences := 4},"
-relevant_patterns,"joint_segments : {type := segment;
+                                       holes := [region => 1];
+                                       token_registration := 1;
+                                       occurrences := 4}"
+relevant_patterns,"joint_regions : {type := region;
+                                        holes := [region => 2];
+                                        tokens := [];
+                                        token_registration := 1;
+                                        occurrences := 15},
+                   rectangle_from_segments : {type := contour;
+                                              holes := [segment => 2];
+                                              tokens := [$segment. $segment];
+                                              occurrences := 12;
+                                              token_registration := 1},
+                   joint_segments : {type := segment;
                                       holes := [segment => 2];
                                       tokens := [];
                                       token_registration := 1;
                                       occurrences := 2},
-                   rectangle : {type := contour;
-                                holes := [segment := 4];
-                                tokens := [];
-                                token_registration := 1;
-                                occurrences := 6},
+                   region_from_contour : {type := region;
+                                          holes := [contour => 1. colour => 1. texture => 1];
+                                          token_registration := 1;
+                                          occurrences := 2},
                    joint_regions : {type := region;
                                     holes := [region => 2];
                                     tokens := [];
@@ -57,6 +65,11 @@ relevant_patterns,"joint_segments : {type := segment;
                                       tokens := [];
                                       token_registration := 1;
                                       occurrences := 2},
+                   reference_by_colour : {type := reference;
+                                          holes := [colour => 1. X => 1];
+                                          tokens := [];
+                                          token_registration := 3;
+                                          occurrences := 2},
                    VPfromVandNP : {type := VP;
                                    holes := [V => 1. NP => 1];
                                    token_registration := 2;
@@ -72,17 +85,17 @@ relevant_patterns,"joint_segments : {type := segment;
                    PPfromPandNP : {type := NP;
                                     holes := [DET => 1. N => 1];
                                     token_registration := 2;
-                                    occurrences := 1},,
+                                    occurrences := 1},
                    NPfromN : {type := NP;
                              holes := [N => 1];
                              token_registration := 2;
-                             occurrences := 2}
+                             occurrences := 2},
                    NfromX : {type := N;
                              holes := [X => 1];
                              token_registration := 2;
                              occurrences := 2}"
 instrumental_laws,"area_additivity,area_of_rectangle"
-instrumental_tactics,"measure : {inference_type := transform;
+instrumental_tactics,"measure : {inference_type := calc;
                                  patterns := 1;
                                  laws := 1;
                                  uses := 2},

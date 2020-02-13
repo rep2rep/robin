@@ -29,7 +29,7 @@ fun loadQ q rs =
 
 fun loadRS rs =
     let val paths = filesMatchingPrefix "tables/lightbulbs/" ("RS_table_" ^ rs)
-        val L = map PropertyTables.loadRepresentationTable paths
+        val L = map PropertyTables.loadRepresentationTable paths;
     in if length L > 1 then raise Fail "ambiguous RS" else
        if length L = 0 then raise Fail "no RS with this name" else
          hd L
@@ -44,7 +44,8 @@ fun RS_order (x,y) =
                        if r = "setalgebra" then 6 else
                        if r = "euler" then 7 else
                        if r = "psdiagrams" then 8 else
-                       if r = "expeuler" then 9 else raise Match;
+                       if r = "areas" then 9 else
+                       if r = "expeuler" then 10 else raise Match;
         val (((_,rx),_),_) = x
         val (((_,ry),_),_) = y
     in Int.compare (numify rx, numify ry)
@@ -89,28 +90,28 @@ fun subRSVariety_score u qL crunch=
     end;
 
 fun tokenRegistration_score u qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenRegistration (CognitiveProperties.modifyImportances u x))
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenRegistration (CognitiveProperties.modifyImportances u x));
     in crunch (map f qL)
     end;
 
 fun expressionRegistration_score u qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionRegistration (CognitiveProperties.modifyImportances u x) (#2(loadRS r)))
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionRegistration (CognitiveProperties.modifyImportances u x) )
     in crunch (map f qL)
     end;
 
-fun tokenConceptMapping_score u qL crunch=
+fun conceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = #2(loadQ q "bayes")
-        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.tokenConceptMapping bayesian (CognitiveProperties.modifyImportances u x) (*(#2(loadRS r))*))
+        fun f ((q,r),x) = (((q,r),x), CognitiveProperties.conceptMapping bayesian (CognitiveProperties.modifyImportances u x) (*(#2(loadRS r))*))
     in crunch (map f qL)
     end;
-
+(*
 fun expressionConceptMapping_score u qL crunch=
     let val ((q,_),_) = hd qL
         val bayesian = #2(loadQ q "bayes")
         fun f ((q,r),x) = (((q,r),x), CognitiveProperties.expressionConceptMapping bayesian (CognitiveProperties.modifyImportances u x) (*(#2(loadRS r))*))
     in crunch (map f qL)
-    end;
+    end;*)
 
 fun numberOfTokenTypes_score u qL crunch=
     let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.numberOfTokenTypes (CognitiveProperties.modifyImportances u x))
@@ -152,7 +153,7 @@ fun inferenceType_score u qL crunch=
     end;
 
 fun problemSpaceBranchingFactor_score u qL crunch=
-    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.problemSpaceBranchingFactor (CognitiveProperties.modifyImportances u x) (#2(loadRS r)))
+    let fun f ((q,r),x) = (((q,r),x), CognitiveProperties.problemSpaceBranchingFactor (CognitiveProperties.modifyImportances u x) (#2(loadRS r)));
     in crunch (map f qL)
     end;
 
@@ -181,7 +182,7 @@ fun vectorSum [] = raise Match
 end;
 
 fun printAsInteger r = Int.toString (Real.toInt IEEEReal.TO_NEAREST r) handle Domain => "NaN";
-fun printableNumber r = Real.fmt (StringCvt.FIX (SOME 6)) r handle Domain => "NaN";
+fun printableNumber r = Real.fmt (StringCvt.FIX (SOME 1)) r handle Domain => "NaN";
 (*
 fun cognitiveScores_latex qL crunch =
     let val w1 = 1.0
@@ -224,11 +225,11 @@ fun cognitiveScores u qL crunch =
         val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
         val c1 = map (fn (_,v) => v) (tokenRegistration_score u qL crunch)
         val c2 = map (fn (_,v) => v) (expressionRegistration_score u qL crunch)
-        val c3 = map (fn (_,v) => v) (tokenConceptMapping_score u qL crunch)
   (*    val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)*)
         val c5 = map (fn (_,v) => v) (numberOfTokenTypes_score u qL crunch)
         val c6 = map (fn (_,v) => v) (numberOfExpressionTypes_score u qL crunch)
         val c7 = map (fn (_,v) => v) (quantityScale_score u qL crunch)
+        val c3 = map (fn (_,v) => v) (conceptMapping_score u qL crunch)
         val c8 = map (fn (_,v) => v) (expressionComplexity_score u qL crunch)
   (*    val c9 = map (fn (_,v) => v) (arity_score u qL crunch)*)
         val c10 = map (fn (_,v) => v) (inferenceType_score u qL crunch)
@@ -241,11 +242,11 @@ fun cognitiveScores u qL crunch =
                       (String.concat (List.intersperse " , " (userS::rss)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("token registration" :: map printableNumber c1)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression registration" :: map printableNumber c2)) ^ "  \n") ^
-                      (String.concat (List.intersperse " , " ("concept mapping" :: map printableNumber c3)) ^ "  \n") ^
                 (*    (String.concat (List.intersperse " , " ("expression-concept mapping" :: map printableNumber c4)) ^ "  \n") ^*)
                       (String.concat (List.intersperse " , " ("number of token types" :: map printableNumber c5)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("number of expression types" :: map printableNumber c6)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("quantity scale":: map printableNumber c7)) ^ "  \n") ^
+                      (String.concat (List.intersperse " , " ("concept mapping" :: map printableNumber c3)) ^ "  \n") ^
                       (String.concat (List.intersperse " , " ("expression complexity":: map printableNumber c8)) ^ "  \n") ^
                 (*    (String.concat (List.intersperse " , " ("arity":: map printableNumber c9)) ^ "  \n") ^*)
                       (String.concat (List.intersperse " , " ("inference type":: map printableNumber c10)) ^ "  \n") ^
@@ -257,45 +258,48 @@ fun cognitiveScores u qL crunch =
     end;
 
 
-    fun numberWithCellColour x = (printableNumber x) ^ "\\cellcolor{darkgray!" ^ printableNumber ((Math.ln (1.0+x))/Math.ln 1.12) ^ "}";
+    fun numberWithCellColour x = (printableNumber x) ^ "\\cellcolor{darkgray!" ^ printableNumber (3.0*Math.sqrt x) (*)((Math.ln (1.0+100.0*x))/Math.ln 1.2)*) ^ "}";
 
     fun cognitiveScores_latex u qL crunch =
         let val u1 = 0.5
             val u2 = 1
             val u3 = 2
             val rss = map (fn (((_,r),_),_) => r) (dummy_rank qL)
-            val [w1,w2,w3,w5,w6,w7,w8,w10,w11,w12,w13] = [0.5,0.5,2.0,1.0,1.0,2.0,2.0,2.0,4.0,4.0,4.0]
+            val [w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11] = [0.5,0.5,1.0,1.0,1.0,2.0,2.0,2.0,4.0,4.0,4.0]
             val c1 = map (fn (_,v) => w1*v) (tokenRegistration_score u qL crunch)
-            val c2 = map (fn (_,v) => w2*v) (expressionRegistration_score u qL crunch)
-            val c3 = map (fn (_,v) => w3*v) (tokenConceptMapping_score u qL crunch)
+            val c2 = map (fn (_,v) => w2*v) (expressionRegistration_score u qL crunch);
       (*    val c4 = map (fn (_,v) => v) (expressionConceptMapping_score u qL crunch)*)
-            val c5 = map (fn (_,v) => w5*v) (numberOfTokenTypes_score u qL crunch)
-            val c6 = map (fn (_,v) => w6*v) (numberOfExpressionTypes_score u qL crunch)
-            val c7 = map (fn (_,v) => w7*v) (quantityScale_score u qL crunch)
-            val c8 = map (fn (_,v) => w8*v) (expressionComplexity_score u qL crunch)
+            val c3 = map (fn (_,v) => w3*v) (numberOfTokenTypes_score u qL crunch)
+            val c4 = map (fn (_,v) => w4*v) (numberOfExpressionTypes_score u qL crunch)
+            val c5 = map (fn (_,v) => w5*v) (quantityScale_score u qL crunch)
+            val c6 = map (fn (_,v) => w6*v) (conceptMapping_score u qL crunch)
+            val c7 = map (fn (_,v) => w7*v) (expressionComplexity_score u qL crunch)
       (*    val c9 = map (fn (_,v) => v) (arity_score u qL crunch)*)
-            val c10 = map (fn (_,v) => w10*v) (inferenceType_score u qL crunch)
-            val c11 = map (fn (_,v) => w11*v) (subRSVariety_score u qL crunch)
-            val c12 = map (fn (_,v) => w12*v) (problemSpaceBranchingFactor_score u qL crunch)
-            val c13 = map (fn (_,v) => w13*v) (solutionDepth_score u qL crunch)
-            val totals = Vect.vectorSum [c1,c2,c3,(*c4,*)c5,c6,c7,c8,(*c9,*)c10,c11,c12,c13]
+            val c8 = map (fn (_,v) => w8*v) (inferenceType_score u qL crunch)
+            val c9 = map (fn (_,v) => w9*v) (subRSVariety_score u qL crunch)
+            val _ = print "x";
+            val c10 = map (fn (_,v) => w10*v) (problemSpaceBranchingFactor_score u qL crunch)
+            val _ = print "y";
+            val c11 = map (fn (_,v) => w11*v) (solutionDepth_score u qL crunch)
+            val totals = Vect.vectorSum [c1,c2,c3,(*c4,*)c4,c5,c6,c7,(*c9,*)c8,c9,c10,c11]
+            val Totals = map (fn x => x / 11.0) totals
             val userS = (if u < 1.0/3.0 then "NOVICE (u = " else if u < 2.0/3.0 then "MEDIAN (u = " else if u <= 1.0 then "EXPERT (u = " else raise Match) ^ Real.toString u ^")"
             val latexText = "\n\n" ^
-                          (String.concat (List.intersperse " & " (userS::rss)) ^ "\\\\ \n") ^
-                          (String.concat (List.intersperse " & " ("tr" :: map numberWithCellColour (c1))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("er" :: map numberWithCellColour (c2))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("cm" :: map numberWithCellColour (c3))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " (userS::"{\\scriptsize$\\operatorname{norm}_p(x)$}"::rss)) ^ "\\\\ \n") ^
+                          (String.concat (List.intersperse " & " ("tr" :: ("{\\scriptsize $" ^ printableNumber w1 ^ " \\cdot \\eta_{\\text{tr}}(x)$} ") :: map numberWithCellColour (c1))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("er" :: ("{\\scriptsize $" ^ printableNumber w2 ^ " \\cdot \\eta_{\\text{er}}(x)$} ") :: map numberWithCellColour (c2))) ^ "\\\\  \n") ^
                     (*    (String.concat (List.intersperse " , " ("expression-concept mapping" :: map printableNumber c4)) ^ "  \n") ^*)
-                          (String.concat (List.intersperse " & " ("tt" :: map numberWithCellColour (c5))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("et" :: map numberWithCellColour (c6))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("qs":: map numberWithCellColour (c7))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("ec":: map numberWithCellColour (c8))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("tt" :: ("{\\scriptsize $" ^ printableNumber w3 ^ " \\cdot \\eta_{\\text{tt}}(x)$} ") :: map numberWithCellColour (c3))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("et" :: ("{\\scriptsize $" ^ printableNumber w4 ^ " \\cdot \\eta_{\\text{et}}(x)$} ") :: map numberWithCellColour (c4))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("qs" :: ("{\\scriptsize $" ^ printableNumber w5 ^ " \\cdot \\eta_{\\text{qs}}(x)$} ") :: map numberWithCellColour (c5))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("cm" :: ("{\\scriptsize $" ^ printableNumber w6 ^ " \\cdot \\eta_{\\text{cm}}(x)$} ") :: map numberWithCellColour (c6))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("ec" :: ("{\\scriptsize $" ^ printableNumber w7 ^ " \\cdot \\eta_{\\text{ec}}(x)$} ") :: map numberWithCellColour (c7))) ^ "\\\\  \n") ^
                     (*    (String.concat (List.intersperse " , " ("arity":: map printableNumber c9)) ^ "  \n") ^*)
-                          (String.concat (List.intersperse " & " ("it":: map numberWithCellColour (c10))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("sr":: map numberWithCellColour (c11))) ^ "\\\\  \n") ^
-                          (String.concat (List.intersperse " & " ("bf":: map numberWithCellColour (c12))) ^ "\\\\  \n")^
-                          (String.concat (List.intersperse " & " ("sd":: map numberWithCellColour (c13))) ^ "\\\\  \n")
-                        (*    (String.concat (List.intersperse " , " ("Total" :: "" :: map printableNumber totals)) ^ "  \n")*)
+                          (String.concat (List.intersperse " & " ("it" :: ("{\\scriptsize $" ^ printableNumber w8 ^ " \\cdot \\eta_{\\text{it}}(x)$} ") :: map numberWithCellColour (c8))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("sr" :: ("{\\scriptsize $" ^ printableNumber w9 ^ " \\cdot \\eta_{\\text{sr}}(x)$} ") :: map numberWithCellColour (c9))) ^ "\\\\  \n") ^
+                          (String.concat (List.intersperse " & " ("bf" :: ("{\\scriptsize $" ^ printableNumber w10 ^ " \\cdot \\eta_{\\text{bf}}(x)$} ") :: map numberWithCellColour (c10))) ^ "\\\\  \n")^
+                          (String.concat (List.intersperse " & " ("sd" :: ("{\\scriptsize $" ^ printableNumber w11 ^ " \\cdot \\eta_{\\text{sd}}(x)$} ") :: map numberWithCellColour (c11))) ^ "\\\\  \n")^
+                            (String.concat (List.intersperse " & " ("\\multicolumn{2}{c}{total}" :: map numberWithCellColour Totals)) ^ "  \n")
         in (print latexText)
         end;
 

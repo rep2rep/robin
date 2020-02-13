@@ -1,0 +1,36 @@
+euler,
+mode,"containment"
+rigorous,TRUE
+types,"contour,zone,diagram,X"
+tokens,"$oval : {type := contour},
+        $gray : {type := colour},
+        $pattern : {type := texture}"
+patterns,"whole : {type := zone;
+                   holes := [];
+                   token_registration := 1},
+          intersection : {type := zone;
+                           holes := [zone => 2];
+                           token_registration := 1},
+          zone_from_contour : {type := zone;
+                                holes := [contour => 1];
+                                token_registration := 1},
+          zone_from_contour_texture_colour : {type := zone;
+                                              holes := [contour => 1. texture => 1. colour => 1];
+                                              token_registration := 1;
+                                              occurrences := 2},
+           intersection : {type := zone;
+                           holes := [zone => 2];
+                           token_registration := 1}
+           union : {type := zone;
+                    holes := [zone => 2];
+                    token_registration := 1};
+           labelled_zone : {type := zone;
+                            holes := [zone => 1];
+                            token_registration := 1},
+           reference_by_label : {type := reference;
+                                 holes := [zone => 1. X => 1];
+                                 token_registration := 3}"
+laws,"containment_transitive,intersection_commutative,union_commutative,intersection_associative,union_associative"
+tactics,"observe : {inference_type := calc;
+                     patterns := 1;
+                     laws := 0}"

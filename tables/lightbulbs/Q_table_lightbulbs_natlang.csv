@@ -102,7 +102,7 @@ relevant_tokens,"there : {type := N;
 instrumental_patterns,"probability : {type := ratio;
                                       holes := [event => 1];
                                       occurrences := 2;
-                                      token_registration := 2}
+                                      token_registration := 2},
                        conditional_probability : {type := ratio;
                                                   holes := [event => 2];
                                                   occurrences := 2;
@@ -113,7 +113,7 @@ instrumental_patterns,"probability : {type := ratio;
                                      token_registration := 2},
                        binaryChoice : {type := relationship;
                                        holes := [event => 2];
-                                       occurrences :=
+                                       occurrences := 1;
                                        token_registration := 2}"
 relevant_patterns,"SfromNPandVP : {type := S;
                                    holes := [NP => 1. VP => 1];
@@ -124,6 +124,7 @@ relevant_patterns,"SfromNPandVP : {type := S;
                                  occurrences := 2;
                                  token_registration := 2}"
 instrumental_laws,""
-instrumental_tacics,"transform : {inference_type := transform;
+instrumental_tactics,"transform : {inference_type := transformation;
                                   patterns := 1;
-                                  laws := 1}"
+                                  laws := 1;
+                                  uses := 1}"

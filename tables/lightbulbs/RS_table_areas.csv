@@ -19,9 +19,11 @@ patterns,"joint_segments : {type := segment;
                                       tokens := [$segment. $segment];
                                       token_registration := 1},
            region_from_contour : {type := region;
-                                  holes := [contour. colour. texture]},
+                                  holes := [contour => 1. colour => 1. texture => 1];
+                                  token_registration := 1},
            is_rectangle : {type := property;
-                           holes := [region]},
+                           holes := [region => 1];
+                           token_registration := 1},
            area_of_region : {type := real;
                              holes := [region => 1];
                              token_registration := 1},

@@ -1,0 +1,96 @@
+lightbulbs,euler
+mode,"containment, sentential"
+error_allowed,0
+answer_type,real
+instrumental_tokens,"$oval : {type := contour;
+                              occurrences := 4},
+                     = : {type := real * real -> formula;
+                          occurrences := 4;
+                          token_registration := 2},
+                     \cap : {type := set * set -> set;
+                             occurrences := 9;
+                             token_registration := 2},
+                     \cdot : {type := real * real -> real;
+                              occurrences := 4;
+                              token_registration := 2},
+                     \frac : {type := real * real -> real;
+                              occurrences := 1;
+                              token_registration := 2}"
+relevant_tokens,"| : {type := delimiter;
+                      occurrences := 24},
+                 \subseteq : {type := set * set -> formula;
+                              occurrences := 2;
+                              token_registration := 2},
+                 \cup : {type := set * set -> set;
+                         occurrences := 2;
+                         token_registration := 2},
+                 $gray : {type := colour;
+                          occurrences := 1},
+                 $pattern : {type := texture;
+                             occurrences := 1},
+                 a : {type := set;
+                      occurrences := 7},
+                 b : {type := set;
+                      occurrences := 7},
+                 d_1 : {type := set;
+                        occurrences := 10},
+                 d_2 : {type := set;
+                        occurrences := 5},
+                 0.3 : {type := real;
+                        occurrences := 2},
+                 0.8 : {type := real;
+                        occurrences := 2},
+                 assume : {type := V; occurrences := 1},
+                 calculate : {type := V; occurrences := 1},
+                 \colon : {type := delimiter; occurrences := 2}"
+instrumental_patterns,"intersection : {type := zone;
+                                       holes := [zone => 2];
+                                       token_registration := 1;
+                                       occurrences := 8},
+                       || : {type := real;
+                             holes := [set => 1];
+                             tokens := [|. |]
+                             token_registration := 2;
+                             occurrences := 12},
+                       equality_chain_real : {type := proof;
+                                              holes := [real => sqrt(#t)];
+                                              tokens := [=];
+                                              token_registration := 2;
+                                              occurrences := 1}"
+relevant_patterns,"zone_from_contour : {type := zone;
+                                        holes := [contour => 1];
+                                        token_registration := 1;
+                                        occurrences := 4},
+                   zone_from_contour_texture_colour : {type := zone;
+                                                       holes := [contour => 1. texture => 1. colour => 1];
+                                                       token_registration := 1;
+                                                       occurrences := 2},
+                   intersection : {type := zone;
+                                   holes := [zone => 2];
+                                   token_registration := 1;
+                                   occurrences := 2}
+                   union : {type := zone;
+                            holes := [zone => 2];
+                            token_registration := 1;
+                            occurrences := 6};
+                   labelled_zone : {type := zone;
+                                    holes := [zone => 1];
+                                    token_registration := 1;
+                                    occurrences := 4},
+                   reference_by_label : {type := reference;
+                                         holes := [zone => 1. set => 1];
+                                         token_registration := 3;
+                                         occurrences := 4}"
+instrumental_laws,"cardinality_union_intersection,cardinality_additivity,\subseteq-transitivity,\cap-commutativity,=transitivity"
+instrumental_tactics,"observe : {inference_type := calc;
+                                 patterns := 1;
+                                 laws := 0;
+                                 uses := 1},
+                      rewrite : {inference_type := subst;
+                                 patterns := 1;
+                                 laws := 1;
+                                 uses := 30},
+                      lemma : {inference_type := subst;
+                               patterns := 1;
+                               laws := 0;
+                               uses := 2}"

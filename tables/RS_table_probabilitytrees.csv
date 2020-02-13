@@ -12,6 +12,6 @@ laws,"total_paths : {description := the value of a node is the sum of values of 
       equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
       total_leaves_1 : {description := the sum of all leaves equals 1},"
 law_imports,""
-tactics,"$assign_value_to_arrow, $assign_value_to_node"
+tactics,"assign_value_to_arrow, assign_value_to_node,assign_value_to_node_set"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"
