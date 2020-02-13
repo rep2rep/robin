@@ -21,12 +21,12 @@ sig
 
   val tokenRegistration : qtable -> real;
 
-  val expressionRegistration : qtable -> rstable -> real;
+  val expressionRegistration : qtable -> real;
 
-  val tokenConceptMapping : qtable -> qtable -> real;
+  val conceptMapping : qtable -> qtable -> real;
   val numberOfTokenTypes : qtable -> real;
 
-  val expressionConceptMapping : qtable -> qtable -> real;
+(*)  val expressionConceptMapping : qtable -> qtable -> real;*)
   val numberOfExpressionTypes : qtable -> real;
 
   val quantityScale : qtable -> real;
@@ -191,14 +191,14 @@ fun numberOfObjectsModulated qT =
     in List.sumIndexed QProperty.gravity (P @ C)
     end;
 
-fun expressionRegistration qT rT =
+fun expressionRegistration qT =
     let val M = PropertySet.toList (PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Mode)
         fun modereg x = if Property.LabelOf x = "containment" then 1.0
-                   else if Property.LabelOf x = "sentential" then 2.0
                    else if Property.LabelOf x = "grid" then 2.0
                    else if Property.LabelOf x = "axial" then 2.0
                    else if Property.LabelOf x = "proportional" then 2.0
-                   else if Property.LabelOf x = "connection" then 3.0
+                   else if Property.LabelOf x = "connection" then 2.0
+                   else if Property.LabelOf x = "sentential" then 3.0
                    else (print "unknown mode"; raise Match)
     in Math.sqrt(numberOfPatternsModulatedSquared qT) * (List.avgIndexed modereg M)
     end;
@@ -301,7 +301,7 @@ fun quantityScale qT =
     end;
 
 
-fun conceptMapping kind idealqT qT =
+fun conceptMapping idealqT qT =
     let fun present x = #2 (Property.getNumFunction "occurrences" (QProperty.withoutImportance x)) > 0.0
 
         fun findAndInsertByImportance x [] = [(QProperty.importanceOf x, [QProperty.withoutImportance x])]
@@ -347,11 +347,11 @@ fun conceptMapping kind idealqT qT =
 
     in rd + oe
     end;
-
+(*)
 fun tokenConceptMapping idealqT rT = conceptMapping Kind.Token idealqT rT;
 
 fun expressionConceptMapping idealqT rT = conceptMapping Kind.Pattern idealqT rT;
-
+*)
 
 fun inferenceType qT =
     let val T = QPropertySet.collectOfKindPresentInQ qT Kind.Tactic;
@@ -369,7 +369,8 @@ fun inferenceType qT =
 
 
 fun problemSpaceBranchingFactor qT rT =
-    let val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
+    let
+        val T = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Tactic;
         val L = PropertySet.collectOfKind (QPropertySet.withoutImportances qT) Kind.Law;
         fun lawParams t = #2 (Property.getNumFunction "laws" t) handle Property.NoAttribute _ => 0.0
         fun patternParams t = #2 (Property.getNumFunction "patterns" t) handle Property.NoAttribute _ => 0.0
@@ -377,7 +378,6 @@ fun problemSpaceBranchingFactor qT rT =
         val bp = numberOfPatternsModulated qT
         val sumProd = List.foldr (fn ((x,y),n) => x * y + n) 0.0
         val lp = PropertySet.map (fn x => (Math.pow(real bl, lawParams x), Math.pow(bp, patternParams x))) T
-
         val trans = List.exists (fn t => #2 (Property.getStringFunction "inference_type" t) = "transformation") (PropertySet.toList T)
     in if trans then Real.posInf else Math.ln(sumProd lp)/Math.ln(2.0)
     end;
