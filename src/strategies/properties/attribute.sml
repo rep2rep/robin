@@ -118,8 +118,7 @@ struct
             | NONE => if s = "#t" then ~3 else
                       if s = "sqrt(#t)" then ~2 else
                       if s = "log(#t)" then ~1
-                        else (print ("bad numerical expression: " ^ s);
-                              raise Parser.ParseError);
+                        else (raise Parser.ParseError);
 
   fun makeHoleList [] = []
     | makeHoleList (a::L) =
@@ -136,7 +135,7 @@ struct
     type/multiplicities pairs separated by dots [int => 1. real => 4. set => 1]*)
   fun holeMultisetFromString s =
       let val L = Parser.splitStrip "." (Parser.removeSquareBrackets s)
-      in holeMultisetFromList L
+      in holeMultisetFromList L  handle Parser.ParseError => (print ("bad numerical expression in: " ^ s); raise Parser.ParseError)
       end
 
   fun tokenListFromString s = Parser.splitStrip "." (Parser.removeSquareBrackets s);
