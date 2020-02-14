@@ -5,7 +5,8 @@ answer_type,real
 instrumental_tokens,""
 relevant_tokens,"$white : {type := colour; occurrences := 2},
                  $gray : {type := colour; occurrences := 2},
-                 $plain : {type := colour; occurrences := 2},
+                 $plain : {type := texture; occurrences := 2},
+                 $pattern : {type := texture; occurrences := 2},
                  $segment : {type := segment; occurrences := 19},
                  a : {type := X; occurrences := 1},
                  b : {type := X; occurrences := 1},

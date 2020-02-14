@@ -72,6 +72,10 @@ relevant_patterns,"path : {type := path;
                                     holes := [DET => 1. N => 1];
                                     token_registration := 2;
                                     occurrences := 4},
+                   NPfromADJandNP : {type := NP;
+                                     holes := [ADJ => 1. NP => 1];
+                                     token_registration := 2;
+                                     occurrences := 2},
                    VPfromVandPP : {type := VP;
                                     holes := [V => 1. PP => 1];
                                     token_registration := 2;

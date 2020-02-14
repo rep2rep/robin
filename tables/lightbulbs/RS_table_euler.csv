@@ -20,10 +20,10 @@ patterns,"whole : {type := zone;
                                               occurrences := 2},
            intersection : {type := zone;
                            holes := [zone => 2];
-                           token_registration := 1}
+                           token_registration := 1},
            union : {type := zone;
                     holes := [zone => 2];
-                    token_registration := 1};
+                    token_registration := 1},
            labelled_zone : {type := zone;
                             holes := [zone => 1];
                             token_registration := 1},

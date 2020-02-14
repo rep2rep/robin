@@ -97,9 +97,9 @@ fun unfoldTypeDNF [] = (false,[])
 
 fun satisfyTypeDNF tF =
     let fun iterate x =
-            let (*val _ = print ("\n       length of DNF: " ^ Int.toString (length x))*)
+            let val _ = print ("\n       length of DNF: " ^ Int.toString (length x))
                 val (changed,x') =  unfoldTypeDNF (List.take (x,1000) handle Subscript => ((*print " --uncut";*) x))
-            in if null x' then raise Unsatisfiable
+            in if null x' then (print "\n unsatisfied";raise Unsatisfiable)
                else (if changed
                      then iterate x'
                      else x)
@@ -150,9 +150,10 @@ fun satisfyPattern p C P =
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
 
         (* the following ordering of the KB gives preference to both things with more occurrences and with shorter input type *)
-        fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (iy * length typsx, ix* length typsy)
+        fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (length typsx, length typsy)
 
         fun patternClause K = (typs, ((udepth,[]), List.mergesort ordering (diminish tks K)))
+        val _ = print ("\n   On pattern: " ^ Property.toString p)
     in satisfyTypeDNF [patternClause CP]
     end
 

@@ -277,9 +277,7 @@ fun cognitiveScores u qL crunch =
       (*    val c9 = map (fn (_,v) => v) (arity_score u qL crunch)*)
             val c8 = map (fn (_,v) => w8*v) (inferenceType_score u qL crunch)
             val c9 = map (fn (_,v) => w9*v) (subRSVariety_score u qL crunch)
-            val _ = print "x";
             val c10 = map (fn (_,v) => w10*v) (problemSpaceBranchingFactor_score u qL crunch)
-            val _ = print "y";
             val c11 = map (fn (_,v) => w11*v) (solutionDepth_score u qL crunch)
             val totals = Vect.vectorSum [c1,c2,c3,(*c4,*)c4,c5,c6,c7,(*c9,*)c8,c9,c10,c11]
             val Totals = map (fn x => x / 11.0) totals
@@ -313,11 +311,11 @@ val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);
 val p3 = List.nth (P,2);*)
 
-
+(*
 val _ = cognitiveScores_latex (3.0/6.0) B crunch_norm;
 val _ = cognitiveScores_latex (5.0/6.0) B crunch_norm;
 val _ = cognitiveScores_latex (1.0/6.0) B crunch_norm;
-
+*)
 val _ = cognitiveScores (3.0/6.0) B crunch_raw;
 val _ = cognitiveScores (5.0/6.0) B crunch_raw;
 val _ = cognitiveScores (1.0/6.0) B crunch_raw;

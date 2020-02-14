@@ -5,8 +5,8 @@ token-plus,token-\cup,0.25
 token-minus,token-\setminus,0.25
 token-union OR token-or,token-\cup,1
 token-intersection OR token-and,token-\cap,1
-token-complement OR token-not,token-\bar,1
+token-complement OR token-not OR pattern-binary_choice,token-\bar,1
 token-probability OR pattern-probability,token-\Pr,1
 token-given OR token-if,token-\mid,1
 tactic-arithmetic_calculation,tactic-calc,0.75
-pattern-class_ratio OR pattern-conditional_probability,pattern-conditional_Pr,1
+pattern-class_ratio OR pattern-sequential_events OR pattern-conditional_probability,pattern-conditional_Pr,1
