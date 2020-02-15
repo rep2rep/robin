@@ -98,7 +98,7 @@ fun unfoldTypeDNF [] = (false,[])
 fun satisfyTypeDNF tF =
     let fun iterate x =
             let val _ = print ("\n       length of DNF: " ^ Int.toString (length x))
-                val (changed,x') =  unfoldTypeDNF (List.take (x,1000) handle Subscript => ((*print " --uncut";*) x))
+                val (changed,x') =  unfoldTypeDNF (List.take (x,100) handle Subscript => ((*print " --uncut";*) x))
             in if null x' then (print "\n unsatisfied";raise Unsatisfiable)
                else (if changed
                      then iterate x'
@@ -150,7 +150,12 @@ fun satisfyPattern p C P =
         val udepth = Real.floor (#2 (Property.getNumFunction "udepth" p)) handle NoAttribute => 1
 
         (* the following ordering of the KB gives preference to both things with more occurrences and with shorter input type *)
-        fun ordering (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = Int.compare (length typsx, length typsy)
+        fun ordering' (((_,_,(typsx,_)),ix),((_,_,(typsy,_)),iy)) = case Int.compare (length typsx, length typsy) of EQUAL => Int.compare (iy, ix) | w => w
+                (* the following ordering of the KB gives preference to both things with fewer occurrences and with shorter input type *)
+        fun ordering (((_,tksx,(typsx,_)),ix),((_,tksy,(typsy,_)),iy)) = if (length typsx = 0 orelse length typsy = 0)
+                                                                    then case Int.compare (length typsx, length typsy) of EQUAL => Int.compare ((1+length tksy) * iy, (1+length tksx) * ix) | w => w
+                                                                    else Int.compare (length typsx * (1+length tksy) * ix, length typsy * (1+length tksx) * iy)
+        fun ordering'' (((_,tksx,(typsx,_)),ix),((_,tksy,(typsy,_)),iy)) = Int.compare (length typsx * (1+length tksy) * length typsx, length typsy * (1+length tksx) * length typsy)
 
         fun patternClause K = (typs, ((udepth,[]), List.mergesort ordering (diminish tks K)))
         val _ = print ("\n   On pattern: " ^ Property.toString p)
