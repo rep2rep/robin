@@ -7,17 +7,18 @@ patterns,"joint_segments : {type := segment;
                             holes := [segment => 2];
                             tokens := [];
                             token_registration := 1},
-           joint_regions : {type := region;
-                            holes := [region => 2];
-                            tokens := [];
-                            token_registration := 1},
+           union : {type := region;
+                    holes := [region => 2];
+                    tokens := [];
+                    token_registration := 1},
            contour_from_segments : {type := contour;
                                     holes := [segment => log(#t)];
                                     token_registration := 1},
-           rectangle_from_segments : {type := contour;
-                                      holes := [segment => 2];
-                                      tokens := [$segment. $segment];
-                                      token_registration := 1},
+           rectangle_from_points : {type := contour;
+                                    holes := [point => 2];
+                                    tokens := [$segment. $segment. $segment. $segment];
+                                    occurrences := 8;
+                                    token_registration := 1},
            region_from_contour : {type := region;
                                   holes := [contour => 1. colour => 1. texture => 1];
                                   token_registration := 1},
@@ -34,7 +35,10 @@ patterns,"joint_segments : {type := segment;
            labelled_region : {type := region;
                               holes := [region => 1. X => 1];
                               tokens := [];
-                              token_registration := 1}"
+                              token_registration := 1},
+           difference: {type := region;
+                        holes := [region => 2];
+                        token_registration := 1},"
 laws,"area_additivity,area_of_rectangle"
 tactics,"measure : {inference_type := transform;
                    patterns := 1;

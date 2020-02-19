@@ -71,12 +71,23 @@ instrumental_patterns,"fix_argument_overload : {type := 'a -> 'c;
                                                 token_registration := 2;
                                                 occurrences := 2},
                        equality_chain_real : {type := proof;
-                                              holes := [real => sqrt(#t)];
+                                              holes := [real => log(#t)];
                                               tokens := [=];
                                               token_registration := 2;
                                               occurrences := 1}"
 relevant_patterns,""
-instrumental_laws,"law_of_total_probability, Bayes'_theorem, de_Finetti, distributivity"
+circumstantial_patterns,"set_from_items : {type := 'a set;
+                                            holes := ['a => log(#t)];
+                                            occurrences := 1;
+                                            token_registration := 2},
+                         equality_chain_event : {type := proof;
+                                                 holes := [event => log(#t)];
+                                                 tokens := [=];
+                                                 token_registration := 2;
+                                                 occurrences := 0}"
+instrumental_laws,"law_of_total_probability, Bayes'_theorem, de_Finetti, *distributivity"
+relevant_laws,"commutativity, probability_of_union, unit_measure"
+circumstantial_laws,"\cap-distributivity, cancellation, +zero, *one"
 instrumental_tactics,"rewrite : {inference_type := subst;
                                  patterns := 1;
                                  laws := 1;
@@ -84,4 +95,12 @@ instrumental_tactics,"rewrite : {inference_type := subst;
                       calc : {inference_type := calc;
                               patterns := 1;
                               laws := 0;
-                              uses := 1}"
+                              uses := 1},
+                      alg_simp : {inference_type := simp;
+                                  patterns := 1;
+                                  laws := 0;
+                                  uses := 1}"
+relevant_tactics,"lemma : {inference_type := match;
+                           patterns :=1;
+                           laws := 0;
+                           uses := 0}"

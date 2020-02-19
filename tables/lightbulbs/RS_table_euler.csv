@@ -31,6 +31,6 @@ patterns,"whole : {type := zone;
                                  holes := [zone => 1. X => 1];
                                  token_registration := 3}"
 laws,"containment_transitive,intersection_commutative,union_commutative,intersection_associative,union_associative"
-tactics,"observe : {inference_type := calc;
+tactics,"observe : {inference_type := obs;
                      patterns := 1;
-                     laws := 0}"
+                     laws := 1}"

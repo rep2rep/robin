@@ -5,44 +5,45 @@ types,"event,real,formula,proof"
 tokens,"\Pr : {type := event -> real;
                       tokens := [(. )];
                       token_registration := 2},
-               \Pr : {type := event * event -> real;
-                      tokens := [\mid. (. )];
-                      token_registration := 2},
-               = : {type := real * real -> formula;
-                    token_registration := 2},
-               = : {type := event * event -> formula;
-                    token_registration := 2},
-               \bar : {type := event -> event;
-                       token_registration := 2},
-               \cap : {type := event * event -> event;
-                       token_registration := 2},
-               \cup : {type := event * event -> event;
-                       token_registration := 2},
-               \mid : {type := delimiter},
-               \cdot : {type := real * real -> real;
-                        token_registration := 2},
-               + : {type := real * real -> real;
-                    token_registration := 2},
-               - : {type := real * real -> real;
-                    token_registration := 2},
-               \frac : {type := real * real -> real;
-                        token_registration := 2},
-               \div : {type := real * real -> real;
-                        token_registration := 2},
-               \setminus : {type := event},
-               \Omega : {type := event},
-                0 : {type := real},
-                1 : {type := real},
-               assume : {type := V;
-                         occurrences := 1},
-               calculate : {type := V;
-                            occurrences := 1},
-              ( : {type := left delimiter},
-              ) : {type := right delimiter},
-              \colon : {type := delimiter}"
+         \Pr : {type := event * event -> real;
+                tokens := [\mid. (. )];
+                token_registration := 2},
+         = : {type := real * real -> formula;
+              token_registration := 2},
+         = : {type := event * event -> formula;
+              token_registration := 2},
+         \bar : {type := event -> event;
+                 token_registration := 2},
+         \cap : {type := event * event -> event;
+                 token_registration := 2},
+         \cup : {type := event * event -> event;
+                 token_registration := 2},
+         \mid : {type := delimiter},
+         \cdot : {type := real * real -> real;
+                  token_registration := 2},
+         + : {type := real * real -> real;
+              token_registration := 2},
+         - : {type := real * real -> real;
+              token_registration := 2},
+         \frac : {type := real * real -> real;
+                  token_registration := 2},
+         \div : {type := real * real -> real;
+                  token_registration := 2},
+         \setminus : {type := event},
+         \Omega : {type := event},
+         \emptyset : {type := event},
+          0 : {type := real},
+          1 : {type := real},
+         assume : {type := V;
+                   occurrences := 1},
+         calculate : {type := V;
+                      occurrences := 1},
+        ( : {type := delimiter},
+        ) : {type := delimiter},
+        \colon : {type := delimiter}"
 patterns,"equality_chain_real : {type := proof;
                                  holes := [real => sqrt(#t)];
-                                 tokens := [=];
+                                 tokens := [=. =];
                                  token_registration := 2},
           equality_chain_event : {type := proof;
                                   holes := [event => sqrt(#t)];

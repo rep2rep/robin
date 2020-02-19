@@ -44,9 +44,9 @@ patterns,"joint_segments : {type := segment;
                           holes := [ADJ => 1. N => 1];
                           token_registration := 2}"
 laws,"scale_independence_of_ratio,length_additivity,aligned_segments_same_length"
-tactics,"observe : {inference_type := calc;
+tactics,"observe : {inference_type := obs;
                     patterns := 1;
-                    laws := 0},
+                    laws := 1},
          calc : {inference_type := calc;
                  patterns := 1;
                  laws := 0}"

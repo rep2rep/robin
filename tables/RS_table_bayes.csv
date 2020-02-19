@@ -1,7 +1,45 @@
 bayes,
 mode,"sentential"
 types,"real,event,formula,proof"
-tokens,"\Omega : {type := event}, \emptyset : {type := event}, \bar : {type := event -> event}, 0 : {type := real}, 1 : {type:= real}, + : {type := real*real->real}, - : {type := real*real->real}, * : {type := real*real->real}, \div : {type := real*real->real}, \cup : {type := event*event->event}, \cap : {type := event*event->event}, \setminus : {type := event*event->event}, \Pr : {type:= event*event->real}, \Pr : {type := event->real}, \mid : {type := delimiter}, = : {type := event*event->formula}, = : {type := real*real->formula}"
+tokens,"\Pr : {type := event -> real;
+                      tokens := [(. )];
+                      token_registration := 2},
+         \Pr : {type := event * event -> real;
+                tokens := [\mid. (. )];
+                token_registration := 2},
+         = : {type := real * real -> formula;
+              token_registration := 2},
+         = : {type := event * event -> formula;
+              token_registration := 2},
+         \bar : {type := event -> event;
+                 token_registration := 2},
+         \cap : {type := event * event -> event;
+                 token_registration := 2},
+         \cup : {type := event * event -> event;
+                 token_registration := 2},
+         \mid : {type := delimiter},
+         \cdot : {type := real * real -> real;
+                  token_registration := 2},
+         + : {type := real * real -> real;
+              token_registration := 2},
+         - : {type := real * real -> real;
+              token_registration := 2},
+         \frac : {type := real * real -> real;
+                  token_registration := 2},
+         \div : {type := real * real -> real;
+                  token_registration := 2},
+         \setminus : {type := event},
+         \Omega : {type := event},
+         \emptyset : {type := event},
+          0 : {type := real},
+          1 : {type := real},
+         assume : {type := V;
+                   occurrences := 1},
+         calculate : {type := V;
+                      occurrences := 1},
+        ( : {type := delimiter},
+        ) : {type := delimiter},
+        \colon : {type := delimiter}"
 token_imports,"base_10_real_numerals, latin_alphabet"
 patterns,"conditional_Pr : {holes:=[event=>2. real=>1]; tokens:=[\Pr. \mid. =]}, simple_Pr : {holes:=[event=>1. real=>1]; tokens:=[\Pr. =]}, equality_chain : {holes:=[real=>#t]; tokens:=[=]}, joint_Pr : {holes:=[event=>2. real=>1]; tokens:=[\cap. =. \Pr]}, independent_events"
 grammatical_complexity,type-2
