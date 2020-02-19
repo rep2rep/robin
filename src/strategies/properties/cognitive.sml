@@ -360,10 +360,11 @@ fun inferenceType qT =
         val S = QPropertySet.map wt T
         fun assess (_,s) = if s = "assign" then 1.0
                       else if s = "match" then 4.0
+                      else if s = "obs" then 4.0
                       else if s = "subst" then 5.0
-                      else if s = "obs" then 5.0
                       else if s = "calc" then 6.0
-                      else if s = "transformation" then 12.0
+                      else if s = "simp" then 7.0
+                      else if s = "transformation" then 8.0
                       else (print ("Cannot find inference type: " ^ s ^ "\n") ;raise Match)
     in List.weightedAvgIndexed (#1) assess S handle Empty => Real.posInf
     end;

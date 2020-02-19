@@ -148,7 +148,7 @@ local
     val generate_property_names = fn _ =>
         let val its = ["tokens", "types", "patterns"]
             val its' = ["laws", "tactics"]
-            val imps = ["instrumental_", "relevant_"]
+            val imps = ["instrumental_", "relevant_", "circumstantial_"]
             val imps' = ["noise_"]
         in (stringProduct (imps, (its @ its'))) @ (stringProduct (imps', its))
         end;
