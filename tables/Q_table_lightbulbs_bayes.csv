@@ -66,10 +66,10 @@ relevant_tokens,"a : {type := event;
                      occurrences := 1},
                 \colon : {type := delimiter;
                           occurrences := 2}"
-instrumental_patterns,"fix_argument_overload : {type := 'a -> 'c;
-                                                holes := ['a * 'b -> 'c => 1. 'b => 1];
-                                                token_registration := 2;
-                                                occurrences := 2},
+instrumental_patterns,"conditional_independence : {type := formula;
+                                                    holes := [event => 2];
+                                                    tokens := [\Pr. \Pr. (. (. ). ). \mid. \mid. =];
+                                                    token_registration := 2},
                        equality_chain_real : {type := proof;
                                               holes := [real => log(#t)];
                                               tokens := [=];

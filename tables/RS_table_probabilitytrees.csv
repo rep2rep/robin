@@ -1,17 +1,22 @@
 probabilitytrees,
 mode,"connection"
-types,"node,arrow,real"
-tokens,"$node_container, $arrow"
-patterns,"path, path_equivalence, value_of_node, value_of_arrow"
+types,"node,edge,real"
+tokens,"$node_container, $edge"
+patterns,"path, path_equivalence, value_of_node, value_of_edge, value_of_joint_nodes,
+          repeat_values : {type := relationship;
+                                holes := [node => 1];
+                                token_registration := 1;
+                                occurrences := 2}"
 token_imports,"base_10_real_numerals"
 grammatical_complexity,type-3
 rigorous,TRUE
 laws,"total_paths : {description := the value of a node is the sum of values of all the paths going through the node},
-      path_multiplication : {description := the value of a node equals the multiplication of the arrows leading to it},
-      total_arrows_1 : {description := the values of arrows coming out of a node add up to 1},
+      path_multiplication : {description := the value of a node equals the multiplication of the edges leading to it},
+      total_edges_1 : {description := the values of edges coming out of a node add up to 1},
       equivalent_paths : {description := paths with the same set of nodes in different trees have same value},
-      total_leaves_1 : {description := the sum of all leaves equals 1},"
+      total_leaves_1 : {description := the sum of all leaves equals 1},
+      joint_nodes_sum"
 law_imports,""
-tactics,"assign_value_to_arrow, assign_value_to_node,assign_value_to_node_set"
+tactics,"assign_value_to_edge, assign_value_to_node, assign_value_to_node_set"
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;topological}, Y:{grammatical;topological;inferential}, colour:{}"

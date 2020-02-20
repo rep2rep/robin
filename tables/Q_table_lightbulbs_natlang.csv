@@ -3,7 +3,6 @@ mode,sentential
 error_allowed,0
 answer_type,ratio
 instrumental_types,"number,event"
-relevant_types,"N,V,ADJ,NP,VP,ADV,S"
 instrumental_tokens,"probability : {type := N;
                                     occurrences := 1},
                      \% : {type := number -> ratio;
@@ -98,15 +97,7 @@ noise_tokens,"there : {type := N;
                        occurrences := 1},
                also : {type := ADV;
                        occurrences := 1}"
-instrumental_patterns,"probability : {type := ratio;
-                                      holes := [event => 1];
-                                      occurrences := 2;
-                                      token_registration := 2},
-                       conditional_probability : {type := ratio;
-                                                  holes := [event => 2];
-                                                  occurrences := 2;
-                                                  token_registration := 2},
-                       sequential_events : {type := relationship;
+instrumental_patterns,"sequential_events : {type := relationship;
                                             holes := [event => 2];
                                             occurrences := 1;
                                             token_registration := 2},
@@ -122,7 +113,7 @@ instrumental_patterns,"probability : {type := ratio;
                                        holes := [event => 2];
                                        occurrences := 1;
                                        token_registration := 2}"
-relevant_patterns,"SfromNPandVP : {type := S;
+circumstantial_patterns,"SfromNPandVP : {type := S;
                                    holes := [NP => 1. VP => 1];
                                    token_registration := 2;
                                    occurrences := 6},

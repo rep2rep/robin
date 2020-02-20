@@ -1,0 +1,33 @@
+token-\% OR token-percentage OR pattern-class_ratio OR token-probability OR pattern-probability,token-\Pr:{type:=event->real},1
+token-\% OR token-percentage OR pattern-class_ratio OR token-probability OR pattern-probability,pattern-area_of_region OR pattern-relative_size,1
+token-\% OR token-percentage OR pattern-class_ratio OR token-probability OR pattern-probability,pattern-value_of_node,1
+token-\% OR token-percentage OR pattern-class_ratio OR token-probability OR pattern-probability,pattern-relative_length,1
+type-ratio,type-real,1
+type-number,type-real,0.9
+type-event OR type-class,type-event,1
+type-event OR type-class,type-region,1
+type-event OR type-class,type-node,1
+type-event OR type-class,type-segment,1
+type-event OR type-class,type-zone,1
+pattern-sequential_events OR pattern-conditional_probability,law-Bayes’_theorem OR law-deFinetti,1
+pattern-sequential_events OR pattern-conditional_probability,law-scale_independence_of_ratio,1
+pattern-sequential_events OR pattern-conditional_probability,law-path_multiplication,1
+pattern-sequential_events OR pattern-conditional_probability,law-scale_independence_of_ratios,1
+pattern-sequential_events OR pattern-conditional_probability,token-\Pr:{type:=event*event->real},1
+pattern-sequential_events OR pattern-conditional_probability,pattern-relative_size,1
+pattern-sequential_events OR pattern-conditional_probability,pattern-value_of_arrow,0.75
+pattern-sequential_events OR pattern-conditional_probability,pattern-relative_length,1
+token-union OR token-or OR pattern-disjunction,token-\cup,1
+token-union OR token-or OR pattern-disjunction,pattern-union,1
+token-union OR token-or OR pattern-disjunction,pattern-joint_nodes,0.5
+token-union OR token-or OR pattern-disjunction,pattern-joint_segments,0.5
+token-intersection OR token-and OR pattern-conjunction,token-\cap,1
+token-intersection OR token-and OR pattern-conjunction,pattern-intersection,1
+token-intersection OR token-and OR pattern-conjunction,pattern-path,0.75
+token-intersection OR token-and OR pattern-conjunction,pattern-joint_segments,0.75
+token-not OR pattern-negation,token-\bar,1
+token-not OR pattern-negation,pattern-difference OR pattern-complement,1
+token-not OR pattern-negation,pattern-complementary_edges,0.75
+pattern-conditionally_independent_events,pattern-conditional_independence,1
+pattern-conditionally_independent_events,pattern-nested_ratio_similarity,1
+pattern-conditionally_independent_events,pattern-repeat_values,1

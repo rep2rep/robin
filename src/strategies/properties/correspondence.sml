@@ -206,7 +206,7 @@ in
   fun typeCorrespondences corrs qProps =
       let fun tCorrs q =
               let val p = QProperty.withoutImportance q
-                  val t = Property.getTypeOfValue p handle Property.NoAttribute _ => raise skipProp
+                  val t = if Property.kindOf p = Kind.Token then (Property.getTypeOfValue p handle Property.NoAttribute _ => raise skipProp) else raise skipProp
                   val singletonT = PropertySet.fromList [Property.fromKindValueAttributes (Kind.Type, Property.Type t, [])]
                   val singletonP = PropertySet.fromList [p]
                   val g = QProperty.logGravity q handle Property.NoAttribute _ => 0.0

@@ -1,0 +1,108 @@
+lightbulbs,probabilitytrees
+mode,connection
+error_allowed,0
+answer_type,real
+instrumental_tokens,"$node_container : {type := node;
+                                        content := X;
+                                        occurrences := 4},
+                     $edge : {type := edge;
+                              occurrences := 6}"
+relevant_tokens,"$node_container : {type := node;
+                                    content := X;
+                                    occurrences := 11},
+                 $edge : {type := edge; occurrences := 8},
+                 0.5 : {type := real; occurrences := 2},
+                 0.3 : {type := real; occurrences := 2},
+                 0.8 : {type := real; occurrences := 2},
+                 a : {type := X; occurrences := 1},
+                 b : {type := X; occurrences := 1},
+                 d : {type := X; occurrences := 12},
+                 \neg : {type := X -> X; occurrences := 6; token_registration := 2},
+                 calculate : {type := V; occurrences := 1},
+                 the : {type := DET; occurrences := 5},
+                 ratio : {type := N; occurrences := 1},
+                 of : {type := P; occurrences := 3},
+                 values : {type := N; occurrences := 2},
+                 nodes : {type := N; occurrences := 2},
+                 enclosed : {type := ADJ; occurrences := 2},
+                 in : {type := P; occurrences := 2},
+                 $gray : {type := colour; occurrences := 3},
+                 $pattern : {type := texture; occurrences := 3},
+                 against : {type := P; occurrences := 1},
+                 $circle : {type := shape; occurrences := 6}"
+instrumental_patterns,"repeat_values : {type := relationship;
+                                            holes := [node => 1];
+                                            token_registration := 1;
+                                            occurrences := 2},
+                       path : {type := path;
+                               holes := [node => log(#t)];
+                               tokens := [$edge. $edge];
+                               token_registration := 1;
+                               occurrences := 4},
+                       value_of_edge : {type := real;
+                                        holes := [edge => 1];
+                                        token_registration := 1;
+                                        occurrences := 6},
+                       value_of_node : {type := real;
+                                         holes := [node => 1];
+                                         token_registration := 1;
+                                         occurrences := 2},
+                       joint_nodes : {type := node set;
+                                       holes := [node => log(#t)];
+                                       token_registration := 1;
+                                       occurrences := 2},
+                       value_of_joint_nodes : {type := real;
+                                               holes := [node set => 1];
+                                               token_registration := 1;
+                                               occurrences := 2}"
+relevant_patterns,"path : {type := path;
+                           holes := [node => log(#t)];
+                           tokens := [$edge. $edge];
+                           token_registration := 1;
+                           occurrences := 10},
+                   IfromVandNP : {type := instruction;
+                                  holes := [V => 1. NP => 1];
+                                  token_registration := 2;
+                                  occurrences := 1},
+                   NPfromNPandPP : {type := NP;
+                                    holes := [NP => 1. PP => 1];
+                                    token_registration := 2;
+                                    occurrences := 3},
+                   PPfromPandNP : {type := PP;
+                                    holes := [P => 1. NP => 1];
+                                    token_registration := 2;
+                                    occurrences := 6},
+                   NPfromNPandVP : {type := NP;
+                                    holes := [NP => 1. VP => 1];
+                                    token_registration := 2;
+                                    occurrences := 2},
+                   NPfromDETandN : {type := NP;
+                                    holes := [DET => 1. N => 1];
+                                    token_registration := 2;
+                                    occurrences := 4},
+                   NPfromADJandNP : {type := NP;
+                                     holes := [ADJ => 1. NP => 1];
+                                     token_registration := 2;
+                                     occurrences := 2},
+                   VPfromVandPP : {type := VP;
+                                    holes := [V => 1. PP => 1];
+                                    token_registration := 2;
+                                    occurrences := 2},
+                   NfromShape : {type := N;
+                                 holes := [shape => 1];
+                                 token_registration := 1;
+                                 occurrences := 2}"
+instrumental_laws,"path_multiplication : {description := the value of a node equals the multiplication of the arrows leading to it},
+                   joint_nodes_sum : {description := the value of a set of nodes not within the same path is the sum of their values}"
+instrumental_tactics,"assign_value_to_node : {patterns := 1;
+                                              laws := 1;
+                                              inference_type := obs;
+                                              uses := 4},
+                      assign_value_to_node_set : {patterns := 1;
+                                                  laws := 1;
+                                                  inference_type := obs;
+                                                  uses := 2},
+                      calc : {patterns := 1;
+                              laws := 0;
+                              inference_type := calc;
+                              uses := 1}"
