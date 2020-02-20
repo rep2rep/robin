@@ -1,6 +1,7 @@
 bayes,
-mode,"sentential"
-types,"real,event,formula,proof"
+mode,sentential
+rigorous,TRUE
+types,"event,real,formula,proof"
 tokens,"\Pr : {type := event -> real;
                       tokens := [(. )];
                       token_registration := 2},
@@ -40,12 +41,22 @@ tokens,"\Pr : {type := event -> real;
         ( : {type := delimiter},
         ) : {type := delimiter},
         \colon : {type := delimiter}"
-token_imports,"base_10_real_numerals, latin_alphabet"
-patterns,"conditional_Pr : {holes:=[event=>2. real=>1]; tokens:=[\Pr. \mid. =]}, simple_Pr : {holes:=[event=>1. real=>1]; tokens:=[\Pr. =]}, equality_chain : {holes:=[real=>#t]; tokens:=[=]}, joint_Pr : {holes:=[event=>2. real=>1]; tokens:=[\cap. =. \Pr]}, independent_events"
-grammatical_complexity,type-2
-rigorous,TRUE
-laws,"Bayes'_theorem, law_of_total_probability, non_negative_probability, unit_measure, sigma_additivity, +inverse, add-def, mult-def, *inverse"
-law_imports,"real_number_arithmetic, finite_set_algebra"
-tactics,"rewrite, lemma, calc"
-inferential_complexity,2
-physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential}, colour:{}"
+patterns,"conditional_independence : {type := formula;
+                                      holes := [event => 2];
+                                      tokens := [\Pr. \Pr. (. (. ). ). \mid. \mid. =];
+                                      token_registration := 2},
+          equality_chain_real : {type := proof;
+                                 holes := [real => sqrt(#t)];
+                                 tokens := [=. =];
+                                 token_registration := 2},
+          equality_chain_event : {type := proof;
+                                  holes := [event => sqrt(#t)];
+                                  tokens := [=];
+                                  token_registration := 2}"
+laws,"law_of_total_probability, Pr_additivity, Bayes'_theorem, de_Finetti, non_negative_probability, unit_measure, distributivity"
+tactics,"rewrite : {inference_type := subst;
+                                 patterns := 1;
+                                 laws := 1},
+         calc : {inference_type := calc;
+                 patterns := 1;
+                 laws := 0}"

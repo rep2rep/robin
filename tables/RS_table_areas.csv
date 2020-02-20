@@ -1,9 +1,13 @@
 areas,
 mode,proportional
 rigorous,TRUE
-types,"real,point,segment,contour,region,colour,texture,X"
+types,"real,segment,contour,region,X,colour,texture"
 tokens,"$segment : {type := segment}"
-patterns,"joint_segments : {type := segment;
+patterns,"nested_ratio_similarity : {type := relationship;
+                                      holes := [region => 3];
+                                      token_registration := 1;
+                                      occurrences := 2},
+          joint_segments : {type := segment;
                             holes := [segment => 2];
                             tokens := [];
                             token_registration := 1},
@@ -11,13 +15,9 @@ patterns,"joint_segments : {type := segment;
                     holes := [region => 2];
                     tokens := [];
                     token_registration := 1},
-           intersection : {type := region;
-                            holes := [region => 2];
-                            tokens := [];
-                            token_registration := 1},
-           contour_from_points : {type := contour;
-                                  holes := [point => log(#t)];
-                                  token_registration := 1},
+           contour_from_segments : {type := contour;
+                                    holes := [segment => log(#t)];
+                                    token_registration := 1},
            rectangle_from_points : {type := contour;
                                     holes := [point => 2];
                                     tokens := [$segment. $segment. $segment. $segment];
@@ -32,14 +32,18 @@ patterns,"joint_segments : {type := segment;
            area_of_region : {type := real;
                              holes := [region => 1];
                              token_registration := 1},
-           relative_size : {type := real;
-                             holes := [region => 2];
-                             token_registration := 1},
+           joint_regions : {type := region;
+                            holes := [region => 2];
+                            tokens := [];
+                            token_registration := 1},
            labelled_region : {type := region;
                               holes := [region => 1. X => 1];
                               tokens := [];
-                              token_registration := 1}"
-laws,"area_additivity,area_of_rectangle"
+                              token_registration := 1},
+           difference: {type := region;
+                        holes := [region => 2];
+                        token_registration := 1},"
+laws,"area_additivity,area_of_rectangle,scale_independence_of_ratio"
 tactics,"measure : {inference_type := transform;
                    patterns := 1;
                    laws := 1},
