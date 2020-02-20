@@ -1,0 +1,106 @@
+lightbulbs,bayes
+mode,sentential
+error_allowed,0
+answer_type,real
+instrumental_tokens,"\Pr : {type := event -> real;
+                            occurrences := 2;
+                            tokens := [(. )];
+                            token_registration := 2},
+                     \Pr : {type := event * event -> real;
+                            occurrences := 7;
+                            tokens := [\mid. (. )];
+                            token_registration := 2},
+                     = : {type := real * real -> formula;
+                          occurrences := 7;
+                          token_registration := 2},
+                     = : {type := event * event -> formula;
+                          occurrences := 1;
+                          token_registration := 2},
+                     \bar : {type := event -> event;
+                             occurrences := 1;
+                             token_registration := 2},
+                     \cap : {type := event * event -> event;
+                             occurrences := 1;
+                             token_registration := 2},
+                     \mid : {type := delimiter;
+                             occurrences := 7},
+                     \cdot : {type := real * real -> real;
+                              occurrences := 0;
+                              token_registration := 2},
+                     + : {type := real * real -> real;
+                          occurrences := 0;
+                          token_registration := 2}"
+relevant_tokens,"a : {type := event;
+                      occurrences := 5},
+                 b : {type := event;
+                      occurrences := 5},
+                 d_1 : {type := event;
+                        occurrences := 4},
+                 d_2 : {type := event;
+                        occurrences := 5},
+                 x : {type := event;
+                      occurrences := 1},
+                 \in : {type := event * event set -> formula;
+                        token_registration := 2;
+                        occurrences := 1},
+                 for : {type := formula * formula -> formula;
+                        token_registration := 2;
+                        occurrences := 1},
+                 assume : {type := V;
+                           occurrences := 1},
+                 calculate : {type := V;
+                              occurrences := 1},
+                 0.5 : {type := real;
+                        occurrences := 1},
+                 0.8 : {type := real;
+                        occurrences := 1},
+                 0.3 : {type := real;
+                        occurrences := 1},
+                 \{ : {type := left delimiter;
+                       occurrences := 1},
+                 \} : {type := right delimiter;
+                       occurrences := 1},
+                ( : {type := left delimiter;
+                     occurrences := 1},
+                ) : {type := right delimiter;
+                     occurrences := 1},
+                \colon : {type := delimiter;
+                          occurrences := 2}"
+instrumental_patterns,"fix_argument_overload : {type := 'a -> 'c;
+                                                holes := ['a * 'b -> 'c => 1. 'b => 1];
+                                                token_registration := 2;
+                                                occurrences := 2},
+                       equality_chain_real : {type := proof;
+                                              holes := [real => log(#t)];
+                                              tokens := [=];
+                                              token_registration := 2;
+                                              occurrences := 1}"
+relevant_patterns,""
+circumstantial_patterns,"set_from_items : {type := 'a set;
+                                            holes := ['a => log(#t)];
+                                            occurrences := 1;
+                                            token_registration := 2},
+                         equality_chain_event : {type := proof;
+                                                 holes := [event => log(#t)];
+                                                 tokens := [=];
+                                                 token_registration := 2;
+                                                 occurrences := 0}"
+instrumental_laws,"law_of_total_probability, Bayes'_theorem, de_Finetti, *distributivity"
+relevant_laws,"commutativity, probability_of_union, unit_measure"
+circumstantial_laws,"\cap-distributivity, cancellation, +zero, *one"
+instrumental_tactics,"rewrite : {inference_type := subst;
+                                 patterns := 1;
+                                 laws := 1;
+                                 uses := 18},
+                      calc : {inference_type := calc;
+                              patterns := 1;
+                              laws := 0;
+                              uses := 1},
+                      alg_simp : {inference_type := simp;
+                                  patterns := 1;
+                                  laws := 0;
+                                  uses := 1}"
+relevant_tactics,"lemma : {inference_type := match;
+                           patterns :=1;
+                           laws := 0;
+                           uses := 0}"

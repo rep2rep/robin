@@ -9,4 +9,7 @@ token-complement OR token-not OR pattern-binary_choice,token-\bar,1
 token-probability OR pattern-probability,token-\Pr,1
 token-given OR token-if,token-\mid,1
 tactic-arithmetic_calculation,tactic-calc,0.75
-pattern-class_ratio OR pattern-sequential_events OR pattern-conditional_probability,pattern-conditional_Pr,1
+pattern-class_ratio OR pattern-sequential_events OR pattern-conditional_probability,token-\Pr:{type:=event*event->real},1
+type-N,type-event,0.25
+type-V,type-event,0.25
+type-ADJ,type-event,0.25

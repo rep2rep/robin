@@ -1,0 +1,211 @@
+lightbulbs,natlang
+mode,sentential
+error_allowed,0
+answer_type,ratio
+instrumental_types,"number,event"
+relevant_types,"N,V,ADJ,NP,VP,ADV,S"
+instrumental_tokens,"probability : {type := N;
+                                    occurrences := 1},
+                     \% : {type := number -> ratio;
+                           occurrences := 2}"
+relevant_tokens,"30 : {type := number;
+                          occurrences := 1},
+                 80 : {type := number;
+                       occurrences := 1},
+                 percentage : {type := N;
+                               occurrences := 1}"
+noise_tokens,"there : {type := N;
+                          occurrences := 1},
+               are : {type := V;
+                      occurrences := 1},
+               two : {type := ADJ;
+                      occurrences := 1},
+               lightbulb : {type := N;
+                            occurrences := 2},
+               manufacturers : {type := N;
+                                occurrences := 1},
+               in : {type := P;
+                     occurrences := 1},
+               town : {type := N;
+                       occurrences := 1},
+               one : {type := ADJ;
+                      occurrences := 5},
+               of : {type := P;
+                     occurrences := 2},
+               them : {type := N;
+                       occurrences := 1},
+               is : {type := V;
+                     occurrences := 5},
+               known : {type := ADJ;
+                        occurrences := 1},
+               to : {type := P;
+                     occurrences := 3},
+               produce : {type := V;
+                          occurrences := 1},
+               defective : {type := ADJ;
+                            occurrences := 3},
+               lightbulbs : {type := N;
+                             occurrences := 1},
+               the : {type := DET;
+                      occurrences := 5},
+               time : {type := N;
+                       occurrences := 1},
+               whereas : {type := CONJ;
+                          occurrences := 1},
+               for : {type := P;
+                      occurrences := 1},
+               other : {type := N;
+                        occurrences := 1},
+               you : {type := N;
+                      occurrences := 3},
+               do : {type := V;
+                     occurrences := 1},
+               not : {type := ADV;
+                      occurrences := 1},
+               know : {type := V;
+                       occurrences := 1},
+               which : {type := N;
+                        occurrences := 2},
+               pick : {type := V;
+                       occurrences := 1},
+               buy : {type := V;
+                      occurrences := 1},
+               a : {type := DET;
+                    occurrences := 2},
+               and : {type := CONJ;
+                      occurrences := 1},
+               it : {type := N;
+                     occurrences := 1},
+               turns : {type := V;
+                        occurrences := 1},
+               out : {type := ADV;
+                      occurrences := 1},
+               be : {type := V;
+                     occurrences := 1},
+               same : {type := ADJ;
+                       occurrences := 1},
+               manufacturer : {type := N;
+                               occurrences := 1},
+               gives : {type := V;
+                        occurrences := 1},
+               replacement : {type := N;
+                              occurrences := 1},
+               what : {type := N;
+                       occurrences := 1},
+               that : {type := N;
+                       occurrences := 1},
+               this : {type := N;
+                       occurrences := 1},
+               also : {type := ADV;
+                       occurrences := 1}"
+instrumental_patterns,"probability : {type := ratio;
+                                      holes := [event => 1];
+                                      occurrences := 2;
+                                      token_registration := 2},
+                       conditional_probability : {type := ratio;
+                                                  holes := [event => 2];
+                                                  occurrences := 2;
+                                                  token_registration := 2},
+                       sequential_events : {type := relationship;
+                                            holes := [event => 2];
+                                            occurrences := 1;
+                                            token_registration := 2},
+                       conditionally_independent_events : {type := relationship;
+                                                            holes := [event => 2];
+                                                            occurrences := 1;
+                                                            token_registration := 2},
+                       eventFromS : {type := event;
+                                     holes := [S => 1];
+                                     occurrences := 3;
+                                     token_registration := 2},
+                       binary_choice : {type := relationship;
+                                       holes := [event => 2];
+                                       occurrences := 1;
+                                       token_registration := 2}"
+relevant_patterns,"SfromNPandVP : {type := S;
+                                   holes := [NP => 1. VP => 1];
+                                   token_registration := 2;
+                                   occurrences := 6},
+                   NPfromNPandPP : {type := NP;
+                                    holes := [NP => 1. PP => 1];
+                                    token_registration := 2;
+                                    occurrences := 5},
+                   PPfromPandNP : {type := NP;
+                                   holes := [DET => 1. N => 1];
+                                   token_registration := 2;
+                                   occurrences := 4},
+                   VPfromVPandNP : {type := VP;
+                                   holes := [VP => 1. NP => 1];
+                                   token_registration := 2;
+                                   occurrences := 7},
+                   VPfromVPandADJP : {type := VP;
+                                     holes := [VP => 1. ADJP => 1];
+                                     token_registration := 2;
+                                     occurrences := 2},
+                   ADJPfromADJ : {type := ADJP;
+                                  holes := [ADJ => 1];
+                                  token_registration := 2;
+                                  occurrences := 1},
+                   VPfromADVandVP : {type := VP;
+                                     holes := [ADV => 1. VP => 1];
+                                     token_registration := 2;
+                                     occurrences := 3},
+                   VPfromVandVP : {type := VP;
+                                   holes := [V => 1. VP => 1];
+                                   token_registration := 2;
+                                   occurrences := 1},
+                   VPfromV : {type := VP;
+                              holes := [V => 1];
+                              token_registration := 2;
+                              occurrences := 3},
+                   VPfromToandVP : {type := VP;
+                                   holes := [VP => 1];
+                                   tokens := [to];
+                                   token_registration := 2;
+                                   occurrences := 2},
+                   VPfromVPandPP : {type := VP;
+                                   holes := [VP => 1. PP => 1];
+                                   tokens := [];
+                                   token_registration := 2;
+                                   occurrences := 2},
+                   NPfromADJandNP : {type := NP;
+                                     holes := [ADJ => 1. NP => 1];
+                                     token_registration := 2;
+                                     occurrences := 6},
+                   NPfromDETandN : {type := NP;
+                                     holes := [DET => 1. N => 1];
+                                     token_registration := 2;
+                                     occurrences := 8},
+                   NPfromNPandSBAR : {type := NP;
+                                     holes := [NP => 1. SBAR => 1];
+                                     token_registration := 2;
+                                     occurrences := 2},
+                   SBARfromPandS : {type := SBAR;
+                                     holes := [P => 1. S => 1];
+                                     token_registration := 2;
+                                     occurrences := 2},
+                   SfromVP : {type := S;
+                              holes := [VP => 1];
+                              token_registration := 2;
+                              occurrences := 3},
+                   PPfromP : {type := PP;
+                               holes := [P => 1];
+                               token_registration := 2;
+                               occurrences := 1},
+                   NPfromN : {type := NP;
+                              holes := [N => 1];
+                              token_registration := 2;
+                              occurrences := 5},
+                   CONJS : {type := S;
+                             holes := [S => 2. CONJ => 1];
+                             token_registration := 2;
+                             occurrences := 2},
+                   NfromRatio : {type := N;
+                                 holes := [ratio => 1];
+                                 occurrences := 2;
+                                 token_registration := 2}"
+instrumental_laws,""
+instrumental_tactics,"transform : {inference_type := transformation;
+                                  patterns := 1;
+                                  laws := 1;
+                                  uses := 1}"
