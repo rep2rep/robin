@@ -73,6 +73,11 @@ relevant_patterns,"zone_from_contour : {type := zone;
                             holes := [zone => 2];
                             token_registration := 1;
                             occurrences := 6},
+                   contained : {type := relationship;
+                                holes := [zone => 2];
+                                tokens := [];
+                                token_registration := 1;
+                                occurrences := 8},
                    labelled_zone : {type := zone;
                                     holes := [zone => 1];
                                     token_registration := 1;

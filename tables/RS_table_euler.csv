@@ -24,6 +24,10 @@ patterns,"whole : {type := zone;
            union : {type := zone;
                     holes := [zone => 2];
                     token_registration := 1},
+           contained : {type := relationship;
+                        holes := [zone => 2];
+                        tokens := [];
+                        token_registration := 1},
            labelled_zone : {type := zone;
                             holes := [zone => 1];
                             token_registration := 1},

@@ -1,0 +1,23 @@
+token-\Pr:{type:=event->real},token-\% OR token-percentage OR pattern-class_ratio OR token-probability OR pattern-probability,0.75
+token-\Pr:{type:=event->real},pattern-area_of_region OR pattern-relative_size,1
+token-\Pr:{type:=event->real},pattern-value_of_node,1
+token-\Pr:{type:=event->real},pattern-relative_length,1
+type-real,type-ratio,1
+type-real,type-number,0.5
+law-Bayes’_theorem OR law-deFinetti,law-scale_independence_of_ratio,1
+law-Bayes’_theorem OR law-deFinetti,law-path_multiplication,1
+law-Bayes’_theorem OR law-deFinetti,law-scale_independence_of_ratios,1
+token-\cup,token-union OR token-or OR pattern-disjunction,0.75
+token-\cup,pattern-union,1
+token-\cup,pattern-joint_nodes,0.5
+token-\cup,pattern-joint_segments,0.5
+token-\cap,token-intersection OR token-and OR pattern-conjunction,0.75
+token-\cap,pattern-intersection,1
+token-\cap,pattern-path,0.75
+token-\cap,pattern-joint_segments,0.75
+token-\bar,token-not OR pattern-negation,0.75
+token-\bar,pattern-difference OR pattern-complement,1
+token-\bar,pattern-complementary_edges,0.75
+pattern-conditional_independence,pattern-conditionally_independent_events,0.75
+pattern-conditional_independence,pattern-nested_ratio_similarity,1
+pattern-conditional_independence,pattern-repeat_values,1

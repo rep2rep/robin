@@ -15,12 +15,12 @@ fun filesMatchingPrefix dir prefix =
     end;
 
 fun loadQs problem =
-    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("Q_table_" ^ problem)
+    let val paths = filesMatchingPrefix "tables/" ("Q_table_" ^ problem)
     in map PropertyTables.loadQuestionTable paths
     end;
 
 fun loadQ q rs =
-    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("Q_table_" ^ q ^ "_" ^ rs)
+    let val paths = filesMatchingPrefix "tables/" ("Q_table_" ^ q ^ "_" ^ rs)
         val L = map PropertyTables.loadQuestionTable paths
     in if length L > 1 then raise Fail "ambiguous Q" else
        if length L = 0 then raise Fail ("no Q with this name: " ^ ("Q_table_" ^ q ^ rs)) else
@@ -28,7 +28,7 @@ fun loadQ q rs =
     end;
 
 fun loadRS rs =
-    let val paths = filesMatchingPrefix "tables/lightbulbs/" ("RS_table_" ^ rs)
+    let val paths = filesMatchingPrefix "tables/" ("RS_table_" ^ rs)
         val L = map PropertyTables.loadRepresentationTable paths;
     in if length L > 1 then raise Fail "ambiguous RS" else
        if length L = 0 then raise Fail "no RS with this name" else
@@ -311,11 +311,11 @@ val p1 = List.nth (P,0);
 val p2 = List.nth (P,1);
 val p3 = List.nth (P,2);*)
 
-(*
+
 val _ = cognitiveScores_latex (3.0/6.0) B crunch_norm;
 val _ = cognitiveScores_latex (5.0/6.0) B crunch_norm;
 val _ = cognitiveScores_latex (1.0/6.0) B crunch_norm;
-*)
+
 val _ = cognitiveScores (3.0/6.0) B crunch_raw;
 val _ = cognitiveScores (5.0/6.0) B crunch_raw;
 val _ = cognitiveScores (1.0/6.0) B crunch_raw;

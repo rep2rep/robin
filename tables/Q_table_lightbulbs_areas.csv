@@ -63,6 +63,11 @@ relevant_patterns,"end_of_segment : {type := point;
                             tokens := [];
                             token_registration := 1;
                             occurrences := 15},
+                   contained : {type := relationship;
+                                holes := [region => 2];
+                                tokens := [];
+                                token_registration := 1;
+                                occurrences := 4},
                    rectangle_from_points : {type := contour;
                                            holes := [point => 2];
                                            tokens := [$segment. $segment. $segment. $segment];

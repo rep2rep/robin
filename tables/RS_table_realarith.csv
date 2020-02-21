@@ -10,6 +10,7 @@ tokens,"= : {type:= real * real -> formula},
         + : {type := real * real -> real},
         - : {type := real * real -> real},
         * : {type := real * real -> real},
+        \cdot : {type := real * real -> real},
         / : {type := real * real -> real},
         \div : {type := real * real -> real},
         ^ : {type := real * real -> real},
@@ -19,11 +20,6 @@ patterns,"plus : {holes:= [real=>3]; tokens:= [+. =]},
           equality_chain : {type:= proof;
                              holes:=[real=>#t]; tokens:=[=]},
           sum : {holes := ['a set => 1. real => 1. 'a -> real => 1]; tokens := [\sum. =]}"
-token_imports,"base_10_real_numerals,latin_alphabet"
-grammatical_complexity,type-2
 laws,"+associative, +commutative, *associative, *commutative, +zero, cancellative, distributive, <transitive, <antisymmetric, +def, *def, -def, \div_def, divides_def"
 rigorous,TRUE
-law_imports,NONE
 tactics,"rewrite,lemma,calc,induction"
-inferential_complexity,2
-physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"

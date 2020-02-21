@@ -104,97 +104,97 @@ instrumental_patterns,"sequential_events : {type := relationship;
                        conditionally_independent_events : {type := relationship;
                                                             holes := [event => 2];
                                                             occurrences := 1;
-                                                            token_registration := 2},
-                       eventFromS : {type := event;
-                                     holes := [S => 1];
-                                     occurrences := 3;
-                                     token_registration := 2},
-                       binary_choice : {type := relationship;
-                                       holes := [event => 2];
-                                       occurrences := 1;
-                                       token_registration := 2}"
+                                                            token_registration := 2}"
+relevant_patterns,"eventFromS : {type := event;
+                                 holes := [S => 1];
+                                 occurrences := 3;
+                                 token_registration := 2},
+                   binary_choice : {type := relationship;
+                                    holes := [event => 2];
+                                    occurrences := 1;
+                                    token_registration := 2}"
 circumstantial_patterns,"SfromNPandVP : {type := S;
                                    holes := [NP => 1. VP => 1];
                                    token_registration := 2;
                                    occurrences := 6},
-                   NPfromNPandPP : {type := NP;
-                                    holes := [NP => 1. PP => 1];
+                         NPfromNPandPP : {type := NP;
+                                          holes := [NP => 1. PP => 1];
+                                          token_registration := 2;
+                                          occurrences := 5},
+                         PPfromPandNP : {type := NP;
+                                         holes := [DET => 1. N => 1];
+                                         token_registration := 2;
+                                         occurrences := 4},
+                         VPfromVPandNP : {type := VP;
+                                         holes := [VP => 1. NP => 1];
+                                         token_registration := 2;
+                                         occurrences := 7},
+                         VPfromVPandADJP : {type := VP;
+                                           holes := [VP => 1. ADJP => 1];
+                                           token_registration := 2;
+                                           occurrences := 2},
+                         ADJPfromADJ : {type := ADJP;
+                                        holes := [ADJ => 1];
+                                        token_registration := 2;
+                                        occurrences := 1},
+                         VPfromADVandVP : {type := VP;
+                                           holes := [ADV => 1. VP => 1];
+                                           token_registration := 2;
+                                           occurrences := 3},
+                         VPfromVandVP : {type := VP;
+                                         holes := [V => 1. VP => 1];
+                                         token_registration := 2;
+                                         occurrences := 1},
+                         VPfromV : {type := VP;
+                                    holes := [V => 1];
+                                    token_registration := 2;
+                                    occurrences := 3},
+                         VPfromToandVP : {type := VP;
+                                         holes := [VP => 1];
+                                         tokens := [to];
+                                         token_registration := 2;
+                                         occurrences := 2},
+                         VPfromVPandPP : {type := VP;
+                                         holes := [VP => 1. PP => 1];
+                                         tokens := [];
+                                         token_registration := 2;
+                                         occurrences := 2},
+                         NPfromADJandNP : {type := NP;
+                                           holes := [ADJ => 1. NP => 1];
+                                           token_registration := 2;
+                                           occurrences := 6},
+                         NPfromDETandN : {type := NP;
+                                           holes := [DET => 1. N => 1];
+                                           token_registration := 2;
+                                           occurrences := 8},
+                         NPfromNPandSBAR : {type := NP;
+                                           holes := [NP => 1. SBAR => 1];
+                                           token_registration := 2;
+                                           occurrences := 2},
+                         SBARfromPandS : {type := SBAR;
+                                           holes := [P => 1. S => 1];
+                                           token_registration := 2;
+                                           occurrences := 2},
+                         SfromVP : {type := S;
+                                    holes := [VP => 1];
+                                    token_registration := 2;
+                                    occurrences := 3},
+                         PPfromP : {type := PP;
+                                     holes := [P => 1];
+                                     token_registration := 2;
+                                     occurrences := 1},
+                         NPfromN : {type := NP;
+                                    holes := [N => 1];
                                     token_registration := 2;
                                     occurrences := 5},
-                   PPfromPandNP : {type := NP;
-                                   holes := [DET => 1. N => 1];
-                                   token_registration := 2;
-                                   occurrences := 4},
-                   VPfromVPandNP : {type := VP;
-                                   holes := [VP => 1. NP => 1];
-                                   token_registration := 2;
-                                   occurrences := 7},
-                   VPfromVPandADJP : {type := VP;
-                                     holes := [VP => 1. ADJP => 1];
-                                     token_registration := 2;
-                                     occurrences := 2},
-                   ADJPfromADJ : {type := ADJP;
-                                  holes := [ADJ => 1];
-                                  token_registration := 2;
-                                  occurrences := 1},
-                   VPfromADVandVP : {type := VP;
-                                     holes := [ADV => 1. VP => 1];
-                                     token_registration := 2;
-                                     occurrences := 3},
-                   VPfromVandVP : {type := VP;
-                                   holes := [V => 1. VP => 1];
-                                   token_registration := 2;
-                                   occurrences := 1},
-                   VPfromV : {type := VP;
-                              holes := [V => 1];
-                              token_registration := 2;
-                              occurrences := 3},
-                   VPfromToandVP : {type := VP;
-                                   holes := [VP => 1];
-                                   tokens := [to];
+                         CONJS : {type := S;
+                                   holes := [S => 2. CONJ => 1];
                                    token_registration := 2;
                                    occurrences := 2},
-                   VPfromVPandPP : {type := VP;
-                                   holes := [VP => 1. PP => 1];
-                                   tokens := [];
-                                   token_registration := 2;
-                                   occurrences := 2},
-                   NPfromADJandNP : {type := NP;
-                                     holes := [ADJ => 1. NP => 1];
-                                     token_registration := 2;
-                                     occurrences := 6},
-                   NPfromDETandN : {type := NP;
-                                     holes := [DET => 1. N => 1];
-                                     token_registration := 2;
-                                     occurrences := 8},
-                   NPfromNPandSBAR : {type := NP;
-                                     holes := [NP => 1. SBAR => 1];
-                                     token_registration := 2;
-                                     occurrences := 2},
-                   SBARfromPandS : {type := SBAR;
-                                     holes := [P => 1. S => 1];
-                                     token_registration := 2;
-                                     occurrences := 2},
-                   SfromVP : {type := S;
-                              holes := [VP => 1];
-                              token_registration := 2;
-                              occurrences := 3},
-                   PPfromP : {type := PP;
-                               holes := [P => 1];
-                               token_registration := 2;
-                               occurrences := 1},
-                   NPfromN : {type := NP;
-                              holes := [N => 1];
-                              token_registration := 2;
-                              occurrences := 5},
-                   CONJS : {type := S;
-                             holes := [S => 2. CONJ => 1];
-                             token_registration := 2;
-                             occurrences := 2},
-                   NfromRatio : {type := N;
-                                 holes := [ratio => 1];
-                                 occurrences := 2;
-                                 token_registration := 2}"
+                         NfromRatio : {type := N;
+                                       holes := [ratio => 1];
+                                       occurrences := 2;
+                                       token_registration := 2}"
 instrumental_laws,""
 instrumental_tactics,"transform : {inference_type := transformation;
                                   patterns := 1;

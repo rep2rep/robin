@@ -1,7 +1,7 @@
 psdiagrams,
 mode,proportional
 rigorous,TRUE
-types,"segment,formula,vertical_guide,delimiter,real,X"
+types,"segment,vertical_guide,delimiter,real,X"
 tokens,"$outcome_segment : {type := segment},
         $target_segment : {type := segment},
         $target_delimiter : {type := delimiter},

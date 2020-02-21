@@ -5,8 +5,7 @@ types,"real,segment,contour,region,X,colour,texture"
 tokens,"$segment : {type := segment}"
 patterns,"nested_ratio_similarity : {type := relationship;
                                       holes := [region => 3];
-                                      token_registration := 1;
-                                      occurrences := 2},
+                                      token_registration := 1},
           joint_segments : {type := segment;
                             holes := [segment => 2];
                             tokens := [];
@@ -15,13 +14,16 @@ patterns,"nested_ratio_similarity : {type := relationship;
                     holes := [region => 2];
                     tokens := [];
                     token_registration := 1},
+           contained : {type := relationship;
+                        holes := [region => 2];
+                        tokens := [];
+                        token_registration := 1},
            contour_from_segments : {type := contour;
                                     holes := [segment => log(#t)];
                                     token_registration := 1},
            rectangle_from_points : {type := contour;
                                     holes := [point => 2];
                                     tokens := [$segment. $segment. $segment. $segment];
-                                    occurrences := 8;
                                     token_registration := 1},
            region_from_contour : {type := region;
                                   holes := [contour => 1. colour => 1. texture => 1];

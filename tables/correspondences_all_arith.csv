@@ -1,0 +1,10 @@
+pattern-is_rectangle AND pattern-area_of_region,token-* OR token-\cdot,0.75
+pattern-path,token-* OR token-\cdot,0.75
+token-\cap,token-* OR token-\cdot,0.5
+pattern-intersection,token-* OR token-\cdot,0.5
+token-\cup,token-+,0.5
+pattern-union,token-+,0.5
+pattern-relative_length,token-\div,1
+pattern-relative_size,token-\div,1
+pattern-contained,token-< OR token-\leq OR token-> OR token-\qeq,0.75
+token-probability OR pattern-probability OR pattern-conditional_probability OR pattern-class_ratio OR pattern-sequential_events,token-\div,0.75

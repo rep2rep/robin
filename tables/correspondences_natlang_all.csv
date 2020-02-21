@@ -19,12 +19,12 @@ pattern-sequential_events OR pattern-conditional_probability,pattern-value_of_ar
 pattern-sequential_events OR pattern-conditional_probability,pattern-relative_length,1
 token-union OR token-or OR pattern-disjunction,token-\cup,1
 token-union OR token-or OR pattern-disjunction,pattern-union,1
-token-union OR token-or OR pattern-disjunction,pattern-joint_nodes,0.5
-token-union OR token-or OR pattern-disjunction,pattern-joint_segments,0.5
+token-union OR token-or OR pattern-disjunction,pattern-joint_nodes,1
+token-union OR token-or OR pattern-disjunction,pattern-joint_segments,1
 token-intersection OR token-and OR pattern-conjunction,token-\cap,1
 token-intersection OR token-and OR pattern-conjunction,pattern-intersection,1
-token-intersection OR token-and OR pattern-conjunction,pattern-path,0.75
-token-intersection OR token-and OR pattern-conjunction,pattern-joint_segments,0.75
+token-intersection OR token-and OR pattern-conjunction,pattern-path,1
+token-intersection OR token-and OR pattern-conjunction,pattern-intersecting_segments,1
 token-not OR pattern-negation,token-\bar,1
 token-not OR pattern-negation,pattern-difference OR pattern-complement,1
 token-not OR pattern-negation,pattern-complementary_edges,0.75
