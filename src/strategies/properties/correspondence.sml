@@ -10,29 +10,30 @@ import "strategies.properties.importance";
 signature CORRESPONDENCE =
 sig
 
-    exception ParseError
-
     structure F : FORMULA;
+
+    exception ParseError;
+
+    type propertyset = PropertySet.t PropertySet.set;
     type 'a corrformula;
     type correspondence = Property.property corrformula * Property.property corrformula * real;
 
     val flip : real -> correspondence -> correspondence;
 
     val equal : correspondence -> correspondence -> bool;
+    val stronger : correspondence -> correspondence -> bool;
     val sameProperties : correspondence -> correspondence -> bool;
     val matchingProperties : correspondence -> correspondence -> bool;
-    val match : PropertySet.t PropertySet.set -> PropertySet.t PropertySet.set
-                -> correspondence -> bool;
+    val match : propertyset -> propertyset -> correspondence -> bool;
+    val matchExists : propertyset -> propertyset -> correspondence list -> bool;
 
-    val leftMatches : PropertySet.t PropertySet.set -> correspondence
-                      -> PropertySet.t PropertySet.set;
-    val rightMatches : PropertySet.t PropertySet.set -> correspondence
-                       -> PropertySet.t PropertySet.set;
-
-    val liftImportances : QPropertySet.t QPropertySet.set -> correspondence
-                          -> Importance.importance list;
+    val leftMatches : propertyset -> correspondence -> propertyset;
+    val rightMatches : propertyset -> correspondence -> propertyset;
 
     val identity : Property.property -> correspondence;
+
+    val liftImportances : QPropertySet.t QPropertySet.set ->
+                          correspondence -> Importance.importance list;
 
     val strength : correspondence -> real;
     val toString : correspondence -> string;
@@ -52,6 +53,7 @@ structure F = Formula(struct
 
 exception ParseError;
 
+type propertyset = PropertySet.t PropertySet.set;
 type 'a corrformula = 'a F.formula;
 type correspondence = Property.property corrformula * Property.property corrformula * real;
 
@@ -111,7 +113,9 @@ fun leftMatches ps (p, _, _) = propertyCollectMatches ps p;
 fun rightMatches ps (_, p, _) = propertyCollectMatches ps p;
 
 fun match qs rs (q, r, _) =
-    (propertyMatchTree qs q) andalso (propertyMatchTree rs r)
+    (propertyMatchTree qs q) andalso (propertyMatchTree rs r);
+
+fun matchExists qs rs cs = List.exists (match qs rs) cs;
 
 fun matchingProperties (q, r, _) (q', r', _) =
     let
@@ -128,6 +132,21 @@ fun sameProperties (q, r, _) (q', r', _) =
     end;
 
 fun equal c c' = sameProperties c c' andalso Real.== ((strength c), (strength c'));
+
+(* One correspondence is stronger than another
+   if the strength has increased, and where...
+       <a, b AND c> is stronger than <a, b>
+       <a, b>       is stronger than <a AND c, b>
+       <a, b>       is stronger than <a, b OR c>
+       <a OR c, b>  is stronger than <a, b>
+   (that is, q' -> q and r -> r')
+ *)
+fun stronger (q, r, s) (q', r', s') =
+    F.implies Property.match q' q andalso
+    F.implies Property.match r r' andalso
+    s >= s';
+
+fun identity p = (F.Atom p, F.Atom p, 1.0);
 
 fun liftImportances qs (l, _, _) =
     let
@@ -151,9 +170,6 @@ fun liftImportances qs (l, _, _) =
     in
         allImportances
     end;
-
-
-fun identity p = (F.Atom p, F.Atom p, 1.0);
 
 fun toString (q, r, s) =
     let
