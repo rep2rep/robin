@@ -124,8 +124,6 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
-fun pairApply f (x,y) = (f x, f y)
-
 fun replaceVar (Var x, t') t =
      (case t of
           Ground s => Ground s
@@ -140,9 +138,9 @@ fun unify [] = []
   | unify (p :: C) =
     case p of
       (Ground a, Ground b) => if a = b then unify C else raise TUNIFY
-    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (pairApply (replaceVar p)) C))
-    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar p)) C))
-    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar (Var x, t))) C))
+    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (spread (replaceVar p)) C))
+    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar p)) C))
+    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar (Var x, t))) C))
     | (Pair (s,t), Pair (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Function (s,t), Function (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Constructor (s,t), Constructor (s',t')) => if s = s' then unify ((t,t') :: C) else raise TUNIFY
