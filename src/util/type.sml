@@ -66,6 +66,7 @@ datatype T = Ground of string
            | Constructor of string * T;
 
 exception Extend;
+
 val newVariable' = ref (let fun inc [] = raise Fail "Variable gen in Type broken!"
                               | inc [#"z"] = SOME [#"a", #"a"]
                               | inc (x::xs) = if x = #"z" then SOME (#"a"::(Option.valOf(inc xs)))
@@ -75,6 +76,20 @@ val newVariable' = ref (let fun inc [] = raise Fail "Variable gen in Type broken
 fun getNewVariable () = let val (v, s) = Stream.step (!newVariable');
                             val _ = newVariable' := s;
                         in v end;
+
+fun allVarsIn f =
+    let fun getVars' ans (Ground a) = ans
+          | getVars' ans (Var a) = (a::ans)
+          | getVars' ans (Pair (x, y)) = getVars' (getVars' ans x) y
+          | getVars' ans (Function (x, y)) = getVars' (getVars' ans x) y
+          | getVars' ans (Constructor (s, x)) = getVars' ans x
+    in getVars' [] f end;
+
+fun getNewVariableExcept invalids = let val v = getNewVariable ();
+                                    in if List.exists (fn x => x = v) invalids
+                                       then getNewVariableExcept invalids
+                                       else v end;
+
 
 fun pairToList (Pair (x,y)) = (pairToList x) @ (pairToList y)
   | pairToList x = [x]
@@ -109,8 +124,6 @@ fun occurs x (Ground _) = false
   | occurs x (Function (s,t)) = (occurs x s orelse occurs x t)
   | occurs x (Constructor (_,t)) = occurs x t;
 
-fun pairApply f (x,y) = (f x, f y)
-
 fun replaceVar (Var x, t') t =
      (case t of
           Ground s => Ground s
@@ -125,9 +138,9 @@ fun unify [] = []
   | unify (p :: C) =
     case p of
       (Ground a, Ground b) => if a = b then unify C else raise TUNIFY
-    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (pairApply (replaceVar p)) C))
-    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar p)) C))
-    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (pairApply (replaceVar (Var x, t))) C))
+    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (spread (replaceVar p)) C))
+    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar p)) C))
+    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar (Var x, t))) C))
     | (Pair (s,t), Pair (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Function (s,t), Function (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Constructor (s,t), Constructor (s',t')) => if s = s' then unify ((t,t') :: C) else raise TUNIFY
@@ -135,14 +148,8 @@ fun unify [] = []
 
 fun generalise f =
     let
-        fun usesVar (Ground a) v = false
-          | usesVar (Var a) v = v = a
-          | usesVar (Pair (x, y)) v = usesVar x v orelse usesVar y v
-          | usesVar (Function (x, y)) v = usesVar x v orelse usesVar y v
-          | usesVar (Constructor (s, x)) v = usesVar x v;
-        fun newVar () = let val v = getNewVariable ();
-                        in if usesVar f v then newVar() else v end;
-        fun getOrGenerate' old [] s = let val v = newVar ();
+        val invalidVars = allVarsIn f;
+        fun getOrGenerate' old [] s = let val v = getNewVariableExcept invalidVars;
                                       in (v, (s, v)::old) end
           | getOrGenerate' old ((s, v)::vs) s' = if s = s' then (v, (s, v)::(old@vs))
                                                  else getOrGenerate' ((s,v)::old) vs s';
@@ -160,27 +167,31 @@ fun generalise f =
                                                     in (Constructor (s,g), gens') end;
     in generalise' [] f end;
 
-(* I don't want to bother changing variables to absolutely guarantee that they are different,
-   but this should be enough for practical purposes. We can also assume '_a is an invalid type variable name *)
-fun giveUnlikelyVarNames (Ground s) = Ground s
-  | giveUnlikelyVarNames (Var a) = Var ("_" ^ a)
-  | giveUnlikelyVarNames (Pair (s,t)) = Pair (giveUnlikelyVarNames s, giveUnlikelyVarNames t)
-  | giveUnlikelyVarNames (Function (s,t)) = Function (giveUnlikelyVarNames s, giveUnlikelyVarNames t)
-  | giveUnlikelyVarNames (Constructor (s,t)) = Constructor (s, giveUnlikelyVarNames t)
+fun refreshVariables invalidVars f =
+    let fun getOrGenerate' old [] s = let val v = getNewVariableExcept invalidVars;
+                                      in (v, (s, v)::old) end
+          | getOrGenerate' old ((s, v)::vs) s' = if s = s' then (v, (s, v)::(old@vs))
+                                                 else getOrGenerate' ((s,v)::old) vs s';
+        fun getOrGenerate gs s = getOrGenerate' [] gs s;
+        fun newNames names (Ground s) = (Ground s, names)
+          | newNames names (Var a) = let val (v, names') = getOrGenerate names a
+                                     in (Var v, names') end
+          | newNames names (Pair (s,t)) = let val (p1, names') = newNames names s;
+                                              val (p2, names'') = newNames names' t;
+                                          in (Pair (p1, p2), names'') end
+          | newNames names (Function (s,t)) = let val (f1, names') = newNames names s;
+                                                  val (f2, names'') = newNames names' t;
+                                              in (Function (f1, f2), names'') end
+          | newNames names (Constructor (s,t)) = let val (c, names') = newNames names t
+                                                 in (Constructor (s, c), names') end;
+    in
+        #1 (newNames [] f)
+    end;
 
 fun match (x,y) =
-  let val (_,found) = (unify [(x, giveUnlikelyVarNames y)],true) handle TUNIFY => ([],false)
+  let val (_,found) = (unify [(x, refreshVariables (allVarsIn (Pair (x, y))) y)],true) handle TUNIFY => ([],false)
   in found
   end;
-(*
-fun match (Ground s, Ground s') = (s = s')
-  | match (Var x, t) = true
-  | match (t, Var x) = true
-  | match (Pair(s,t), Pair(s',t')) = (match (s, s')) andalso (match (t, t'))
-  | match (Function(s,t), Function(s',t')) = (match (s, s')) andalso (match (t, t'))
-  | match (Constructor(s,t), Constructor(s',t')) = (s = s') andalso (match (t, t'))
-  | match (_, _) = false;
-*)
 
 (*A lexicographic order for types, to use in dictionaries*)
 fun compare (Ground s, Ground s') = String.compare (s,s')
