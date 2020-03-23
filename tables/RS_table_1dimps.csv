@@ -1,13 +1,24 @@
 P-space_diagrams,
-mode,"proportional"
-tokens,"$trial_line : {type:= trial_line}, $mark : {type:= trial_line -> trial_line}"
-types,"trial_line, trial_line -> trial_line, real, abc_string"
-patterns,"$outcome_segment, $contained, $intersecting, $intersection, $union, $disjoint, $empty, $same_size"
-token_imports,"base_10_real_numerals, latin_alphabet"
-grammatical_complexity,type-3
 rigorous,TRUE
+mode,"proportional"
+types,"trial_line, trial_line -> trial_line, real, abc_string"
+tokens,"$trial_line : {type:= trial_line},
+        $mark : {type:= trial_line -> trial_line}"
+patterns,"$outcome_segment,
+          $contained,
+          $intersecting,
+          $intersection,
+          $union,
+          $disjoint,
+          $empty,
+          $same_size"
+token_imports,"base_10_real_numerals, latin_alphabet"
 laws,"$scale_independence_of_ratio, $length_additivity, $non_negative_length, $length_of_empty"
 law_imports,NONE
-tactics,"draw_trial_line, draw_mark, measure_length, measure_relative_length"
+tactics,"draw_trial_line,
+         draw_mark,
+         measure_length,
+         measure_relative_length"
+grammatical_complexity,type-3
 inferential_complexity,1
 physical_dimension_use,"X:{grammatical;dense;metric;topological}, Y:{grammatical;inferential}, colour:{}"

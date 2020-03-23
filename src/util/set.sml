@@ -29,6 +29,7 @@ sig
     val union : t set -> t set -> t set;
     val intersection : t set -> t set -> t set;
     val difference : t set -> t set -> t set;
+    val product : t set -> t set -> (t * t) list;
 
     val unionAll : t set list -> t set;
     val intersectionAll : t set list -> t set;
@@ -108,6 +109,16 @@ fun difference xs ys = (* D.foldl (fn ((v,_), s) => (remove s v)) xs ys; *)
     in
         fromList result
     end;
+fun product xs ys =
+    let
+        fun prod' _ [] = []
+          | prod' [] _ = []
+          | prod' [x] (y::ys) = (x, y) :: (prod' [x] ys)
+          | prod' (x::xs) ys = (prod' [x] (ys)) @ (prod' xs ys)
+    in
+        prod' (toList xs) (toList ys)
+    end;
+
 
 fun unionAll xs = D.unionAllWith (fn (_, _, _) => ()) xs;
 fun intersectionAll xs = D.intersectionAllWith (fn (_, _, _) => ()) xs;

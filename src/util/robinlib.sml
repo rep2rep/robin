@@ -14,7 +14,12 @@ sig
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
     val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val mapfst : ('a -> 'b) -> ('a * 'c) -> ('b * 'c);
+    val mapsnd : ('b -> 'c) -> ('a * 'b) -> ('a * 'c);
     val flip : ('a * 'b) -> ('b * 'a);
+    val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
+    val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
+    val fails : (unit -> 'a) -> bool;
 end;
 
 
@@ -52,10 +57,22 @@ fun import filename =
 
 fun spread f (a, b) = (f a, f b);
 
+fun mapfst f (a, b) = (f a, b);
+
+fun mapsnd f (a, b) = (a, f b);
+
 fun flip (a, b) = (b, a);
+
+fun curry f a b = f (a, b);
+
+fun uncurry f (a, b) = f a b;
+
+fun fails f = (f(); false)
+              handle _ => true;
 
 end;
 
+open RobinLib;
 
 
 
@@ -75,8 +92,9 @@ sig
 
     val filterOption : ('a option) list -> 'a list;
 
-    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool
+    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool;
 
+    val mapArgs : ('a -> 'b) -> 'a list -> ('a * 'b) list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
     val product : ('a list * 'b list) -> ('a * 'b) list;
@@ -92,6 +110,10 @@ sig
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
+    val split : ('a list * int) -> ('a list * 'a list);
+
+    val rotate : int -> 'a list -> 'a list;
+
     val weightedSumIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
     val sumIndexed : ('a -> real) -> 'a list -> real;
     val weightedSum : (real -> real) -> real list -> real;
@@ -101,6 +123,7 @@ sig
     val avgIndexed : ('a -> real) -> 'a list -> real;
     val weightedAvg : (real -> real) -> real list -> real;
     val avg : real list -> real;
+
     val argmax : ('a -> real) -> 'a list -> ('a * real);
     val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
@@ -174,7 +197,9 @@ fun isPermutationOf _ [] [] = true
   | isPermutationOf _ _ _ = false;
 
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+fun mapArgs f xs = map (fn x => (x, f x)) xs;
+
+fun flatmap f xs = concat (map f xs);
 
 fun product (xs, ys) =
     let
@@ -227,6 +252,24 @@ fun takeWhile pred list =
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
+    end;
+
+fun split (xs, i) =
+    let
+        fun split' fst xs 0 = (List.rev fst, xs)
+          | split' fst [] _ = raise Subscript
+          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
+    in
+        split' [] xs i
+    end;
+
+fun rotate 0 xs = xs
+  | rotate n xs =
+    let
+        val a = take (xs, n);
+        val b = drop (xs, n);
+    in
+        b @ a
     end;
 
 fun weightedSumIndexed w f L =
@@ -315,4 +358,26 @@ fun lookaheadN (istr, count) =
 
 end;
 
-open RobinLib;
+
+
+
+signature OPTION =
+sig
+
+    include OPTION;
+
+    val oneOf : ('a -> 'b option) list -> 'a -> 'b option;
+
+end;
+
+structure Option : OPTION =
+struct
+
+open Option;
+
+fun oneOf [] _ = NONE
+  | oneOf (f::fs) x = case f x of
+                          SOME y => SOME y
+                        | NONE => oneOf fs x;
+
+end;

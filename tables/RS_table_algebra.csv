@@ -1,26 +1,42 @@
 algebra,
 mode,"sentential"
+rigorous,TRUE
 types,"integer,real,formula,proof"
-tokens,"= : {type:= integer * integer -> formula},
-        < : {type:= integer * integer -> formula},
-        > : {type:= integer * integer -> formula},
-        divides : {type:= integer * integer -> formula} ,
+tokens,"= : {type := integer * integer -> formula},
+        < : {type := integer * integer -> formula},
+        > : {type := integer * integer -> formula},
+        | : {type := integer * integer -> formula} ,
         + : {type := integer * integer -> integer},
         - : {type := integer * integer -> integer},
         * : {type := integer * integer -> integer},
         \div : {type := integer * integer -> integer},
         ^ : {type := integer * integer -> integer},
-        \sum : {type:= 'a set * ('a -> integer) -> integer},
-        \vee : {type:= formula * formula -> formula},
-        \neg : {type:= formula -> formula}"
-patterns,"$plus : {holes:= [integer=>3]; tokens:= [+. =]},
-          $equality_chain : {holes:=[integer=>#t]; tokens:=[=]},
-          $sum : {holes := ['a set => 1. integer => 1. 'a -> integer => 1]; tokens := [\sum. =]}"
+        \sum : {type := 'a set * ('a -> integer) -> integer},
+        \vee : {type := formula * formula -> formula},
+        \neg : {type := formula -> formula}"
+patterns,"$binary_operation : {holes := [integer => 3.
+                                         integer * integer -> integer => 1];
+                               type := formula;
+                               tokens := [=];
+                               token_registration := 3},
+          $equality_chain : {holes := [formula=>#t];
+                             type := formula;
+                             tokens := [=];
+                             token_registration := 3},
+          $big_operator : {holes := ['a set => 1.
+                                     'a -> integer => 1.
+                                      integer * integer -> integer => 1];
+                           type := integer;
+                           token_registration := 3}"
 token_imports,"base_10_real_numerals,latin_alphabet"
-grammatical_complexity,type-2
-laws,"$+associative, $+commutative, *associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
-rigorous,TRUE
+laws,"$+associative, $+commutative, $*associative, $*commutative, $+zero, $cancellative, $distributive, $<transitive, $<antisymmetric, $+def, $*def, $-def, $\div_def, $divides_def"
 law_imports,NONE
-tactics,"rewrite,lemma,calc,induction"
+tactics,"rewrite : {laws := 1;
+                    patterns := 1},
+         calc : {laws := 0;
+                 patterns := 1},
+         induction : {laws := 2;
+                      patterns := 1}"
 inferential_complexity,2
+grammatical_complexity,type-2
 physical_dimension_use,"X:{grammatical;inferential}, Y:{inferential},  colour:{}"
