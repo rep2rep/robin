@@ -263,65 +263,32 @@ fun typeCorrespondences corrs qProps =
     in List.concat (QPropertySet.map tCorrs qProps)
     end;
 
-type subset = (Property.property list * Correspondence.correspondence);
-type state = (subset list * subset list);
-type U = (Property.property list);
-
 fun mrmc corrs qProps rProps =
     let
-        (* fun subsetToString (s, c) = Correspondence.toString c; *)
-        fun subsetToString (s, c) = List.toString Property.toString s;
-        fun showState ((s, t): state) : unit =
-            print (List.toString (subsetToString) s ^ "\n");
+        val qProps' = QPropertySet.withoutImportances qProps;
 
-        fun sort xs = xs;
+        fun score (cover, pqs, prs, cs) = (* We start with the basic set-cover greedy*)
+            let
+                (* val _ = print ((List.toString (fn (c, i) => Correspondence.toString c) cover) ^ "\n"); *)
+            in Real.fromInt (PropertySet.size (PropertySet.difference qProps' pqs)) end;
 
-        fun takeBest xs = xs;
+        fun neighbours (cover, pqs, prs, cs') =
+            let fun getClauses (c as ((q, r, s), i)) =
+                    let val qfs = map (#1 o Correspondence.F.clauseToLists) (Correspondence.F.clauses q);
+                        val rfs = map (#1 o Correspondence.F.clauseToLists) (Correspondence.F.clauses r);
+                    in List.product (qfs, rfs) end;
+                fun createState c cs qf rf =
+                    let val pqs' = PropertySet.union pqs (PropertySet.fromList qf);
+                        val prs' = PropertySet.union prs (PropertySet.fromList rf);
+                    in (c::cover, pqs', prs', cs) end;
+                fun extend (c, cs) =
+                    map (fn (qf, rf) => createState c cs qf rf) (getClauses c);
+            in List.flatmap extend (List.inout cs') end;
 
-        (* Split a correspondence into (QPropertySet * correspondence) pairs
-           The correspondence in the pair ensures we know where the QProperties
-           came from for later recombination. *)
-        fun split (q, r, s) =
-            let val conjs = Correspondence.F.clauses q;
-            in map (fn c => (fst c, (q, r, s))) conjs end;
+        val (cover, _, _, _) = Algorithms.gradientDescent neighbours score
+                                                          ([], PropertySet.empty(),
+                                                           PropertySet.empty(), corrs);
 
-        (* Count the distance from a total covering *)
-        fun score (universe : U) (subsets : subset list) : int =
-            let val qpeq = Property.match;
-                val unionAll = ListSet.unionAll qpeq;
-                val difference = ListSet.difference qpeq;
-                val length = List.length;
-                val newU = unionAll (map fst subsets);
-                val dupU = List.flatmap fst subsets;
-                val missing = difference universe newU;
-                val redundant = difference dupU newU;
-            in (length missing) + (length redundant) end;
-
-        (* Find the best covers of the universe from the subsets *)
-        fun findCovers (universe : U) (subsets : subset list) : subset list list =
-            let fun sortByScore subs =
-                    let fun scoreCmp (s, t) =
-                            Int.compare (score universe s, score universe t);
-                    in List.mergesort (scoreCmp o fst) subs end;
-                fun done (subs, _) =
-                    let val s = score universe subs
-                    in if s = 0 then (
-                           showState (subs, []);
-                           true)
-                       else false end;
-                fun next (subs, rest) =
-                    (* Add in a new subset, ordered by "best" gain *)
-                    sortByScore (map (fn (s, rest') => (s::subs, rest'))
-                                     (List.inout rest));
-            in map fst (Algorithms.backtrack done next ([], subsets)) end;
-
-        val corrsAsSubs = List.flatmap split (map fst corrs);
-        val _ = print (List.toString subsetToString corrsAsSubs ^ "\n");
-        val universe = ListSet.unionAll Property.match (map fst corrsAsSubs);
-
-        (* val covers : subset list list = findCovers universe corrsAsSubs; *)
-        (* val _ = print (List.toString (List.toString subsetToString) covers ^ "\n"); *)
-
-    in [corrs] end;
+    in [cover] end;
 
 end;
