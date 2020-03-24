@@ -137,7 +137,7 @@ fun propInfluence (q, r, s) =
                        (Comparison.rev (fn ((_, i), (_, i')) =>
                                    Importance.compare (i, i')));
         val matches = (sort baseMatches) @ typeMatches;
-        val matchGroups = CorrespondenceList.mrmc matches qProps rProps;
+        val matchGroup = CorrespondenceList.mrmc matches qProps rProps;
 
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
@@ -159,7 +159,7 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.max Real.compare (map (List.foldl mix s) matchGroups);
+        val s' = List.foldl mix s matchGroup;
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("

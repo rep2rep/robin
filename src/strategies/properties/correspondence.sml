@@ -221,7 +221,7 @@ sig
         (Correspondence.correspondence * Importance.importance) list
         -> QPropertySet.t QPropertySet.set
         -> PropertySet.t PropertySet.set
-        -> (Correspondence.correspondence * Importance.importance) list list;
+        -> (Correspondence.correspondence * Importance.importance) list;
 
 end;
 
@@ -289,6 +289,6 @@ fun mrmc corrs qProps rProps =
                                                           ([], PropertySet.empty(),
                                                            PropertySet.empty(), corrs);
 
-    in [cover] end;
+    in cover end;
 
 end;
