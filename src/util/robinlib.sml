@@ -237,24 +237,24 @@ fun replicate n x =
         unfold gen n
     end;
 
-fun max _ [] = raise List.Empty
-  | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
-                                               then a
-                                               else b)
-                                 x xs;
+fun max _ [] = raise Empty
+  | max cmp (x::xs) = foldl (fn (a, b) => if cmp(a, b) = GREATER
+                                          then a
+                                          else b)
+                            x xs;
 
-fun min _ [] = raise List.Empty
-  | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS
-                                               then a
-                                               else b)
-                                 x xs;
+fun min _ [] = raise Empty
+  | min cmp (x::xs) = foldl (fn (a, b) => if cmp(a, b) = LESS
+                                          then a
+                                          else b)
+                            x xs;
 
 fun dropWhile pred [] = []
   | dropWhile pred (x::xs) = if pred x then (dropWhile pred xs)
                              else x::xs;
 
 fun takeWhile pred list =
-    let fun takeWhile' [] ans = List.rev ans
+    let fun takeWhile' [] ans = rev ans
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
@@ -262,7 +262,7 @@ fun takeWhile pred list =
 
 fun split (xs, i) =
     let
-        fun split' fst xs 0 = (List.rev fst, xs)
+        fun split' fst xs 0 = (rev fst, xs)
           | split' fst [] _ = raise Subscript
           | split' fst (x::xs) i = split' (x::fst) xs (i-1);
     in
@@ -293,14 +293,14 @@ fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
 fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
 fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
 
-fun argmax _ [] = raise Match
+fun argmax _ [] = raise Empty
   | argmax f [x] = (x, f x)
   | argmax f (x::L) = let val r = argmax f L
                           val v = f x
                       in if v > #2 r then (x,v) else r
                       end;
 
-fun argmin _ [] = raise Match
+fun argmin _ [] = raise Empty
   | argmin f [x] = (x, f x)
   | argmin f (x::L) = let val r = argmin f L
                           val v = f x
