@@ -24,8 +24,9 @@ sig
                         | Disj of 'a formula * 'a formula;
 
     val normalise : 'a formula -> 'a formula;
-    val clauses : 'a formula -> ('a list * 'a list) list;
-    (* A clause is a pair of lists, the first with the positive atoms,
+    val clauseToLists : 'a formula -> ('a list * 'a list);
+    (* Convert a clause to a pair of lists,
+       the first with the positive atoms,
        the second with the negated atoms. *)
 
     val equal : ('a * 'a -> bool) -> ('a formula * 'a formula) -> bool;
@@ -81,7 +82,7 @@ fun normalise (Atom a) = Atom a
         val b' = normalise b;
     in Disj (a', b') end;
 
-fun clauses f =
+fun clauseToLists f =
     let val f' = normalise f;
         fun clausify (Atom a) = ([a], [])
           | clausify (Neg (Atom a)) = ([], [a])
@@ -90,9 +91,7 @@ fun clauses f =
                 val (p2, n2) = clausify u;
             in (p1 @ p2, n1 @ n2) end
           | clausify _ = raise NormalisationError;
-        fun clauses' (Disj (t, u)) = (clauses' t) @ (clauses' u)
-          | clauses' t = [clausify t]
-    in clauses' f' end;
+    in clausify f' end;
 
 fun fold a _ _ _ (Atom x) = a x
   | fold a n c d (Neg x) = n(fold a n c d x)
