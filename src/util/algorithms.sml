@@ -40,7 +40,8 @@ fun backtrack done next start =
 fun greedy done next score start =
     let fun loop state =
             if done state then state
-            else loop (#1 (List.argmax score (next state)));
+            else loop (#1 (List.argmax score (next state)))
+                 handle List.Empty => state;
     in loop start end;
 
 fun anneal temperature jump energy transition iterations start =
@@ -62,10 +63,11 @@ fun anneal temperature jump energy transition iterations start =
 fun gradientDescent next score start =
     let fun loop (state, alt) =
             let val neighbours = next state;
-                val steepest = List.argmin (fn n => (score n - alt)) neighbours;
-            in if #2 steepest > 0.0
+                val steepest = List.argmin (fn n => (score n - alt)) neighbours
+                               handle List.Empty => (state, 0.0);
+            in if #2 steepest >= 0.0
                then state
-               else loop steepest end;
+               else loop (mapsnd (fn s => s + alt) steepest) end;
     in loop (start, score start) end;
 
 fun graphSearch save get empty done next start =
