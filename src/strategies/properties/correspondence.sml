@@ -263,6 +263,13 @@ fun typeCorrespondences corrs qProps =
     in List.concat (QPropertySet.map tCorrs qProps)
     end;
 
+local
+    structure PMS = Multiset(struct type t = Property.property;
+                                    val compare = Property.compare;
+                                    val fmt = Property.toString;
+                             end);
+    fun toSet ms = (PropertySet.fromList o PMS.toList) ms;
+in
 fun mrmc corrs qProps rProps =
     let
         val qProps' = QPropertySet.withoutImportances qProps;
@@ -270,7 +277,7 @@ fun mrmc corrs qProps rProps =
         fun score (cover, pqs, prs, cs) = (* We start with the basic set-cover greedy*)
             let
                 (* val _ = print ((List.toString (fn (c, i) => Correspondence.toString c) cover) ^ "\n"); *)
-            in Real.fromInt (PropertySet.size (PropertySet.difference qProps' pqs)) end;
+            in Real.fromInt (PropertySet.size (PropertySet.difference qProps' (toSet pqs))) end;
 
         fun neighbours (cover, pqs, prs, cs') =
             let fun getClauses (c as ((q, r, s), i)) =
@@ -278,17 +285,18 @@ fun mrmc corrs qProps rProps =
                         val rfs = map (#1 o Correspondence.F.clauseToLists) (Correspondence.F.clauses r);
                     in List.product (qfs, rfs) end;
                 fun createState c cs qf rf =
-                    let val pqs' = PropertySet.union pqs (PropertySet.fromList qf);
-                        val prs' = PropertySet.union prs (PropertySet.fromList rf);
+                    let val pqs' = PMS.union pqs (PMS.fromList qf);
+                        val prs' = PMS.union prs (PMS.fromList rf);
                     in (c::cover, pqs', prs', cs) end;
                 fun extend (c, cs) =
                     map (fn (qf, rf) => createState c cs qf rf) (getClauses c);
             in List.flatmap extend (List.inout cs') end;
 
         val (cover, _, _, _) = Algorithms.gradientDescent neighbours score
-                                                          ([], PropertySet.empty(),
-                                                           PropertySet.empty(), corrs);
+                                                          ([], PMS.empty(),
+                                                           PMS.empty(), corrs);
 
     in cover end;
+end;
 
 end;
