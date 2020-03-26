@@ -276,8 +276,15 @@ fun mrmc corrs qProps rProps =
 
         fun score (cover, pqs, prs, cs) = (* We start with the basic set-cover greedy*)
             let
-                (* val _ = print ((List.toString (fn (c, i) => Correspondence.toString c) cover) ^ "\n"); *)
-            in Real.fromInt (PropertySet.size (PropertySet.difference qProps' (toSet pqs))) end;
+                fun redundency ms = Real.fromInt ((PMS.size ms) - (PMS.countUnique ms));
+                val pqset = toSet pqs;
+
+                val coverage = Real.fromInt (PropertySet.size (PropertySet.difference qProps' pqset));
+                val qredundence = redundency pqs;
+                val rredundence = redundency prs;
+
+                val (wc, wq, wr) = (1.0, 1.0, 0.5);
+            in (wc * coverage) + (wq * qredundence) + (wr * rredundence) end;
 
         fun neighbours (cover, pqs, prs, cs') =
             let fun getClauses (c as ((q, r, s), i)) =
