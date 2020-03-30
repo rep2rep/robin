@@ -5,6 +5,8 @@ sig
 
     val register : (unit -> unit) -> unit;
 
+    val assertEqual : (unit -> ''a) -> ''a -> string -> (unit -> unit);
+
     val run : unit -> (int * string list);
 
 end;
@@ -17,6 +19,9 @@ exception TestFail of string;
 val tests: (unit -> unit) list ref = ref [];
 
 fun register f = tests := (f::(!tests));
+
+fun assertEqual f a s =
+    fn () => if f () = a then () else raise TestFail s;
 
 fun run () =
     let
