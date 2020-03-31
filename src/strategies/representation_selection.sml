@@ -209,7 +209,7 @@ fun topKRepresentations question k =
 
         val dropQuestion = fn (_, r, s) => (r, s);
         val sortKey = Comparison.join (Comparison.rev Real.compare) String.compare;
-        val sort = List.mergesort (sortKey o spread flip);
+        val sort = List.mergesort (sortKey o mappair flip);
         val getValid = List.filter (fn (_, s) => s > 0.0);
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs

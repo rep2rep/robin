@@ -138,9 +138,9 @@ fun unify [] = []
   | unify (p :: C) =
     case p of
       (Ground a, Ground b) => if a = b then unify C else raise TUNIFY
-    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (spread (replaceVar p)) C))
-    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar p)) C))
-    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (spread (replaceVar (Var x, t))) C))
+    | (Var x, Var y) => if x = y then unify C else p :: (unify (map (mappair (replaceVar p)) C))
+    | (Var x, t) => if occurs x t then raise TUNIFY else p :: (unify (map (mappair (replaceVar p)) C))
+    | (t, Var x) => if occurs x t then raise TUNIFY else p :: (unify (map (mappair (replaceVar (Var x, t))) C))
     | (Pair (s,t), Pair (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Function (s,t), Function (s',t')) => unify ((s,s') :: (t,t') :: C)
     | (Constructor (s,t), Constructor (s',t')) => if s = s' then unify ((t,t') :: C) else raise TUNIFY
