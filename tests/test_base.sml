@@ -36,10 +36,12 @@ fun run () =
                                 printAll ss);
 
         val (failCount, errors) = loop (0, []) (List.rev (!tests));
+        val testCount = List.length (!tests);
         val _ = print "\n";
+        val ratio = "(" ^ (Int.toString (testCount - failCount)) ^ "/" ^ (Int.toString testCount) ^ ")";
         val _ = if failCount = 0
-                then print "\nAll tests passed.\n"
-                else (print ((Int.toString failCount) ^ " tests failed.\n\n");
+                then print ("\nAll tests passed " ^ ratio ^ ".\n")
+                else (print ((Int.toString failCount) ^ " tests failed " ^ ratio ^ ".\n\n");
                       printAll errors);
     in (failCount, errors) end;
 
