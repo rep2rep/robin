@@ -13,7 +13,7 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
-    val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val mappair : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val mapfst : ('a -> 'b) -> ('a * 'c) -> ('b * 'c);
     val mapsnd : ('b -> 'c) -> ('a * 'b) -> ('a * 'c);
     val flip : ('a * 'b) -> ('b * 'a);
@@ -55,7 +55,7 @@ fun import filename =
     ) handle e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise e);
 
 
-fun spread f (a, b) = (f a, f b);
+fun mappair f (a, b) = (f a, f b);
 
 fun mapfst f (a, b) = (f a, b);
 
