@@ -6,20 +6,20 @@ Test the robinlib utility functions
 (* This is pretty much untestable without a lot of mock work.
    It's probably fine, we'd have noticed it breaking! *)
 
-(* spread *)
+(* mappair *)
 
 TestSuit.register (
     TestSuit.assertEqual
-        (fn () => spread (fn x => x + 1) (10, 100))
+        (fn () => mappair (fn x => x + 1) (10, 100))
         (11, 101)
-        "robinlib: spread across int pair"
+        "robinlib: mappair across int pair"
 );
 
 TestSuit.register (
     TestSuit.assertEqual
-        (fn () => spread (fn (a, b) => (b, a)) ((2, "a"), (7, "b")))
+        (fn () => mappair (fn (a, b) => (b, a)) ((2, "a"), (7, "b")))
         (("a", 2), ("b", 7))
-        "robinlib: spread across (string * int) pair"
+        "robinlib: mappair across (string * int) pair"
 );
 
 (* mapfst *)
