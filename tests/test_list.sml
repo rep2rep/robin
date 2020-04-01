@@ -32,3 +32,40 @@ TestSuite.register (
         []
         "List: remove on bools, empty list"
 );
+
+(* removeDuplicates *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.removeDuplicates [])
+        []
+        "List: removeDuplicates on empty list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.removeDuplicates [9, 7, 3, 2, 6])
+        [9, 7, 3, 2, 6]
+        "List: removeDuplicates on list of unique integers"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.removeDuplicates [1, 1, 2, 3, 5, 8, 1])
+        [1, 2, 3, 5, 8]
+        "List: removeDuplicates on integers, single duplicated element"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.removeDuplicates [1, 2, 1, 2, 1, 2, 3, 3, 3])
+        [1, 2, 3]
+        "List: removeDuplicates on integers, multiple duplicated elements"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.removeDuplicates ["a", "a", "a", "a"])
+        ["a"]
+        "List: removeDuplicates on strings, all elements the same"
+);
