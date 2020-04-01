@@ -6,6 +6,8 @@ sig
     val register : (unit -> unit) -> unit;
 
     val assertEqual : (unit -> ''a) -> ''a -> string -> (unit -> unit);
+    val assertTrue : (unit -> bool) -> string -> (unit -> unit);
+    val assertFalse : (unit -> bool) -> string -> (unit -> unit);
 
     val run : unit -> (int * string list);
 
@@ -22,6 +24,10 @@ fun register f = tests := (f::(!tests));
 
 fun assertEqual f a s =
     fn () => if f () = a then () else raise TestFail s;
+
+fun assertTrue f s = assertEqual f true s;
+
+fun assertFalse f s = assertEqual f false s;
 
 fun run () =
     let
