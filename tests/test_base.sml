@@ -1,4 +1,4 @@
-signature TESTSUIT =
+signature TESTSUITE =
 sig
 
     exception TestFail of string;
@@ -13,7 +13,7 @@ sig
 
 end;
 
-structure TestSuit : TESTSUIT =
+structure TestSuite : TESTSUITE =
 struct
 
 exception TestFail of string;

@@ -17,5 +17,5 @@ fun registerAll () =
 
 fun main () =
     let val _ = registerAll ();
-        val (c, _) = TestSuit.run();
+        val (c, _) = TestSuite.run();
     in if c = 0 then 0 else 1 end;
