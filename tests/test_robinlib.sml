@@ -51,6 +51,52 @@ TestSuit.register (
 
 (* curry *)
 
+TestSuit.register (
+    let fun f (x, y) = Int.toString (x + (List.length y));
+        val arg1 = 37;
+        val arg2 = ["this", "is", "a", "test"];
+    in TestSuit.assertEqual
+           (fn () => curry f arg1 arg2)
+           (f (arg1, arg2))
+           "robinlib: curry on (int * 'a list) -> string"
+    end
+);
+
 (* uncurry *)
 
+TestSuit.register (
+    let fun f x y = y ^ " ~ " ^ (Real.toString x);
+        val arg1 = 3.14;
+        val arg2 = "Pi";
+    in TestSuit.assertEqual
+           (fn () => uncurry f (arg1, arg2))
+           (f arg1 arg2)
+           "robinlib: uncorry on real -> string -> string"
+    end
+);
+
 (* fails *)
+
+TestSuit.register (
+    TestSuit.assertTrue
+        (fn () => fails (fn () => 5 div 0))
+        "robinlib: fails on division by zero"
+);
+
+TestSuit.register (
+    TestSuit.assertFalse
+        (fn () => fails (fn () => 5.0 / 0.0)) (* = inf *)
+        "robinlib: fails on not-failing division by zero real"
+);
+
+TestSuit.register (
+    TestSuit.assertTrue
+        (fn () => fails (fn () => List.hd []))
+        "robinlib: fails on head of empty list"
+);
+
+TestSuit.register (
+    TestSuit.assertFalse
+        (fn () => fails (fn () => "hello"))
+        "robinlib: fails on not-failing function"
+);
