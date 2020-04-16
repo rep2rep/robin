@@ -170,3 +170,33 @@ TestSuite.register (
         [(~4, false), (~3, true), (~2, false)]
         "List: enumerateFrom negative start on bool list"
 );
+
+(* filterOption *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.filterOption [])
+        []
+        "List: filterOption empty remains empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.filterOption [SOME 1, SOME 2, SOME 3])
+        [1, 2, 3]
+        "List: filterOption all SOME"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.filterOption [NONE, NONE, NONE])
+        []
+        "List: filterOption all NONE"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.filterOption [SOME "a", NONE, SOME "b", SOME "c", NONE, NONE])
+        ["a", "b", "c"]
+        "List: filterOption on string option list"
+);

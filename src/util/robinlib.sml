@@ -182,9 +182,7 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun filterOption [] = []
-  | filterOption (NONE :: L) = filterOption L
-  | filterOption ((SOME x) :: L) = x :: filterOption L;
+fun filterOption xs = mapPartial (fn x => x) xs;
 
 fun findAndRemove _ _ [] = (false,[])
   | findAndRemove f x (a::L) =
