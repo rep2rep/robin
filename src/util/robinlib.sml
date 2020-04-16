@@ -138,23 +138,27 @@ fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 fun removeDuplicates [] = []
   | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
 
+fun split (xs, i) =
+    let
+        fun split' fst xs 0 = (List.rev fst, xs)
+          | split' fst [] _ = raise Subscript
+          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
+    in
+        split' [] xs i
+    end;
+
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
   | mergesort cmp items =
-    let
-        fun split [] = ([], [])
-          | split [x] = ([x], [])
-          | split (x::y::zs) = let val (left, right) = split zs
-                               in (x::left, y::right) end;
-        fun merge [] xs = xs
+    let fun merge [] xs = xs
           | merge xs [] = xs
           | merge (x::xs) (y::ys) =
-            if cmp(x, y) = LESS then
-                x::(merge xs (y::ys))
+            if cmp(x, y) = GREATER then
+                y::(merge (x::xs) ys)
             else
-                y::(merge (x::xs) ys);
+                x::(merge xs (y::ys));
 
-        val (left, right) = split items;
+        val (left, right) = split (items, Int.div (length items, 2));
         val (sortedLeft, sortedRight) = (mergesort cmp left, mergesort cmp right);
         val result = merge sortedLeft sortedRight;
     in result
@@ -252,15 +256,6 @@ fun takeWhile pred list =
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
-    end;
-
-fun split (xs, i) =
-    let
-        fun split' fst xs 0 = (List.rev fst, xs)
-          | split' fst [] _ = raise Subscript
-          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
-    in
-        split' [] xs i
     end;
 
 fun rotate 0 xs = xs
