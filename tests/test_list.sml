@@ -69,3 +69,42 @@ TestSuite.register (
         ["a"]
         "List: removeDuplicates on strings, all elements the same"
 );
+
+(* mergesort *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mergesort String.compare [])
+        []
+        "List: mergesort empty list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mergesort Int.compare [0])
+        [0]
+        "List: mergesort singleton"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mergesort String.compare ["x", "x", "x", "x"])
+        ["x", "x", "x", "x"]
+        "List: mergesort all equal"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => let fun cmp ((a, b), (x, y)) =  String.compare (a, x);
+                  in List.mergesort cmp [("a", 2), ("a", 1), ("a", 3)] end)
+        [("a", 2), ("a", 1), ("a", 3)]
+        "List: mergesort all equal, stable"
+
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mergesort Int.compare [2, 3, 1, 5, 7, 4, 100])
+        [1, 2, 3, 4, 5, 7, 100]
+        "List: mergesort int list without duplicates"
+);
