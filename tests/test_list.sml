@@ -131,3 +131,42 @@ TestSuite.register (
         ["a", "x", "b", "x", "c", "x", "d", "x", "e"]
         "List: intersperse string"
 );
+
+(* enumerate *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.enumerate [])
+        []
+        "List: enumerate empty remains empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.enumerate ["a", "b", "c"])
+        [(0, "a"), (1, "b"), (2, "c")]
+        "List: enumerate string list"
+);
+
+(* enumerateFrom *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.enumerateFrom 100 [])
+        []
+        "List: enumerateFrom empty remains empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.enumerateFrom 100 [1, 2, 3])
+        [(100, 1), (101, 2), (102, 3)]
+        "List: enumerateFrom int list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.enumerateFrom ~4 [false, true, false])
+        [(~4, false), (~3, true), (~2, false)]
+        "List: enumerateFrom negative start on bool list"
+);
