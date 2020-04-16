@@ -108,3 +108,26 @@ TestSuite.register (
         [1, 2, 3, 4, 5, 7, 100]
         "List: mergesort int list without duplicates"
 );
+
+(* intersperse *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.intersperse 0 [])
+        []
+        "List: intersperse into empty still empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.intersperse false [true])
+        [true]
+        "List: intersperse into singleton still singleton"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.intersperse "x" ["a", "b", "c", "d", "e"])
+        ["a", "x", "b", "x", "c", "x", "d", "x", "e"]
+        "List: intersperse string"
+);
