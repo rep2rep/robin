@@ -332,3 +332,26 @@ TestSuite.register (
         ["0", "1", "2", "3", "4"]
         "List: unfold 0:int to strings of ints"
 );
+
+(* replicate *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.replicate 0 1)
+        []
+        "List: replicate zero times is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertError
+        (fn () => List.replicate ~2 1)
+        Size
+        "List: replicate negative is a Size error"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.replicate 5 "a")
+        ["a", "a", "a", "a", "a"]
+        "List: replicate string"
+);
