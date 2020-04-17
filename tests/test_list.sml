@@ -248,3 +248,26 @@ TestSuite.register (
         [(1, "1"), (2, "2"), (3, "3")]
         "List: mapArgs on int list"
 );
+
+(* flatmap *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.flatmap (fn x => x) [])
+        []
+        "List: flatmap empty remains empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.flatmap (fn x => []) [1, 2, 3, 4])
+        []
+        "List: flatmap with all empty results is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.flatmap (fn s => String.explode s) ["hi", "there"])
+        [#"h", #"i", #"t", #"h", #"e", #"r", #"e"]
+        "List: flatmap strings to chars"
+);
