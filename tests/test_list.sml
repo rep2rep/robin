@@ -316,3 +316,19 @@ TestSuite.register (
 (* toString *)
 (* This would be very obvious if it broke, and not very important.
    As such I'm not going to bother testing it. *)
+
+(* unfold *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.unfold (fn x => NONE) 0)
+        []
+        "List: unfold immediate NONE is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.unfold (fn x => if x < 5 then SOME(Int.toString x, x+1) else NONE) 0)
+        ["0", "1", "2", "3", "4"]
+        "List: unfold 0:int to strings of ints"
+);
