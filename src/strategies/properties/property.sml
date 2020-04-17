@@ -149,14 +149,17 @@ fun getFeatures (_,_,[]) = []
 fun updateNumFunction s f (k,v,L) = (k,v,map (Attribute.updateNumFunction s f) L);
 
 fun sameHoles (p,p') = M.equal (getHoles p, getHoles p')
-fun sameTokens (p,p') = List.isPermutationOf (fn (x,y) => x = y)
+fun sameTokens (p,p') = List.isPermutationOf op=
                                              (getTokens p handle NoAttribute _ => [])
                                              (getTokens p' handle NoAttribute _ => [])
 
 fun compareKindValuePair ((k,v),(k',v')) =
     let val c = Kind.compare (k,k')
     in if c = EQUAL
-       then case (v,v') of (Boolean b, Boolean b') => if b then if b' then EQUAL else GREATER else if b' then LESS else EQUAL
+       then case (v,v') of (Boolean b, Boolean b') => if b then
+                                                          if b' then EQUAL else GREATER
+                                                      else
+                                                          if b' then LESS else EQUAL
                          | (Boolean _, _) => LESS
                          | (_,Boolean _) => GREATER
                          | (Label s, Label s') => String.compare (s,s')

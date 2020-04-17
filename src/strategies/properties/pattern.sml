@@ -133,8 +133,8 @@ fun satisfyPattern p C P =
 
         fun findAndUpdateByTypes ((l,tks,(ts,t)),i) [] = [((l,tks,(ts,t)),i)]
           | findAndUpdateByTypes ((l,tks,(ts,t)),i) (((l',tks',(ts',t')),i')::L) =
-            if List.isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
-                andalso List.isPermutationOf (fn (x,y) => x = y)
+            if List.isPermutationOf op= ts ts' andalso t = t'
+                andalso List.isPermutationOf op=
                                              (List.tl tks handle Empty => [])
                                              (List.tl tks' handle Empty => [])
                 (* this last condition makes sure that the patterns are only clustered together if they have the same tokens*)
