@@ -184,15 +184,14 @@ fun enumerate xs = enumerateFrom 0 xs;
 
 fun filterOption xs = mapPartial (fn x => x) xs;
 
-fun findAndRemove _ _ [] = (false,[])
-  | findAndRemove f x (a::L) =
+fun findAndRemoveOnce _ _ [] = (false,[])
+  | findAndRemoveOnce f x (a::L) =
       if f (x, a) then (true,L)
-      else let val (found,L') = findAndRemove f x L
+      else let val (found,L') = findAndRemoveOnce f x L
            in (found,a::L')
            end;
-
 fun isPermutationOf _ [] [] = true
-  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemove f a B
+  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemoveOnce f a B
                                  in if found then isPermutationOf f A B'
                                     else false
                                  end
