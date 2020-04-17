@@ -3,11 +3,14 @@ sig
 
     exception TestFail of string;
 
-    val register : (unit -> unit) -> unit;
+    type test;
 
-    val assertEqual : (unit -> ''a) -> ''a -> string -> (unit -> unit);
-    val assertTrue : (unit -> bool) -> string -> (unit -> unit);
-    val assertFalse : (unit -> bool) -> string -> (unit -> unit);
+    val register : test -> unit;
+
+    val assertEqual : (unit -> ''a) -> ''a -> string -> test;
+    val assertTrue : (unit -> bool) -> string -> test;
+    val assertFalse : (unit -> bool) -> string -> test;
+    val assertError : (unit -> 'a) -> exn -> string -> test;
 
     val run : unit -> (int * string list);
 
@@ -18,7 +21,9 @@ struct
 
 exception TestFail of string;
 
-val tests: (unit -> unit) list ref = ref [];
+type test = unit -> unit;
+
+val tests: test list ref = ref [];
 
 fun register f = tests := (f::(!tests));
 
@@ -28,6 +33,12 @@ fun assertEqual f a s =
 fun assertTrue f s = assertEqual f true s;
 
 fun assertFalse f s = assertEqual f false s;
+
+fun assertError f e s =
+    fn () => let val _ = f () in raise TestFail s end
+             handle e' => if (exnMessage e) = (exnMessage e')
+                          then ()
+                          else raise TestFail s;
 
 fun run () =
     let
