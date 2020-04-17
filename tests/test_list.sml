@@ -200,3 +200,35 @@ TestSuite.register (
         ["a", "b", "c"]
         "List: filterOption on string option list"
 );
+
+(* isPermutationof *)
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => List.isPermutationOf op= [] [])
+        "List: isPermutationOf empty"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => List.isPermutationOf op= [1] [1])
+        "List: isPermutationof singleton integer"
+);
+
+TestSuite.register (
+    TestSuite.assertFalse
+        (fn () => List.isPermutationOf op= [1, 2, 2] [2, 1])
+        "List: isPermutationOf understands duplicates"
+);
+
+TestSuite.register (
+    TestSuite.assertFalse
+        (fn () => List.isPermutationOf op= [1, 1, 2, 2, 2] [1, 1, 1, 2, 2])
+        "List: isPermutationOf handles duplicates correctly"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => List.isPermutationOf op= [1, 2, 3, 4, 5, 6] [2, 4, 1, 5, 6, 3])
+        "List: isPermutationOf works"
+);
