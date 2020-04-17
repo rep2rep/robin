@@ -271,3 +271,44 @@ TestSuite.register (
         [#"h", #"i", #"t", #"h", #"e", #"r", #"e"]
         "List: flatmap strings to chars"
 );
+
+(* product *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.product ([], []))
+        []
+        "List: product both empty is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.product ([1, 2, 3], []))
+        []
+        "List: product right empty is still empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.product ([], [4, 5, 6]))
+        []
+        "List: product left empty is still empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.product ([1, 2, 3], [10, 20, 30]))
+        [(1, 10), (1, 20), (1, 30),
+         (2, 10), (2, 20), (2, 30),
+         (3, 10), (3, 20), (3, 30)]
+        "List: product with homogeneous lists (int)"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.product (["a", "b", "c"], [1, 2]))
+        [("a", 1), ("a", 2),
+         ("b", 1), ("b", 2),
+         ("c", 1), ("c", 2)]
+        "List: product with heterogeneous lists (string, int)"
+);
