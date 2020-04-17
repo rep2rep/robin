@@ -229,6 +229,7 @@ fun unfold f seed =
     end;
 
 fun replicate n x =
+    if n < 0 then raise Size else
     let fun gen 0 = NONE
           | gen n = SOME (x, n-1)
     in
