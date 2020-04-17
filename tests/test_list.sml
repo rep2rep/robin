@@ -312,3 +312,7 @@ TestSuite.register (
          ("c", 1), ("c", 2)]
         "List: product with heterogeneous lists (string, int)"
 );
+
+(* toString *)
+(* This would be very obvious if it broke, and not very important.
+   As such I'm not going to bother testing it. *)
