@@ -232,3 +232,19 @@ TestSuite.register (
         (fn () => List.isPermutationOf op= [1, 2, 3, 4, 5, 6] [2, 4, 1, 5, 6, 3])
         "List: isPermutationOf works"
 );
+
+(* mapArgs *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mapArgs (fn x => x) [])
+        []
+        "List: mapArgs empty remains empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.mapArgs Int.toString [1, 2, 3])
+        [(1, "1"), (2, "2"), (3, "3")]
+        "List: mapArgs on int list"
+);
