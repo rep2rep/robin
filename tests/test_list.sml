@@ -390,6 +390,40 @@ in
     ()
 end;
 
+(* argmin, argmax *)
+
+let
+    fun testEmpty fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertError
+                (fn () => #1 (fnc Real.fromInt []))
+                List.Empty
+                ("List: " ^ fnstr ^ " of an empty list is an error"));
+    fun testSingleton fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => #1 (fnc Real.fromInt [42]))
+                42
+                ("List: " ^ fnstr ^ " of singleton is its value"));
+    fun testRepeated fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => #1 (fnc Real.fromInt [2, 2, 2, 2, 2]))
+                2
+                ("List: " ^ fnstr ^ " of repeated element is that element"));
+    fun testGeneral fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => #1 (fnc Real.fromInt [3, 1, 6, 3, 1, 2, 7, 4]))
+                (if fnstr = "argmin" then 1 else 7)
+                ("List: " ^ fnstr ^ " is correct"));
+    val tests = [testEmpty, testSingleton, testRepeated, testGeneral];
+in
+    map (fn t => t List.argmin "argmin") tests;
+    map (fn t => t List.argmax "argmax") tests;
+    ()
+end;
+
 (* takeWhile *)
 
 TestSuite.register (
@@ -555,3 +589,7 @@ TestSuite.register (
         [4, 5, 1, 2, 3]
         "List: rotate by value beyond length wraps around"
 );
+
+(* weightedSumIndexed, sumIndexed, weightedSum, sum *)
+
+(* weightAvgIndexed, avgIndexed, weightedAvg, avg *)
