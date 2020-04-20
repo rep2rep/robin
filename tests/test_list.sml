@@ -421,3 +421,35 @@ TestSuite.register (
         ["sup", "hey"]
         "List: takeWhile on string list"
 );
+
+(* dropWhile *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.dropWhile (fn x => false) [])
+        []
+        "List: dropWhile empty is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.dropWhile (fn x => true) [1, 2, 3, 4, 5])
+        []
+        "List: dropWhile true is empty"
+);
+
+TestSuite.register (
+    let val l = [5, 4, 3, 2, 1];
+    in TestSuite.assertEqual
+           (fn () => List.dropWhile (fn x => false) l)
+           l
+           "List: dropWhile false is original list"
+    end
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.dropWhile (fn x => String.size x = 3) ["sup", "hey", "hello", "wow"])
+        ["hello", "wow"]
+        "List: dropWhile on string list"
+);
