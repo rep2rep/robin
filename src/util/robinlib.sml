@@ -259,14 +259,7 @@ fun takeWhile pred list =
     in takeWhile' list []
     end;
 
-fun rotate 0 xs = xs
-  | rotate n xs =
-    let
-        val a = take (xs, n);
-        val b = drop (xs, n);
-    in
-        b @ a
-    end;
+fun rotate n xs = (op@ o flip o split) (xs, n);
 
 fun weightedSumIndexed w f L =
     List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;
