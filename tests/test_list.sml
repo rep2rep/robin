@@ -355,3 +355,37 @@ TestSuite.register (
         ["a", "a", "a", "a", "a"]
         "List: replicate string"
 );
+
+(* max, min *)
+
+let
+    fun testEmpty fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertError
+                (fn () => fnc Int.compare [])
+                List.Empty
+                ("List: " ^ fnstr ^ " of an empty list is an error"));
+    fun testSingleton fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => fnc Int.compare [42])
+                42
+                ("List: " ^ fnstr ^ " of singleton is its value"));
+    fun testRepeated fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => fnc Int.compare [2, 2, 2, 2, 2])
+                2
+                ("List: " ^ fnstr ^ " of repeated element is that element"));
+    fun testGeneral fnc fnstr =
+        TestSuite.register (
+            TestSuite.assertEqual
+                (fn () => fnc Int.compare [3, 1, 6, 3, 1, 2, 7, 4])
+                (if fnstr = "min" then 1 else 7)
+                ("List: " ^ fnstr ^ " is correct"));
+    val tests = [testEmpty, testSingleton, testRepeated, testGeneral];
+in
+    map (fn t => t List.min "min") tests;
+    map (fn t => t List.max "max") tests;
+    ()
+end;
