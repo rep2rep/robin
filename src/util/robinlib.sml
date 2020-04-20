@@ -107,6 +107,9 @@ sig
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
 
+    val argmax : ('a -> real) -> 'a list -> ('a * real);
+    val argmin : ('a -> real) -> 'a list -> ('a * real);
+
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
@@ -123,9 +126,6 @@ sig
     val avgIndexed : ('a -> real) -> 'a list -> real;
     val weightedAvg : (real -> real) -> real list -> real;
     val avg : real list -> real;
-
-    val argmax : ('a -> real) -> 'a list -> ('a * real);
-    val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
 
 structure List : LIST =
@@ -256,7 +256,9 @@ fun takeWhile pred list =
     in takeWhile' list []
     end;
 
-fun rotate n xs = (op@ o flip o split) (xs, Int.mod (n, length xs));
+fun rotate 0 xs = xs
+  | rotate _ [] = []
+  | rotate n xs = (op@ o flip o split) (xs, Int.mod (n, length xs));
 
 fun weightedSumIndexed w f L =
     List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;
@@ -273,14 +275,14 @@ fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
 fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
 fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
 
-fun argmax _ [] = raise Match
+fun argmax _ [] = raise Empty
   | argmax f [x] = (x, f x)
   | argmax f (x::L) = let val r = argmax f L
                           val v = f x
                       in if v > #2 r then (x,v) else r
                       end;
 
-fun argmin _ [] = raise Match
+fun argmin _ [] = raise Empty
   | argmin f [x] = (x, f x)
   | argmin f (x::L) = let val r = argmin f L
                           val v = f x
