@@ -507,3 +507,51 @@ TestSuite.register (
             "List: split then concat is original list"
     end
 );
+
+(* rotate *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.rotate 5 [])
+        []
+        "List: rotate empty list is still empty"
+);
+
+TestSuite.register (
+    let val l = ["a", "b", "c", "d"] in
+        TestSuite.assertEqual
+            (fn () => List.rotate 0 l)
+            l
+            "List: rotate by zero is original"
+    end
+);
+
+TestSuite.register (
+    let val l = ["a", "b", "c", "d"] in
+        TestSuite.assertEqual
+            (fn () => List.rotate (List.length l) l)
+            l
+            "List: rotate by entire length is original"
+    end
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.rotate 2 [1, 2, 3, 4, 5])
+        [3, 4, 5, 1, 2]
+        "List: rotate by value in [0, ..., length - 1]"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.rotate ~2 [1, 2, 3, 4, 5])
+        [4, 5, 1, 2, 3]
+        "List: rotate by negative value moves backward"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.rotate 8 [1, 2, 3, 4, 5])
+        [4, 5, 1, 2, 3]
+        "List: rotate by value beyond length wraps around"
+);
