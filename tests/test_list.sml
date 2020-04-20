@@ -453,3 +453,57 @@ TestSuite.register (
         ["hello", "wow"]
         "List: dropWhile on string list"
 );
+
+(* split *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.split ([], 0))
+        ([], [])
+        "List: split empty at position 0 is fine"
+);
+
+TestSuite.register (
+    TestSuite.assertError
+        (fn () => List.split (["a"], 2))
+        Subscript
+        "List: split beyond length is error"
+);
+
+TestSuite.register (
+    let val l = [1, 2, 3, 4];
+        val k = List.length l;
+    in
+        TestSuite.assertEqual
+            (fn () => List.split (l, k))
+            (l, [])
+            "List: split at end is original with an empty list"
+    end
+);
+
+TestSuite.register (
+    let val l = [1, 2, 3, 4];
+    in
+        TestSuite.assertEqual
+            (fn () => List.split (l, 0))
+            ([], l)
+            "List: split at 0 is an empty list with original"
+    end
+);
+
+TestSuite.register (
+    TestSuite.assertError
+        (fn () => List.split ([1, 2, 3, 4, 5], ~1))
+        Subscript
+        "List: split on negative number is an error"
+);
+
+TestSuite.register (
+    let val l = ["hi", "salut", "hola", "kia ora"];
+        val k = 2;
+    in
+        TestSuite.assertTrue
+            (fn () => (op@ (List.split (l, k))) = l)
+            "List: split then concat is original list"
+    end
+);
