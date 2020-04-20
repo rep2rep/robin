@@ -389,3 +389,35 @@ in
     map (fn t => t List.max "max") tests;
     ()
 end;
+
+(* takeWhile *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.takeWhile (fn x => true) [])
+        []
+        "List: takeWhile empty is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.takeWhile (fn x => false) [1, 2, 3, 4, 5])
+        []
+        "List: takeWhile false is empty"
+);
+
+TestSuite.register (
+    let val l = [5, 4, 3, 2, 1];
+    in TestSuite.assertEqual
+           (fn () => List.takeWhile (fn x => true) l)
+           l
+           "List: takeWhile true is original list"
+    end
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.takeWhile (fn x => String.size x = 3) ["sup", "hey", "hello", "wow"])
+        ["sup", "hey"]
+        "List: takeWhile on string list"
+);
