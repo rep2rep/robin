@@ -233,13 +233,13 @@ fun replicate n x =
         unfold gen n
     end;
 
-fun max _ [] = raise List.Empty
+fun max _ [] = raise Empty
   | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
                                                then a
                                                else b)
                                  x xs;
 
-fun min _ [] = raise List.Empty
+fun min _ [] = raise Empty
   | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS
                                                then a
                                                else b)
