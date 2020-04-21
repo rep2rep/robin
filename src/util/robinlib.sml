@@ -16,6 +16,7 @@ sig
     val mappair : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val mapfst : ('a -> 'b) -> ('a * 'c) -> ('b * 'c);
     val mapsnd : ('b -> 'c) -> ('a * 'b) -> ('a * 'c);
+    val equals : ''a -> ''a -> bool;
     val flip : ('a * 'b) -> ('b * 'a);
     val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
     val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
@@ -60,6 +61,8 @@ fun mappair f (a, b) = (f a, f b);
 fun mapfst f (a, b) = (f a, b);
 
 fun mapsnd f (a, b) = (a, f b);
+
+fun equals a b = a = b;
 
 fun flip (a, b) = (b, a);
 
