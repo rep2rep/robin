@@ -39,7 +39,8 @@ fun assertFalse f s = assertEqual f false s;
 
 fun assertError f e s =
     fn () => let val _ = f () in raise TestFail s end
-             handle e' => if (exnMessage e) = (exnMessage e')
+             handle TestFail s => raise TestFail s
+                  | e' => if (exnMessage e) = (exnMessage e')
                           then ()
                           else raise TestFail s;
 
