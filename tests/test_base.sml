@@ -28,7 +28,10 @@ val tests: test list ref = ref [];
 fun register f = tests := (f::(!tests));
 
 fun assertEqual f a s =
-    fn () => if f () = a then () else raise TestFail s;
+    fn () => (if f () = a then () else raise TestFail s)
+             handle TestFail s => raise TestFail s
+                  | e => raise TestFail ("Exception " ^ (exnMessage e) ^
+                                         " while running test: \"" ^ s ^ "\"");
 
 fun assertTrue f s = assertEqual f true s;
 
