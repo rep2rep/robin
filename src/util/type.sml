@@ -86,7 +86,7 @@ fun allVarsIn f =
     in getVars' [] f end;
 
 fun getNewVariableExcept invalids = let val v = getNewVariable ();
-                                    in if List.exists (fn x => x = v) invalids
+                                    in if List.exists (equals v) invalids
                                        then getNewVariableExcept invalids
                                        else v end;
 

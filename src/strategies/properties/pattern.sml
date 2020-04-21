@@ -68,7 +68,7 @@ exception Unsatisfiable;
 (* takes a list of token labels and diminishes their multiplicity in the knowledge base *)
 fun diminish L [] = if null L then [] else raise Unsatisfiable
   | diminish L (((labels,tokens,typeinfo),i)::K) = if null L then (((labels,tokens,typeinfo),i)::K) else
-    case List.find (fn x => List.exists (fn y => x = y) L) labels of
+    case List.find (fn x => List.exists (equals x) L) labels of
         SOME label => let val L' = List.remove label L
                           val K' = if i <= 1 then diminish L' K else diminish L' (((labels,tokens,typeinfo),i-1)::K)
                       in K'
