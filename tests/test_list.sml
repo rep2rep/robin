@@ -592,4 +592,50 @@ TestSuite.register (
 
 (* weightedSumIndexed, sumIndexed, weightedSum, sum *)
 
+let
+    val w = fn r => 1.0;
+    val i = fn r => r;
+    fun mkTest (f, s) =
+        TestSuite.register (
+            TestSuite.assertTrue
+                (fn () => Real.== ((f []), 0.0))
+                ("List: " ^ s ^ " on empty list is 0")
+        );
+in
+    map mkTest [(List.weightedSumIndexed w i, "weightedSumIndexed"),
+                (List.sumIndexed i, "sumIndexed"),
+                (List.weightedSum w, "weightedSum"),
+                (List.sum, "sum")]
+end;
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.==(List.weightedSumIndexed (fn (_, c) => Real.fromInt c)
+                                                  (Real.fromInt o String.size o #1)
+                                                  [("hi", 2), ("hey", 3), ("hello", 1)],
+                          18.0))
+        "List: weightedSumIndexed on (string * int) list, indexing by string length, weighting by the 'count'"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.==(List.sumIndexed (Real.fromInt o List.length) [[0], [0, 0], [0]],
+                          4.0))
+        "List: sumIndexed on int list list, indexed by length"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.== (List.weightedSum (fn x => x * x) [1.0, 2.0, 1.0, 0.5],
+                           10.125))
+        "List: weightedSum on where weight is the square of the value"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.== (List.sum [4.0, 1.0, 3.0, 2.6],
+                           10.6))
+        "List: sum works correctly"
+);
+
 (* weightAvgIndexed, avgIndexed, weightedAvg, avg *)
