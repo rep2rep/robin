@@ -639,3 +639,50 @@ TestSuite.register (
 );
 
 (* weightAvgIndexed, avgIndexed, weightedAvg, avg *)
+
+let
+    val w = fn r => 1.0;
+    val i = fn r => r;
+    fun mkTest (f, s) =
+        TestSuite.register (
+            TestSuite.assertError
+                (fn () => f [])
+                List.Empty
+                ("List: " ^ s ^ " on empty list is an Empty error")
+        );
+in
+    map mkTest [(List.weightedAvgIndexed w i, "weightedAvgIndexed"),
+                (List.avgIndexed i, "avgIndexed"),
+                (List.weightedAvg w, "weightedAvg"),
+                (List.avg, "avg")]
+end;
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.==(List.weightedAvgIndexed (fn (_, c) => Real.fromInt c)
+                                                  (Real.fromInt o String.size o #1)
+                                                  [("hi", 2), ("hey", 3), ("hello", 1)],
+                          3.0))
+        "List: weightedAvgIndexed on (string * int) list, indexing by string length, weighting by the 'count'"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.==(List.avgIndexed (Real.fromInt o List.length) [[0], [0, 0], [0]],
+                          4.0/3.0))
+        "List: avgIndexed on int list list, indexed by length"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.== (List.weightedAvg (fn x => x * x) [1.0, 2.0, 1.0, 0.5],
+                           1.62))
+        "List: weightedAvg on where weight is the square of the value"
+);
+
+TestSuite.register (
+    TestSuite.assertTrue
+        (fn () => Real.== (List.avg [4.0, 1.0, 3.0, 2.6],
+                           2.65))
+        "List: avg works correctly"
+);
