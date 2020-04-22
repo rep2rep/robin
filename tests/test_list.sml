@@ -314,8 +314,28 @@ TestSuite.register (
 );
 
 (* toString *)
-(* This would be very obvious if it broke, and not very important.
-   As such I'm not going to bother testing it. *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.toString Int.toString [])
+        "[]"
+        "List: toString of empty is \"[]\""
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.toString (fn x => x) ["hello"])
+        "[hello]"
+        "List: toString of singleton has no commas"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.toString Real.toString [1.2, 2.4])
+        "[1.2, 2.4]"
+        "List: toString on real list"
+);
+
 
 (* unfold *)
 
