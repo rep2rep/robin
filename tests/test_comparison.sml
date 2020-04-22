@@ -24,3 +24,26 @@ TestSuite.register (
         GREATER
         "Comparison: join on pair for GREATER on first"
 );
+
+(* rev *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => Comparison.rev Int.compare (5, 5))
+        EQUAL
+        "Comparison: rev to EQUAL is still EQUAL"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => Comparison.rev Int.compare (10, 5))
+        LESS
+        "Comparison: rev to GREATER is now LESS"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => Comparison.rev Int.compare (2, 20))
+        GREATER
+        "Comparison: rev to LESS is now GREATER"
+);
