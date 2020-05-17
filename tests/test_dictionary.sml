@@ -152,3 +152,51 @@ TestSuite.register (
         (5, [("a", 5), ("b", 2)])
         "Dictionary: update existing key returns new value and updates the dictionary"
 );
+
+(* keys *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.keys (D.empty ()))
+        []
+        "Dictionary: keys of empty dictionary is empty list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.keys (D.fromPairList [("b", 2), ("a", 1)]))
+        ["a", "b"]
+        "Dictionary: keys returns list of keys, sorted"
+);
+
+(* values *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.values (D.empty ()))
+        []
+        "Dictionary: values of empty dictionary is empty list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.values (D.fromPairList [("a", 2), ("b", 1)]))
+        [2, 1]
+        "Dictionary: values returns list of values"
+);
+
+(* items *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.items (D.empty ()))
+        []
+        "Dictionary: items of empty dictionary is empty list"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => D.items (D.fromPairList [("b", 2), ("a", 1), ("c", 3)]))
+        [("a", 1), ("b", 2), ("c", 3)]
+        "Dictionary: items of dictionary is list of pairs, sorted by keys"
+);
