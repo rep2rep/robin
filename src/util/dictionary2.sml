@@ -62,22 +62,21 @@ functor Dictionary(K : sig type k;
 struct
 
 datatype 'a tree = LEAF
-                 | NODE2 of ('a tree * 'a * 'a tree * 'a * 'a tree)
-                 | NODE3 of ('a tree * 'a * 'a tree * 'a * 'a tree * 'a * 'a tree)
-                 | NODE4 of ('a tree * 'a * 'a tree * 'a * 'a tree * 'a * 'a tree * 'a * 'a tree);
+                 | NODE2 of ('a tree * 'a * 'a tree)
+                 | NODE3 of ('a tree * 'a * 'a tree * 'a * 'a tree)
+                 | NODE4 of ('a tree * 'a * 'a tree * 'a * 'a tree * 'a * 'a tree);
 
 datatype 'a root = EMPTY
-                 | SINGLETON of 'a
                  | TREE of 'a tree;
 
 type k = K.k;
-type ('k, 'v) dict = ('k * 'v) tree root ref;
+type ('k, 'v) dict = ('k * 'v) root ref;
 
 exception KeyError;
 
 fun key_ (k, _) = k;
 
-fun empty () = (ref NONE);
+fun empty () = (ref EMPTY);
 
 fun isEmpty d = case (!d) of EMPTY => true
                            | _ => true;
@@ -85,11 +84,22 @@ fun isEmpty d = case (!d) of EMPTY => true
 fun insert d (k, v) =
     let
         (* Split tree t at position i:
-           move the middle of the subtree TREE4 at i
-           up to t (which is at most TREE3) *)
+           move the middle of the subtree NODE4 at i
+           up to t (which is at most NODE3) *)
         fun split LEAF i = raise Match
-          | split (TREE4 _) i = raise Match
-          | split t i = t;
+          | split (NODE4 _) i = raise Match
+          | split (NODE2 ((NODE4 (b0, p0, b1, p1, b2, p2, b3)), p3, b4)) 1 =
+            (NODE3 ((NODE2 (b0, p0, b1)), p1, (NODE2 (b2, p2, b3)), p3, b4))
+          | split (NODE2 (b0, p0, (NODE4 (b1, p1, b2, p2, b3, p3, b4)))) 2 =
+            (NODE3 (b0, p0, (NODE2 (b1, p1, b2)), p2, (NODE2 (b3, p3, b4))))
+          | split (NODE3 ((NODE4 (b0, p0, b1, p1, b2, p2, b3)), p3, b4, p4, b5)) 1 =
+            (NODE4 ((NODE2 (b0, p0, b1)), p1, (NODE2 (b2, p2, b3)), p3, b4, p4, b5))
+          | split (NODE3 (b0, p0, (NODE4 (b1, p1, b2, p2, b3, p3, b4)), p4, b5)) 2 =
+            (NODE4 (b0, p0, (NODE2 (b1, p1, b2)), p2, (NODE2 (b3, p3, b4)), p4, b5))
+          | split (NODE3 (b0, p0, b1, p1, (NODE4 (b2, p2, b3, p3, b4, p4, b5)))) 3 =
+            (NODE4 (b0, p0, b1, p1, (NODE2 (b2, p2, b3)), p3, (NODE2 (b4, p4, b5))))
+          | split _ _ = raise Match;
+
         (*
           1. If this is a "bottom" node, insert.
           2. Otherwise, we find the correct child to go down.
@@ -99,72 +109,58 @@ fun insert d (k, v) =
         *)
         fun insert'' (k, v) LEAF = raise Match
           | insert'' (k, v) (NODE4 _) = raise Match
-          | insert'' (k, b) (NODE2 (LEAF, (k1, v1), LEAF, (k2, v2), lEAF)) =
+          (* NODE2 as a bottom node *)
+          | insert'' (k, v) (NODE2 (LEAF, (k1, v1), LEAF)) =
             (case K.compare (k, k1) of
-                 EQUAL => NODE2 (LEAF, (k1, v),
-                                 LEAF, (k2, v2),
-                                 LEAF)
-               | LESS => NODE3 (LEAF, (k, v),
-                                LEAF, (k1, v1),
-                                LEAF, (k2, v2),
-                                LEAF)
-               | GREATER => (case K.compare (k, k2) of
-                               | EQUAL => NODE2 (LEAF, (k1, v1),
-                                                 LEAF, (k2, v),
-                                                 LEAF)
-                               | LESS => NODE3 (LEAF, (k1, v1),
-                                                LEAF, (k, v),
-                                                LEAF, (k2, v2),
-                                                LEAF)
-                               | GREATER => NODE3 (LEAF, (k1, v1),
-                                                   LEAF (k2, v2),
-                                                   LEAF (k, v),
-                                                   LEAF)))
-          | insert'' (k, v) (NODE3 (LEAF, (k1, v1), LEAF, (k2, v2), LEAF, (k3, v3), LEAF)) =
+                 EQUAL => NODE2 (LEAF, (k1, v), LEAF)
+               | LESS => NODE3 (LEAF, (k, v), LEAF, (k1, v1), LEAF)
+               | GREATER => NODE3 (LEAF, (k1, v1), LEAF, (k, v), LEAF))
+          (* NODE2 as in internal node *)
+          | insert'' (k, v) (n as NODE2 (b1, (k1, v1), b2)) =
             (case K.compare (k, k1) of
-                 EQUAL => NODE3 (LEAF, (k1, v),
-                                 LEAF, (k2, v2),
-                                 LEAF, (k3, v3),
-                                 LEAF)
-               | LESS => NODE4 (LEAF, (k, v),
-                                LEAF, (k1, v1),
-                                LEAF, (k2, v2),
-                                LEAF, (k3, v3),
-                                LEAF)
-               | GREATER => (case K.compare (k, k2) of
-                                 EQUAL => NODE3 (LEAF, (k1, v1),
-                                                 LEAF, (k2, v),
-                                                 LEAF, (k3, v3),
-                                                 LEAF)
-                               | LESS => NODE4 (LEAF, (k1, v1),
-                                                LEAF, (k, v),
-                                                LEAF, (k2, v2),
-                                                LEAF, (k3, v3),
-                                                LEAF)
-                               | GREATER => (case K.compare (k, k3) of
-                                                 EQUAL => NODE3 (LEAF, (k1, v1),
-                                                                 LEAF, (k2, v2),
-                                                                 LEAF, (k3, v),
-                                                                 LEAF)
-                                               | LESS => NODE4 (LEAF, (k1, v1),
-                                                                LEAF, (k2, v2),
-                                                                LEAF, (k, v),
-                                                                LEAF, (k3, v3),
-                                                                LEAF)
-                                               | GREATER => NODE4 (LEAF, (k1, v1),
-                                                                   LEAF, (k2, v2),
-                                                                   LEAF, (k3, v3),
-                                                                   LEAF, (k, v),
-                                                                   LEAF))))
+                 EQUAL => NODE2 (LEAF, (k1, v), LEAF)
+               | LESS =>
+                 (case b1 of (NODE4 _) => insert'' (k, v) (split n 1)
+                           | _ => NODE2 (insert'' (k, v) b1, (k1, v1), b2))
+               | GREATER =>
+                 (case b2 of (NODE4 _) => insert'' (k, v) (split n 2)
+                           | _ => NODE2 (b1, (k1, v1), insert'' (k, v) b2)))
+          (* NODE3 as a bottom node *)
+          | insert'' (k, b) (NODE3 (LEAF, (k1, v1), LEAF, (k2, v2), lEAF)) =
+            (case K.compare (k, k1) of
+                 EQUAL => NODE3 (LEAF, (k1, v), LEAF, (k2, v2), LEAF)
+               | LESS => NODE4 (LEAF, (k, v), LEAF, (k1, v1), LEAF, (k2, v2), LEAF)
+               | GREATER =>
+                 (case K.compare (k, k2) of
+                      EQUAL => NODE3 (LEAF, (k1, v1), LEAF, (k2, v), LEAF)
+                    | LESS => NODE4 (LEAF, (k1, v1), LEAF, (k, v), LEAF, (k2, v2), LEAF)
+                    | GREATER => NODE4 (LEAF, (k1, v1), LEAF, (k2, v2),
+                                        LEAF, (k, v), LEAF)))
+          (* NODE3 as an internal node *)
+          | insert'' (k, v) (n as NODE3 (b1, (k1, v1), b2, (k2, v2), b3)) =
+            (case K.compare(k, k1) of
+                 EQUAL => NODE3 (b1, (k1, v), b2, (k2, v2), b3)
+               | LESS =>
+                 (case b1 of (NODE4 _) => insert'' (k, v) (split n 1)
+                           | _ => NODE3 (insert'' (k, v) b1, (k1, v1), b2, (k2, v2), b3))
+               | GREATER =>
+                 (case K.compare(k, k2) of
+                      EQUAL => NODE3 (b1, (k1, v1), b2, (k2, v), b3)
+                    | LESS =>
+                      (case b2 of (NODE4 _) => insert'' (k, v) (split n 2)
+                                | _ => NODE3 (b1, (k1, v1),
+                                              insert'' (k, v) b2, (k2, v2), b3))
+                    | GERATER =>
+                      (case b3 of (NODE4 _) => insert'' (k, v) (split n 3)
+                                | _ => NODE3 (b1, (k1, v1), b2, (k2, v2),
+                                              insert'' (k, v) b3))))
 
-        fun insert' EMPTY (k, v) = SINGLETON (k, v)
-          | insert' (SINGLETON (k', v')) (k, v) =
-            (case K.compare (k', k) of
-                 LESS => TREE (NODE2 (LEAF, (k', v'), LEAF, (k, v), LEAF))
-               | GREATER => TREE (NODE2 (LEAF, (k, v), LEAF, (k', v'), LEAF))
-               | EQUAL => SINGLETON (k', v))
-          | insert' (TREE (NODE4 t)) (k, v) = TREE (NODE4 t) (* re-root *)
-          | insert' (TREE t) (k, v) = insert'' (k, v) (TREE t); (* regular insert *)
+
+        fun insert' EMPTY (k, v) = TREE (NODE2 (LEAF, (k, v), LEAF))
+          | insert' (TREE (NODE4 (b1, (k1, v1), b2, (k2, v2), b3, (k3, v3), b4))) (k, v) =
+            (* re-root *)
+            TREE (NODE2 ((NODE2 (b1, (k1, v1), b2)), (k2, v2), (NODE2 (b2, (k3, v3), b4))))
+          | insert' (TREE t) (k, v) = TREE (insert'' (k, v) t);
 
 in d := insert' (!d) (k, v) end;
 
