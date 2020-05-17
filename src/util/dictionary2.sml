@@ -18,8 +18,8 @@ sig
     exception KeyError;
 
     val empty : unit -> (k, 'v) dict;
-    (* val fromPairList : (k * 'v) list -> (k, 'v) dict; *)
-    (* val toPairList : (k, 'v) dict -> (k * 'v) list; *)
+    val fromPairList : (k * 'v) list -> (k, 'v) dict;
+    val toPairList : (k, 'v) dict -> (k * 'v) list;
 
     val insert : (k, 'v) dict -> (k * 'v) ->  unit;
     (* val remove : (k, 'v) dict -> k -> unit; *)
@@ -163,5 +163,25 @@ fun insert d (k, v) =
           | insert' (TREE t) (k, v) = TREE (insert'' (k, v) t);
 
 in d := insert' (!d) (k, v) end;
+
+fun fromPairList xs =
+    let val d = empty ();
+        val _ = List.map (insert d) xs;
+    in d end;
+
+
+fun toPairList d =
+    let
+        fun toPairList'' l LEAF = l
+          | toPairList'' l (NODE2 (b1, p1, b2)) =
+            toPairList'' (p1::(toPairList'' l b2)) b1
+          | toPairList'' l (NODE3 (b1, p1, b2, p2, b3)) =
+            toPairList'' (p1::(toPairList'' (p2::(toPairList'' l b3)) b2)) b1
+          | toPairList'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
+            toPairList'' (p1::(toPairList'' (p2::(toPairList'' (p3::(toPairList'' l b4)) b3)) b2)) b1
+
+        fun toPairList' EMPTY = []
+          | toPairList' (TREE t) = toPairList'' [] t;
+    in toPairList' (!d) end;
 
 end;
