@@ -41,7 +41,8 @@ sig
     val intersectionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
     val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict;
 
-    val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list; (* It would be nice to have this work to dictionaries *)
+ (* It would be nice to have map work to dictionaries *)
+    val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
     val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict;
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
