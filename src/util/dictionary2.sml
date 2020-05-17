@@ -27,11 +27,11 @@ sig
     (* val get : (k, 'v) dict -> k -> 'v; *)
     (* val update : (k, 'v) dict -> k -> ('v -> 'v) -> 'v; *)
 
-    (* val keys : (k, 'v) dict -> k list; *)
-    (* val values : (k, 'v) dict -> 'v list; *)
-    (* val items : (k, 'v) dict -> (k * 'v) list; *)
+    val keys : (k, 'v) dict -> k list;
+    val values : (k, 'v) dict -> 'v list;
+    val items : (k, 'v) dict -> (k * 'v) list;
 
-    (* val size : (k, 'v) dict -> int; *)
+    val size : (k, 'v) dict -> int;
 
     (* val union : (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
     (* val unionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
@@ -42,11 +42,10 @@ sig
     (* val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict; *)
 
  (* It would be nice to have map work to dictionaries *)
-    (* val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list; *)
+    val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
     (* val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict; *)
     (* val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a; *)
-    (* val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a; *)
-    (* val find : (k * 'v -> bool) -> (k, 'v) dict -> (k * 'v) option; *)
+    val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
     (* val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool; *)
     (* val equal : (k, ''v) dict * (k, ''v) dict -> bool; *)
@@ -170,18 +169,28 @@ fun fromPairList xs =
     in d end;
 
 
-fun toPairList d =
+fun foldr f z d =
     let
-        fun toPairList'' l LEAF = l
-          | toPairList'' l (NODE2 (b1, p1, b2)) =
-            toPairList'' (p1::(toPairList'' l b2)) b1
-          | toPairList'' l (NODE3 (b1, p1, b2, p2, b3)) =
-            toPairList'' (p1::(toPairList'' (p2::(toPairList'' l b3)) b2)) b1
-          | toPairList'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
-            toPairList'' (p1::(toPairList'' (p2::(toPairList'' (p3::(toPairList'' l b4)) b3)) b2)) b1
+        fun foldr'' l LEAF = l
+          | foldr'' l (NODE2 (b1, p1, b2)) =
+            foldr'' (f (p1, (foldr'' l b2))) b1
+          | foldr'' l (NODE3 (b1, p1, b2, p2, b3)) =
+            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' l b3))) b2))) b1
+          | foldr'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
+            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' (f (p3, (foldr'' l b4))) b3))) b2))) b1
 
-        fun toPairList' EMPTY = []
-          | toPairList' (TREE t) = toPairList'' [] t;
-    in toPairList' (!d) end;
+        fun foldr' EMPTY = z
+          | foldr' (TREE t) = foldr'' z t;
+    in foldr' (!d) end;
+
+fun toPairList d = foldr op:: [] d;
+
+fun map f d = foldr (fn (x, v) => ((f x) :: v)) [] d;
+
+fun keys d = map (fn (k, v) => k) d;
+fun values d = map (fn (k, v) => v) d;
+fun items d = toPairList d;
+
+fun size d = foldr (fn (x, v) => 1 + v) 0 d;
 
 end;
