@@ -24,8 +24,7 @@ sig
     val insert : (k, 'v) dict -> (k * 'v) ->  unit;
     (* val remove : (k, 'v) dict -> k -> unit; *)
 
-    (* val get : (k, 'v) dict -> k -> 'v; *)
-    (* val update : (k, 'v) dict -> k -> ('v -> 'v) -> 'v; *)
+    val get : (k, 'v) dict -> k -> 'v;
 
     val keys : (k, 'v) dict -> k list;
     val values : (k, 'v) dict -> 'v list;
@@ -52,6 +51,8 @@ sig
     val isEmpty : (k, 'v) dict -> bool;
 
     (* val getFirst : (k, 'v) dict -> (k * 'v); *)
+
+    val showDebug : (k, 'v) dict -> string;
 end;
 
 functor Dictionary(K : sig type k;
@@ -73,7 +74,37 @@ type ('k, 'v) dict = ('k * 'v) root ref;
 
 exception KeyError;
 
-fun key_ (k, _) = k;
+datatype position2 = T2_BRANCH1 | T2_ENTRY1 | T2_BRANCH2;
+datatype position3 = T3_BRANCH1 | T3_ENTRY1 | T3_BRANCH2 | T3_ENTRY2 | T3_BRANCH3;
+datatype position4 = T4_BRANCH1 | T4_ENTRY1 | T4_BRANCH2 | T4_ENTRY2 | T4_BRANCH3 | T4_ENTRY3 | T4_BRANCH4;
+
+fun nodeCompare2 k (NODE2 (b1, (k1, v1), b2)) =
+    (case K.compare (k, k1) of
+         LESS => T2_BRANCH1
+       | EQUAL => T2_ENTRY1
+       | GREATER => T2_BRANCH2)
+  | nodeCompare2 _ _ = raise Match;
+fun nodeCompare3 k (NODE3 (b1, (k1, v1), b2, (k2, v2), b3)) =
+    (case K.compare (k, k1) of
+         LESS => T3_BRANCH1
+      | EQUAL => T3_ENTRY1
+      | GREATER => (case K.compare (k, k2) of
+                        LESS => T3_BRANCH2
+                     | EQUAL => T3_ENTRY2
+                     | GREATER => T3_BRANCH3))
+  | nodeCompare3 _ _ = raise Match;
+fun nodeCompare4 k (NODE4 (b1, (k1, v1), b2, (k2, v2), b3, (k3, v3), b4)) =
+    (case K.compare (k, k1) of
+         LESS => T4_BRANCH1
+      | EQUAL => T4_ENTRY1
+      | GERATER => (case K.compare (k, k2) of
+                        LESS => T4_BRANCH2
+                      | EQUAL => T4_ENTRY2
+                      | GREATER => (case K.compare (k, k3) of
+                                        LESS => T4_BRANCH3
+                                      | EQUAL => T4_ENTRY3
+                                      | GREATER => T4_BRANCH4)))
+  | nodeCompare4 _ _ = raise Match;
 
 fun empty () = (ref EMPTY);
 
@@ -106,68 +137,91 @@ fun insert d (k, v) =
              (We must have space, by design.)
           4. Recurse down correct child.
         *)
-        fun insert'' (k, v) LEAF = raise Match
-          | insert'' (k, v) (NODE4 _) = raise Match
+        fun insert'' LEAF = raise Match
+          | insert'' (NODE4 _) = raise Match
           (* NODE2 as a bottom node *)
-          | insert'' (k, v) (NODE2 (LEAF, (k1, v1), LEAF)) =
-            (case K.compare (k, k1) of
-                 EQUAL => NODE2 (LEAF, (k1, v), LEAF)
-               | LESS => NODE3 (LEAF, (k, v), LEAF, (k1, v1), LEAF)
-               | GREATER => NODE3 (LEAF, (k1, v1), LEAF, (k, v), LEAF))
+          | insert'' (n as NODE2 (LEAF, (k1, v1), LEAF)) =
+            (case nodeCompare2 k n of
+                 T2_ENTRY1 => NODE2 (LEAF, (k1, v), LEAF)
+               | T2_BRANCH1 => NODE3 (LEAF, (k, v), LEAF, (k1, v1), LEAF)
+               | T2_BRANCH2 => NODE3 (LEAF, (k1, v1), LEAF, (k, v), LEAF))
           (* NODE2 as in internal node *)
-          | insert'' (k, v) (n as NODE2 (b1, (k1, v1), b2)) =
-            (case K.compare (k, k1) of
-                 EQUAL => NODE2 (LEAF, (k1, v), LEAF)
-               | LESS =>
-                 (case b1 of (NODE4 _) => insert'' (k, v) (split n 1)
-                           | _ => NODE2 (insert'' (k, v) b1, (k1, v1), b2))
-               | GREATER =>
-                 (case b2 of (NODE4 _) => insert'' (k, v) (split n 2)
-                           | _ => NODE2 (b1, (k1, v1), insert'' (k, v) b2)))
+          | insert'' (n as NODE2 (b1, (k1, v1), b2)) =
+            (case nodeCompare2 k n of
+                 T2_ENTRY1 => NODE2 (LEAF, (k1, v), LEAF)
+               | T2_BRANCH1 =>
+                 (case b1 of (NODE4 _) => insert'' (split n 1)
+                           | _ => NODE2 (insert'' b1, (k1, v1), b2))
+               | T2_BRANCH2 =>
+                 (case b2 of (NODE4 _) => insert'' (split n 2)
+                           | _ => NODE2 (b1, (k1, v1), insert'' b2)))
           (* NODE3 as a bottom node *)
-          | insert'' (k, b) (NODE3 (LEAF, (k1, v1), LEAF, (k2, v2), lEAF)) =
-            (case K.compare (k, k1) of
-                 EQUAL => NODE3 (LEAF, (k1, v), LEAF, (k2, v2), LEAF)
-               | LESS => NODE4 (LEAF, (k, v), LEAF, (k1, v1), LEAF, (k2, v2), LEAF)
-               | GREATER =>
-                 (case K.compare (k, k2) of
-                      EQUAL => NODE3 (LEAF, (k1, v1), LEAF, (k2, v), LEAF)
-                    | LESS => NODE4 (LEAF, (k1, v1), LEAF, (k, v), LEAF, (k2, v2), LEAF)
-                    | GREATER => NODE4 (LEAF, (k1, v1), LEAF, (k2, v2),
-                                        LEAF, (k, v), LEAF)))
+          | insert'' (n as NODE3 (LEAF, (k1, v1), LEAF, (k2, v2), lEAF)) =
+            (case nodeCompare3 k n of
+                 T3_ENTRY1 => NODE3 (LEAF, (k1, v), LEAF, (k2, v2), LEAF)
+               | T3_ENTRY2 => NODE3 (LEAF, (k1, v1), LEAF, (k2, v), LEAF)
+               | T3_BRANCH1 => NODE4 (LEAF, (k, v), LEAF, (k1, v1), LEAF, (k2, v2), LEAF)
+               | T3_BRANCH2 => NODE4 (LEAF, (k1, v1), LEAF, (k, v), LEAF, (k2, v2), LEAF)
+               | T3_BRANCH3 => NODE4 (LEAF, (k1, v1), LEAF, (k2, v2), LEAF, (k, v), LEAF))
           (* NODE3 as an internal node *)
-          | insert'' (k, v) (n as NODE3 (b1, (k1, v1), b2, (k2, v2), b3)) =
-            (case K.compare(k, k1) of
-                 EQUAL => NODE3 (b1, (k1, v), b2, (k2, v2), b3)
-               | LESS =>
-                 (case b1 of (NODE4 _) => insert'' (k, v) (split n 1)
-                           | _ => NODE3 (insert'' (k, v) b1, (k1, v1), b2, (k2, v2), b3))
-               | GREATER =>
-                 (case K.compare(k, k2) of
-                      EQUAL => NODE3 (b1, (k1, v1), b2, (k2, v), b3)
-                    | LESS =>
-                      (case b2 of (NODE4 _) => insert'' (k, v) (split n 2)
-                                | _ => NODE3 (b1, (k1, v1),
-                                              insert'' (k, v) b2, (k2, v2), b3))
-                    | GERATER =>
-                      (case b3 of (NODE4 _) => insert'' (k, v) (split n 3)
-                                | _ => NODE3 (b1, (k1, v1), b2, (k2, v2),
-                                              insert'' (k, v) b3))))
+          | insert'' (n as NODE3 (b1, (k1, v1), b2, (k2, v2), b3)) =
+            (case nodeCompare3 k n of
+                 T3_ENTRY1 => NODE3 (b1, (k1, v), b2, (k2, v2), b3)
+               | T3_ENTRY2 => NODE3 (b1, (k1, v1), b2, (k2, v), b3)
+               | T3_BRANCH1 =>
+                 (case b1 of (NODE4 _) => insert'' (split n 1)
+                           | _ => NODE3 (insert'' b1, (k1, v1), b2, (k2, v2), b3))
+               | T3_BRANCH2 =>
+                 (case b2 of (NODE4 _) => insert'' (split n 2)
+                           | _ => NODE3 (b1, (k1, v1),
+                                              insert'' b2, (k2, v2), b3))
+               | T3_BRANCH3 =>
+                 (case b3 of (NODE4 _) => insert'' (split n 3)
+                           | _ => NODE3 (b1, (k1, v1), b2, (k2, v2),
+                                         insert'' b3)))
 
 
-        fun insert' EMPTY (k, v) = TREE (NODE2 (LEAF, (k, v), LEAF))
-          | insert' (TREE (NODE4 (b1, (k1, v1), b2, (k2, v2), b3, (k3, v3), b4))) (k, v) =
+        fun insert' EMPTY = TREE (NODE2 (LEAF, (k, v), LEAF))
+          | insert' (TREE (NODE4 (b1, (k1, v1), b2, (k2, v2), b3, (k3, v3), b4))) =
             (* re-root *)
             TREE (NODE2 ((NODE2 (b1, (k1, v1), b2)), (k2, v2), (NODE2 (b2, (k3, v3), b4))))
-          | insert' (TREE t) (k, v) = TREE (insert'' (k, v) t);
+          | insert' (TREE t) = TREE (insert'' t);
 
-in d := insert' (!d) (k, v) end;
+    in d := insert' (!d) end;
+
+fun get d k =
+    let
+        fun get'' LEAF = raise KeyError
+          | get'' (n as NODE2 (b1, (k1, v1), b2)) =
+            (case nodeCompare2 k n of
+                 T2_ENTRY1 => v1
+               | T2_BRANCH1 => get'' b1
+               | T2_BRANCH2 => get'' b2)
+          | get'' (n as NODE3 (b1, (k1, v1), b2, (k2, v2), b3)) =
+            (case nodeCompare3 k n of
+                 T3_ENTRY1 => v1
+               | T3_ENTRY2 => v2
+               | T3_BRANCH1 => get'' b1
+               | T3_BRANCH2 => get'' b2
+               | T3_BRANCH3 => get'' b3)
+          | get'' (n as NODE4 (b1, (k1, v1), b2, (k2, v2), b3, (k3, v3), b4)) =
+            (case nodeCompare4 k n of
+                 T4_ENTRY1 => v1
+               | T4_ENTRY2 => v2
+               | T4_ENTRY3 => v3
+               | T4_BRANCH1 => get'' b1
+               | T4_BRANCH2 => get'' b2
+               | T4_BRANCH3 => get'' b3
+               | T4_BRANCH4 => get'' b4)
+
+        fun get' EMPTY = raise KeyError
+          | get' (TREE t) = get'' t;
+    in get' (!d) end;
 
 fun fromPairList xs =
     let val d = empty ();
         val _ = List.map (insert d) xs;
     in d end;
-
 
 fun foldr f z d =
     let
@@ -192,5 +246,19 @@ fun values d = map (fn (k, v) => v) d;
 fun items d = toPairList d;
 
 fun size d = foldr (fn (x, v) => 1 + v) 0 d;
+
+fun showDebug d =
+    let
+        fun show' LEAF = "_"
+          | show' (NODE2 (b1, (x, _), b2)) =
+            "(NODE2 " ^ (show' b1) ^ " " ^ (K.fmt x) ^ " " ^ (show' b2) ^ ")"
+          | show' (NODE3 (b1, (x, _), b2, (y, _), b3)) =
+            "(NODE3 " ^ (show' b1) ^ " " ^ (K.fmt x) ^ " " ^ (show' b2) ^ " " ^ (K.fmt y) ^ " " ^ (show' b3) ^ ")"
+          | show' (NODE4 (b1, (x, _), b2, (y, _), b3, (z, _), b4)) =
+            "(NODE4 " ^ (show' b1) ^ " " ^ (K.fmt x) ^ " " ^ (show' b2) ^ " " ^ (K.fmt y) ^ " " ^ (show' b3) ^ "  " ^ (K.fmt z) ^ " " ^ (show' b4) ^ ")"
+    in case (!d) of
+           EMPTY => "EMPTY"
+         | TREE t => show' t
+    end;
 
 end;
