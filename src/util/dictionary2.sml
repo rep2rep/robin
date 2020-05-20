@@ -46,11 +46,11 @@ sig
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
-    (* val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool; *)
-    (* val equal : (k, ''v) dict * (k, ''v) dict -> bool; *)
+    val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool;
+    val equal : (k, ''v) dict * (k, ''v) dict -> bool;
     val isEmpty : (k, 'v) dict -> bool;
 
-    (* val getFirst : (k, 'v) dict -> (k * 'v); *)
+    val getFirst : (k, 'v) dict -> (k * 'v);
 
     val showDebug : (k, 'v) dict -> string;
 end;
@@ -347,6 +347,40 @@ fun values d = map (fn (k, v) => v) d;
 fun items d = toPairList d;
 
 fun size d = foldr (fn (x, v) => 1 + v) 0 d;
+
+fun equalKeys (x, y) =
+    let
+        val xl = keys x;
+        val yl = keys y;
+        fun cmpList [] [] = true
+          | cmpList (kx::xs) (ky::ys) =
+            K.compare(kx, ky) = EQUAL andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
+fun equal (x, y) =
+    let
+        val xl = toPairList x;
+        val yl = toPairList y;
+        fun cmpList [] [] = true
+          | cmpList ((kx, vx)::xs) ((ky, vy)::ys) =
+            K.compare(kx, ky) = EQUAL
+            andalso vx = vy
+            andalso cmpList xs ys
+          | cmpList _ _ = false;
+    in
+        cmpList xl yl
+    end;
+
+fun getFirst d =
+    let fun getFirst'' LEAF = raise KeyError
+          | getFirst'' (NODE2 (_, p, _)) = p
+          | getFirst'' (NODE3 (_, p, _, _, _)) = p
+          | getFirst'' (NODE4 (_, p, _, _, _, _, _)) = p;
+        fun getFirst' EMPTY = raise KeyError
+          | getFirst' (TREE t) = getFirst'' t;
+    in getFirst' (!d) end;
 
 fun showDebug d =
     let
