@@ -218,10 +218,36 @@ fun get d k =
           | get' (TREE t) = get'' t;
     in get' (!d) end;
 
+(* This runs in O(n) time, but it does produce a tree
+   that is slightly taller than strictly necessary. *)
+fun fromSortedPairList xs =
+    let fun helper xs 0 = (LEAF, xs, 0)
+          | helper (x1::x2::ys) 2 = (NODE3 (LEAF, x1, LEAF, x2, LEAF), ys, 2)
+          | helper _ 2 = raise Match
+          | helper (x1::x2::x3::ys) 3 = (NODE4 (LEAF, x1, LEAF, x2, LEAF, x3, LEAF), ys, 3)
+          | helper _ 3 = raise Match
+          | helper xs n =
+            let
+                val (left, new_xs, used) = helper xs (n div 2);
+                val (root, rightl) = case new_xs of
+                                       [] => raise List.Empty
+                                      | (h::t) => (h, t);
+                val (right, nextl, used') = helper rightl (n - used - 1);
+                val result = NODE2 (left, root, right);
+            in (result, nextl, used + used' + 1) end;
+        val (result, _, _) = helper xs (List.length xs)
+    in case xs of [] => ref EMPTY
+                | _ => ref (TREE result) end;
+
 fun fromPairList xs =
-    let val d = empty ();
-        val _ = List.map (insert d) xs;
-    in d end;
+    let
+        fun dedup [] = []
+          | dedup [x] = [x]
+          | dedup ((x,a)::(y,b)::zs) = if K.compare(x,y) = EQUAL
+                                       then dedup((y,b)::zs) (* Favour second *)
+                                       else (x,a)::(dedup ((y,b)::zs));
+        val deduped = dedup (List.mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs);
+    in fromSortedPairList deduped end;
 
 fun foldr f z d =
     let
