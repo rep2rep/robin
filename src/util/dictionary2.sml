@@ -37,8 +37,8 @@ sig
     val unionAll : (k, 'v) dict list -> (k, 'v) dict;
     val unionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict;
 
-    (* val intersectionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
-    (* val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict; *)
+    val intersectionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
+    val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict;
 
  (* It would be nice to have map work to dictionaries *)
     val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
@@ -301,23 +301,33 @@ fun union a b = unionWith (fn _ => raise KeyError) a b;
 fun unionAllWith f xs = List.foldr (fn (a, b) => unionWith f a b) (empty ()) xs;
 fun unionAll xs = unionAllWith (fn _ => raise KeyError) xs;
 
-fun foldr f z d =
+fun intersectionWith f t u =
     let
-        fun foldr'' l LEAF = l
-          | foldr'' l (NODE2 (b1, p1, b2)) =
-            foldr'' (f (p1, (foldr'' l b2))) b1
-          | foldr'' l (NODE3 (b1, p1, b2, p2, b3)) =
-            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' l b3))) b2))) b1
-          | foldr'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
-            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' (f (p3, (foldr'' l b4))) b3))) b2))) b1
+        fun intersectionWith' _ LEAF _ = LEAF
+          | intersectionWith' _ _ LEAF = LEAF
+          | intersectionWith' f t t' =
+            let
+                val tl = toPairList (ref (TREE t));
+                val tl' = toPairList (ref (TREE t'));
+                fun intsct [] _ = []
+                  | intsct _ [] = []
+                  | intsct ((x,v)::xs) ((y,v')::ys) =
+                    if K.compare(x,y) = EQUAL then (x, f(x,v,v'))::(intsct xs ys)
+                    else if K.compare(x,y) = LESS then (intsct xs ((y,v')::ys))
+                    else (intsct ((x,v)::xs) ys);
+            in
+                case ! (fromSortedPairList (intsct tl tl')) of
+                    EMPTY => LEAF
+                  | TREE t => t
+            end;
+        fun intersectionWith'' _ EMPTY _ = EMPTY
+          | intersectionWith'' _ _ EMPTY = EMPTY
+          | intersectionWith'' f (TREE t) (TREE u) = case intersectionWith' f t u of
+                                                         LEAF => EMPTY
+                                                       | t => TREE t;
+    in ref (intersectionWith'' f (!t) (!u)) end;
 
-        fun foldr' EMPTY = z
-          | foldr' (TREE t) = foldr'' z t;
-    in foldr' (!d) end;
-
-fun toPairList d = foldr op:: [] d;
-
-fun map f d = foldr (fn (x, v) => ((f x) :: v)) [] d;
+fun intersectionAllWith f xs = List.foldr (fn (a, b) => intersectionWith f a b) (empty ()) xs;
 
 fun keys d = map (fn (k, v) => k) d;
 fun values d = map (fn (k, v) => v) d;
