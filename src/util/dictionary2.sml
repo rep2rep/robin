@@ -43,7 +43,7 @@ sig
  (* It would be nice to have map work to dictionaries *)
     val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
     (* val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict; *)
-    (* val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a; *)
+    val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
     (* val equalKeys : (k, 'v) dict * (k, 'v) dict -> bool; *)
@@ -262,6 +262,19 @@ fun foldr f z d =
         fun foldr' EMPTY = z
           | foldr' (TREE t) = foldr'' z t;
     in foldr' (!d) end;
+
+fun foldl f z d =
+    let
+        fun foldl'' l LEAF = l
+          | foldl'' l (NODE2 (b1, p1, b2)) =
+            foldl'' (f (p1, (foldl'' l b1))) b2
+          | foldl'' l (NODE3 (b1, p1, b2, p2, b3)) =
+            foldl'' (f (p2, (foldl'' (f (p1, foldl'' l b1)) b2))) b3
+          | foldl'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
+            foldl'' (f (p3, (foldl'' (f (p2, (foldl'' (f (p1, (foldl'' l b1))) b2))) b3))) b4;
+        fun foldl' EMPTY = z
+          | foldl' (TREE t) =  foldl'' z t;
+    in foldl' (!d) end;
 
 fun toPairList d = foldr op:: [] d;
 
