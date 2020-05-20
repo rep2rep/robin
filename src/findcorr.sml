@@ -2,7 +2,7 @@ import "util.logging";
 import "util.dictionary";
 
 import "strategies.properties.tables";
-import "strategies.properties.discover_correspondences";
+import "strategies.correspondences.discovery";
 
 (* To see a full trace of the algorithm, we enable logging.
    If this seems too 'noisy', you can use `Logging.disable ()`.

@@ -6,8 +6,9 @@ import "util.csv";
 import "strategies.properties.property";
 import "strategies.properties.kind";
 import "strategies.properties.importance";
-import "strategies.properties.correspondence";
 import "strategies.properties.readers";
+
+import "strategies.correspondences.correspondence";
 
 signature PROPERTYTABLES =
 sig
