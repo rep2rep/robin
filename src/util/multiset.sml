@@ -28,7 +28,9 @@ sig
     val endomap : (t -> t) -> t multiset -> t multiset;
     val filter : (t * int -> bool) -> t multiset -> t multiset;
     val foldl : (t * 'a -> 'a) -> 'a -> t multiset -> 'a;
+    val foldl' : ((t * int) * 'a -> 'a) -> 'a -> t multiset -> 'a;
     val foldr : (t * 'a -> 'a) -> 'a -> t multiset -> 'a;
+    val foldr' : ((t * int) * 'a -> 'a) -> 'a -> t multiset -> 'a;
 
     val size : t multiset -> int;
     val countUnique : t multiset -> int;
@@ -128,7 +130,9 @@ fun map f xs = List.map f (toList xs);
 fun endomap f xs = fromPairList (List.map (fn (x, i) => (f x, i)) (toPairList xs));
 fun filter f xs = D.filter f xs;
 fun foldl f a xs = List.foldl f a (toList xs);
+fun foldl' f a xs = D.foldl f a xs;
 fun foldr f a xs = List.foldr f a (toList xs);
+fun foldr' f a xs = D.foldr f a xs;
 
 fun size xs = D.foldr (fn ((x, i), v) => if i >=0 then i + v else Int.min (i,v)) 0 xs; (* note that negative multiplicities are taken as "infinite", and smaller negatives are larger cardinal infinites*)
 fun countUnique xs = D.size xs;

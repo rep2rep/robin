@@ -9,6 +9,7 @@ import "strategies.properties.importance";
 import "strategies.properties.readers";
 
 import "strategies.correspondences.correspondence";
+import "strategies.correspondences.list";
 
 signature PROPERTYTABLES =
 sig
