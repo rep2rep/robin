@@ -32,10 +32,10 @@ sig
 
     val size : (k, 'v) dict -> int;
 
-    (* val union : (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
-    (* val unionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
-    (* val unionAll : (k, 'v) dict list -> (k, 'v) dict; *)
-    (* val unionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict; *)
+    val union : (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
+    val unionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
+    val unionAll : (k, 'v) dict list -> (k, 'v) dict;
+    val unionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict;
 
     (* val intersectionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict; *)
     (* val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict; *)
@@ -248,6 +248,58 @@ fun fromPairList xs =
                                        else (x,a)::(dedup ((y,b)::zs));
         val deduped = dedup (List.mergesort (fn ((a, _), (b, _)) => K.compare (a, b)) xs);
     in fromSortedPairList deduped end;
+
+fun foldr f z d =
+    let
+        fun foldr'' l LEAF = l
+          | foldr'' l (NODE2 (b1, p1, b2)) =
+            foldr'' (f (p1, (foldr'' l b2))) b1
+          | foldr'' l (NODE3 (b1, p1, b2, p2, b3)) =
+            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' l b3))) b2))) b1
+          | foldr'' l (NODE4 (b1, p1, b2, p2, b3, p3, b4)) =
+            foldr'' (f (p1, (foldr'' (f (p2, (foldr'' (f (p3, (foldr'' l b4))) b3))) b2))) b1
+
+        fun foldr' EMPTY = z
+          | foldr' (TREE t) = foldr'' z t;
+    in foldr' (!d) end;
+
+fun toPairList d = foldr op:: [] d;
+
+fun map f d = foldr (fn (x, v) => ((f x) :: v)) [] d;
+
+fun unionWith f t u =
+    let
+        fun unionWith' _ LEAF t = t
+          | unionWith' _ t LEAF = t
+          | unionWith' f t t' =
+            let
+                val tl = toPairList (ref (TREE t));
+                val tl' = toPairList (ref (TREE t'));
+                fun merge [] xs = xs
+                  | merge xs [] = xs
+                  | merge ((x, v)::xs) ((y, v')::ys) =
+                    case K.compare(x, y) of
+                        EQUAL => (x, f(x, v, v'))::(merge xs ys)
+                      | LESS => (x, v)::(merge xs ((y, v')::ys))
+                      | GREATER => (y, v')::(merge ((x, v)::xs) ys);
+                val merged = merge tl tl';
+                val newdict = fromSortedPairList merged;
+            in
+                case !newdict of
+                    EMPTY => LEAF
+                  | TREE t => t
+            end;
+        fun unionWith'' _ EMPTY t = t
+          | unionWith'' _ t EMPTY = t
+          | unionWith'' f (TREE t) (TREE u) = case unionWith' f t u of
+                                                  LEAF => EMPTY
+                                                | t => TREE t;
+    in ref (unionWith'' f (!t) (!u)) end;
+
+fun union a b = unionWith (fn _ => raise KeyError) a b;
+
+fun unionAllWith f xs = List.foldr (fn (a, b) => unionWith f a b) (empty ()) xs;
+fun unionAll xs = unionAllWith (fn _ => raise KeyError) xs;
 
 fun foldr f z d =
     let
