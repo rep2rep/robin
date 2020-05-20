@@ -40,9 +40,9 @@ sig
     val intersectionWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict -> (k, 'v) dict -> (k, 'v) dict;
     val intersectionAllWith : ((k * 'v * 'v) -> 'v) -> (k, 'v) dict list -> (k, 'v) dict;
 
- (* It would be nice to have map work to dictionaries *)
-    val map : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
-    (* val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict; *)
+    val map : ((k * 'v) -> 'w) -> (k, 'v) dict -> (k, 'w) dict;
+    val map' : ((k * 'v) -> 'a) -> (k, 'v) dict -> 'a list;
+    val filter : ((k * 'v) -> bool) -> (k, 'v) dict -> (k, 'v) dict;
     val foldl : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
     val foldr : (((k * 'v) * 'a) -> 'a) -> 'a -> (k, 'v) dict -> 'a;
 
@@ -278,7 +278,10 @@ fun foldl f z d =
 
 fun toPairList d = foldr op:: [] d;
 
-fun map f d = foldr (fn (x, v) => ((f x) :: v)) [] d;
+fun map' f d = foldr (fn (x, v) => ((f x) :: v)) [] d;
+fun map f d = fromSortedPairList (map' (fn (x, v) => (x, f (x, v))) d);
+
+fun filter f d = fromSortedPairList (List.filter f (toPairList d));
 
 fun unionWith f t u =
     let
@@ -342,8 +345,8 @@ fun intersectionWith f t u =
 
 fun intersectionAllWith f xs = List.foldr (fn (a, b) => intersectionWith f a b) (empty ()) xs;
 
-fun keys d = map (fn (k, v) => k) d;
-fun values d = map (fn (k, v) => v) d;
+fun keys d = map' (fn (k, v) => k) d;
+fun values d = map' (fn (k, v) => v) d;
 fun items d = toPairList d;
 
 fun size d = foldr (fn (x, v) => 1 + v) 0 d;
