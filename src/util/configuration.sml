@@ -70,7 +70,7 @@ fun readCommandLineArguments specs args =
         fun switchCase [] _ = NONE
           | switchCase ((name, s, i)::ss) a =
             let
-                fun valid r y = List.exists (fn x => x = y) r
+                fun valid r y = List.exists (equals y) r
             in
                 if valid s a then SOME (name, s, i) else switchCase ss a
             end;

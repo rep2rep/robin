@@ -53,11 +53,11 @@ type instream = TextIO.instream;
 type outstream = TextIO.outstream;
 
 val delimiters = Config.delimiters;
-val newlines = List.mergesort (Comparison.rev Int.compare o spread List.length)
+val newlines = List.mergesort (Comparison.rev Int.compare o mappair List.length)
                               (map String.explode Config.newlines);
 val lookaheadDistance = List.foldr Int.max 0 (map List.length newlines);
 
-fun isDelimiter c = List.exists (fn x => x = c) delimiters;
+fun isDelimiter c = List.exists (equals c) delimiters;
 fun matchNewline cs = List.find
                           (fn ns => (List.take (cs, (List.length ns))) = ns
                                     handle Subscript => false)

@@ -61,7 +61,7 @@ struct
 
   fun equal ((IsOfType t), (IsOfType t')) = (t = t')
     | equal ((Holes m), (Holes m')) = M.equal (m,m')
-    | equal ((Tokens C), (Tokens C')) = List.isPermutationOf (fn (x,y) => x = y) C C'
+    | equal ((Tokens C), (Tokens C')) = List.isPermutationOf op= C C'
     | equal ((Content t), (Content t')) = (t = t')
     | equal ((NumFunction (s,n)), (NumFunction (s',n'))) = (s = s' andalso Real.==(n,n'))
     | equal ((StringFunction (s,r)), (StringFunction (s',r'))) = (s = s' andalso r = r')

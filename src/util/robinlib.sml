@@ -13,9 +13,10 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
-    val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val mappair : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
     val mapfst : ('a -> 'b) -> ('a * 'c) -> ('b * 'c);
     val mapsnd : ('b -> 'c) -> ('a * 'b) -> ('a * 'c);
+    val equals : ''a -> ''a -> bool;
     val flip : ('a * 'b) -> ('b * 'a);
     val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
     val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
@@ -55,11 +56,13 @@ fun import filename =
     ) handle e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise e);
 
 
-fun spread f (a, b) = (f a, f b);
+fun mappair f (a, b) = (f a, f b);
 
 fun mapfst f (a, b) = (f a, b);
 
 fun mapsnd f (a, b) = (a, f b);
+
+fun equals a b = a = b;
 
 fun flip (a, b) = (b, a);
 
@@ -108,6 +111,9 @@ sig
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
 
+    val argmax : ('a -> real) -> 'a list -> ('a * real);
+    val argmin : ('a -> real) -> 'a list -> ('a * real);
+
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
 
@@ -124,9 +130,6 @@ sig
     val avgIndexed : ('a -> real) -> 'a list -> real;
     val weightedAvg : (real -> real) -> real list -> real;
     val avg : real list -> real;
-
-    val argmax : ('a -> real) -> 'a list -> ('a * real);
-    val argmin : ('a -> real) -> 'a list -> ('a * real);
 end;
 
 structure List : LIST =
@@ -139,6 +142,15 @@ fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 fun removeDuplicates [] = []
   | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
 
+fun split (xs, i) =
+    let
+        fun split' fst xs 0 = (List.rev fst, xs)
+          | split' fst [] _ = raise Subscript
+          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
+    in
+        split' [] xs i
+    end;
+
 fun inout lst =
     let fun loop ans _ [] = List.rev ans
           | loop ans ys (x::xs) = loop ((x, (List.rev ys)@xs)::ans) (x::ys) xs;
@@ -147,20 +159,15 @@ fun inout lst =
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
   | mergesort cmp items =
-    let
-        fun split [] = ([], [])
-          | split [x] = ([x], [])
-          | split (x::y::zs) = let val (left, right) = split zs
-                               in (x::left, y::right) end;
-        fun merge [] xs = xs
+    let fun merge [] xs = xs
           | merge xs [] = xs
           | merge (x::xs) (y::ys) =
-            if cmp(x, y) = LESS then
-                x::(merge xs (y::ys))
+            if cmp(x, y) = GREATER then
+                y::(merge (x::xs) ys)
             else
-                y::(merge (x::xs) ys);
+                x::(merge xs (y::ys));
 
-        val (left, right) = split items;
+        val (left, right) = split (items, Int.div (length items, 2));
         val (sortedLeft, sortedRight) = (mergesort cmp left, mergesort cmp right);
         val result = merge sortedLeft sortedRight;
     in result
@@ -184,19 +191,16 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun filterOption [] = []
-  | filterOption (NONE :: L) = filterOption L
-  | filterOption ((SOME x) :: L) = x :: filterOption L;
+fun filterOption xs = mapPartial (fn x => x) xs;
 
-fun findAndRemove _ _ [] = (false,[])
-  | findAndRemove f x (a::L) =
+fun findAndRemoveOnce _ _ [] = (false,[])
+  | findAndRemoveOnce f x (a::L) =
       if f (x, a) then (true,L)
-      else let val (found,L') = findAndRemove f x L
+      else let val (found,L') = findAndRemoveOnce f x L
            in (found,a::L')
            end;
-
 fun isPermutationOf _ [] [] = true
-  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemove f a B
+  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemoveOnce f a B
                                  in if found then isPermutationOf f A B'
                                     else false
                                  end
@@ -231,6 +235,7 @@ fun unfold f seed =
     end;
 
 fun replicate n x =
+    if n < 0 then raise Size else
     let fun gen 0 = NONE
           | gen n = SOME (x, n-1)
     in
@@ -260,23 +265,9 @@ fun takeWhile pred list =
     in takeWhile' list []
     end;
 
-fun split (xs, i) =
-    let
-        fun split' fst xs 0 = (rev fst, xs)
-          | split' fst [] _ = raise Subscript
-          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
-    in
-        split' [] xs i
-    end;
-
 fun rotate 0 xs = xs
-  | rotate n xs =
-    let
-        val a = take (xs, n);
-        val b = drop (xs, n);
-    in
-        b @ a
-    end;
+  | rotate _ [] = []
+  | rotate n xs = (op@ o flip o split) (xs, Int.mod (n, length xs));
 
 fun weightedSumIndexed w f L =
     List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;

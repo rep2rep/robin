@@ -68,7 +68,7 @@ exception Unsatisfiable;
 (* takes a list of token labels and diminishes their multiplicity in the knowledge base *)
 fun diminish L [] = if null L then [] else raise Unsatisfiable
   | diminish L (((labels,tokens,typeinfo),i)::K) = if null L then (((labels,tokens,typeinfo),i)::K) else
-    case List.find (fn x => List.exists (fn y => x = y) L) labels of
+    case List.find (fn x => List.exists (equals x) L) labels of
         SOME label => let val L' = List.remove label L
                           val K' = if i <= 1 then diminish L' K else diminish L' (((labels,tokens,typeinfo),i-1)::K)
                       in K'
@@ -133,8 +133,8 @@ fun satisfyPattern p C P =
 
         fun findAndUpdateByTypes ((l,tks,(ts,t)),i) [] = [((l,tks,(ts,t)),i)]
           | findAndUpdateByTypes ((l,tks,(ts,t)),i) (((l',tks',(ts',t')),i')::L) =
-            if List.isPermutationOf (fn (x,y) => x = y) ts ts' andalso t = t'
-                andalso List.isPermutationOf (fn (x,y) => x = y)
+            if List.isPermutationOf op= ts ts' andalso t = t'
+                andalso List.isPermutationOf op=
                                              (List.tl tks handle Empty => [])
                                              (List.tl tks' handle Empty => [])
                 (* this last condition makes sure that the patterns are only clustered together if they have the same tokens*)
