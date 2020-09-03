@@ -1,0 +1,65 @@
+birds,natlang
+mode,"sentential"
+error_allowed,0
+answer_type,ratio
+instrumental_tokens, "probability : {type := class;
+                                     occurrences := 1},
+                      and : {type := statement * statement -> statement;
+                             occurrences := 1},
+                      if : {type := statement * statement -> statement;
+                            occurrences := 1},
+                      not : {type := statement -> statement;
+                             occurrences := 1}"
+instrumental_types, "ratio,
+                     class"
+instrumental_patterns, "$class_ratio : {holes := [class => 2. ratio => 1];
+                                        tokens := [of. are];
+                                        type := statement;
+                                        occurrences := 3;
+                                        token_registration := 1},
+                        $probability_of_conjunction : {holes := [class=>2. ratio=>1];
+                                                       tokens := [probability. of. and];
+                                                       type := statement;
+                                                       occurrences := 1;
+                                                       token_registration := 1},
+                        $conditional_probability : {holes := [class=>2. ratio=>1];
+                                                    tokens := [probability. of. if];
+                                                    type := statement;
+                                                    occurrences := 1;
+                                                    token_registration := 1}"
+instrumental_laws, "$Bayes'_theorem,
+                    $law_of_total_probability,
+                    $non_negative_probability,
+                    $unit_measure,
+                    $sigma_additivity"
+instrumental_tactics,"transform : {patterns := 1;
+                                   laws := 1;
+                                   uses := 1;
+                                   inference_type := transformation}"
+relevant_tokens, "one : {type := quantity; occurrences := 1},
+                  quarter : {type := quantity -> ratio; occurrences := 1},
+                  of : {type := ratio * class -> class; occurrences := 2},
+                  all : {type := class -> class; occurrences := 3},
+                  animals : {type := class; occurrences := 2},
+                  are : {type := class * class -> statement; occurrences := 2},
+                  birds : {type := class; occurrences := 4},
+                  two : {type := quantity; occurrences := 1},
+                  thirds : {type := quantity -> ratio; occurrences := 1},
+                  can : {type := (class -> statement) -> (class -> statement); occurrences := 1},
+                  fly : {type := (class -> statement); occurrences := 2},
+                  half : {type := ratio; occurrences := 1},
+                  flying : {type := class -> class; occurrences := 1},
+                  X : {type := class; occurrences := 1},
+                  is : {type := class -> statement; occurrences := 3},
+                  animal : {type := class; occurrences := 1},
+                  it : {type := class; occurrences := 2},
+                  cannot : {type := (class -> statement) -> (class -> statement); occurrences := 1},
+                  times : {type := quantity * quantity -> quantity; occurrences := 0},
+                  divided_by : {type := quantity * quantity -> quantity; occurrences := 0},
+                  plus : {type := quantity * quantity -> quantity; occurrences := 0},
+                  minus : {type := quantity * quantity -> quantity; occurrences := 0},
+                  equals : {type := quantity * quantity -> statement; occurrences := 0},
+                  union : {type := class * class -> class; occurrences := 0},
+                  intersection : {type := class * class -> class; occurrences := 0},
+                  zero : {type := quantity; occurrences := 0}"
+noise_tokens,""

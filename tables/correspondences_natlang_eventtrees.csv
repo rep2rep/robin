@@ -1,6 +1,0 @@
-type-possibilities OR type-occurrence OR type-class,type-event_node,1
-token-intersection OR token-and,token-$conjunction_edge,0.5
-token-union OR token-or,pattern-$subgraph,1
-token-universe OR token-all,type-event_tree,0.75
-token-probability,tactic-compare_nodes,0.75
-token-equals,tactic-compare_values,0.5

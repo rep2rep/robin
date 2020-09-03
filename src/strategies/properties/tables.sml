@@ -104,6 +104,7 @@ fun loadCorrespondenceTable filename =
                                (List.toString (fn s => s) r));
         val csvFile = CSVLiberal.openIn filename;
         val csvData = CSVLiberal.input csvFile;
+        val _ = CSVLiberal.closeIn csvFile;
     in
         List.flatmap makeRow csvData
     end
@@ -165,6 +166,7 @@ fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
                              (fn (r, xs) => setUnion (genProps r) xs)
                              (setEmpty ())
                              (map parseRow csvData);
+        val _ = CSVLiberal.closeIn csvFile;
     in
         (csvHeader, properties)
     end
@@ -178,9 +180,7 @@ fun loadQorRSPropertiesFromFile sets parsers genProps filename  =
 
 fun loadQuestionTable filename = let
     val sets = (SQ.empty, SQ.union);
-    fun parseImportance s = case Importance.fromString s of
-                                SOME i => i
-                              | NONE => raise TableError ("Unknown importance '" ^ s ^ "'");
+    fun parseImportance s = case Importance.fromString s of i => i;
     fun parseHeader [] = raise TableError ("Q Table "
                                            ^ "has empty header")
       | parseHeader [x] = raise TableError ("Q Table "
@@ -318,7 +318,6 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
             end;
         fun getLabel (k, i) =
             let
-                fun notRelated (_, _, x) = not (String.isSubstring "_related_" x);
                 fun findName [] = (Logging.error("Cannot find "
                                                  ^ (Kind.toString k)
                                                  ^ ", "
@@ -328,10 +327,10 @@ fun questionTableToCSV ((qname, qrs), qproperties) filename =
                                    (* BEWARE: THIS GENERATES NONSENSE PROPERTIES FOR THE PSEUDO Q TABLE,
                                    BUT IT GIVES US AN IDEA OF WHAT SHOULD GO IN THERE FOR WHEN WE FIX IT LATER *)
                   | findName ((k', i', s)::xs) =
-                    if k' = k andalso i' = i then s
+                    if k' = k andalso Importance.equal (i', i) then s
                     else findName xs;
             in
-                findName propertyKinds (*(List.filter notRelated propertyKinds)*) (* probably not necessary to filter now*)
+                findName propertyKinds
             end;
         fun groupByFirst xs =
             let

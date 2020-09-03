@@ -8,6 +8,7 @@ import "strategies.properties.tables";
 import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
 import "strategies.properties.importance";
 import "strategies.properties.correspondence";
+import "strategies.properties.cognitive";
 
 structure RepresentationSelection =
 struct
@@ -50,7 +51,7 @@ fun init (repTables, corrTables, qTables) = let
               if Correspondence.matchingProperties y z
               then (
                   if Correspondence.equal y z then
-                      zs
+                      removeCorr y zs
                   else
                       (Logging.error ("ERROR: Conflicting correspondences:\n");
                        Logging.error ("\t" ^
@@ -128,6 +129,8 @@ fun propInfluence (q, r, s) =
                                                                qProps rProps;
             in map liftImportance correspondences end;
 
+        val typeMatches = typeCorrespondences matches qProps';
+
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
         (* Sort correspondences from most to least important *)
@@ -152,7 +155,7 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.foldl mix s (sort matches);
+        val s' = List.foldl mix s ((sort matches) @ typeMatches);
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("
@@ -206,7 +209,7 @@ fun topKRepresentations question k =
 
         val dropQuestion = fn (_, r, s) => (r, s);
         val sortKey = Comparison.join (Comparison.rev Real.compare) String.compare;
-        val sort = List.mergesort (sortKey o spread flip);
+        val sort = List.mergesort (sortKey o mappair flip);
         val getValid = List.filter (fn (_, s) => s > 0.0);
         val topK = fn xs => if k = ~1 then xs
                             else if (List.length xs) <= k then xs

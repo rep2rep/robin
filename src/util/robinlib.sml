@@ -13,8 +13,14 @@ sig
     val import : string -> unit;
     val imported__ : unit -> string list;
     val imported__asFilenames__ : unit -> string list;
-    val spread : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val mappair : ('a -> 'b) -> ('a * 'a) -> ('b * 'b);
+    val mapfst : ('a -> 'b) -> ('a * 'c) -> ('b * 'c);
+    val mapsnd : ('b -> 'c) -> ('a * 'b) -> ('a * 'c);
+    val equals : ''a -> ''a -> bool;
     val flip : ('a * 'b) -> ('b * 'a);
+    val curry : ('a * 'b -> 'c) -> 'a -> 'b -> 'c;
+    val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c;
+    val fails : (unit -> 'a) -> bool;
 end;
 
 
@@ -47,15 +53,29 @@ fun import filename =
         use (makeFilename filename);
         IMPORTED_ := (List.hd (!IMPORTING_STACK_))::(!IMPORTED_);
         IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_)
-    ) handle IO.Io e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise IO.Io e);
+    ) handle e => (IMPORTING_STACK_ := List.tl (!IMPORTING_STACK_); raise e);
 
 
-fun spread f (a, b) = (f a, f b);
+fun mappair f (a, b) = (f a, f b);
+
+fun mapfst f (a, b) = (f a, b);
+
+fun mapsnd f (a, b) = (a, f b);
+
+fun equals a b = a = b;
 
 fun flip (a, b) = (b, a);
 
+fun curry f a b = f (a, b);
+
+fun uncurry f (a, b) = f a b;
+
+fun fails f = (f(); false)
+              handle _ => true;
+
 end;
 
+open RobinLib;
 
 
 
@@ -64,6 +84,7 @@ sig
     include LIST;
 
     val remove : ''a -> ''a list -> ''a list;
+    val removeDuplicates : ''a list -> ''a list;
 
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
 
@@ -72,21 +93,42 @@ sig
     val enumerate : 'a list -> (int * 'a) list;
     val enumerateFrom : int -> 'a list -> (int * 'a) list;
 
+    val filterOption : ('a option) list -> 'a list;
+
+    val isPermutationOf : ('a * 'a -> bool) -> 'a list -> 'a list -> bool;
+
+    val mapArgs : ('a -> 'b) -> 'a list -> ('a * 'b) list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
 
-    val cartesianProduct : 'a list -> 'b list -> ('a * 'b) list;
-    
+    val product : ('a list * 'b list) -> ('a * 'b) list;
+
     val toString : ('a -> string) -> 'a list -> string;
 
     val unfold : ('a -> ('b * 'a) option) -> 'a -> 'b list;
     val replicate : int -> 'a -> 'a list;
-    
+
     val max : (('a * 'a) -> order) -> 'a list -> 'a;
     val min : (('a * 'a) -> order) -> 'a list -> 'a;
 
+    val argmax : ('a -> real) -> 'a list -> ('a * real);
+    val argmin : ('a -> real) -> 'a list -> ('a * real);
+
     val takeWhile : ('a -> bool) -> 'a list -> 'a list;
     val dropWhile : ('a -> bool) -> 'a list -> 'a list;
-    
+
+    val split : ('a list * int) -> ('a list * 'a list);
+
+    val rotate : int -> 'a list -> 'a list;
+
+    val weightedSumIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val sumIndexed : ('a -> real) -> 'a list -> real;
+    val weightedSum : (real -> real) -> real list -> real;
+    val sum : real list -> real;
+
+    val weightedAvgIndexed : ('a -> real) -> ('a -> real) -> 'a list -> real;
+    val avgIndexed : ('a -> real) -> 'a list -> real;
+    val weightedAvg : (real -> real) -> real list -> real;
+    val avg : real list -> real;
 end;
 
 structure List : LIST =
@@ -96,23 +138,30 @@ open List;
 
 fun remove needle haystack = List.filter (fn x => x <> needle) haystack;
 
+fun removeDuplicates [] = []
+  | removeDuplicates (h::t) = h :: removeDuplicates (remove h t);
+
+fun split (xs, i) =
+    let
+        fun split' fst xs 0 = (List.rev fst, xs)
+          | split' fst [] _ = raise Subscript
+          | split' fst (x::xs) i = split' (x::fst) xs (i-1);
+    in
+        split' [] xs i
+    end;
+
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
   | mergesort cmp items =
-    let
-        fun split [] = ([], [])
-          | split [x] = ([x], [])
-          | split (x::y::zs) = let val (left, right) = split zs
-                               in (x::left, y::right) end;
-        fun merge [] xs = xs
+    let fun merge [] xs = xs
           | merge xs [] = xs
           | merge (x::xs) (y::ys) =
-            if cmp(x, y) = LESS then
-                x::(merge xs (y::ys))
+            if cmp(x, y) = GREATER then
+                y::(merge (x::xs) ys)
             else
-                y::(merge (x::xs) ys);
+                x::(merge xs (y::ys));
 
-        val (left, right) = split items;
+        val (left, right) = split (items, Int.div (length items, 2));
         val (sortedLeft, sortedRight) = (mergesort cmp left, mergesort cmp right);
         val result = merge sortedLeft sortedRight;
     in result
@@ -136,9 +185,27 @@ fun enumerateFrom start list =
 
 fun enumerate xs = enumerateFrom 0 xs;
 
-fun flatmap f xs = List.foldr (fn (y, ys) => (f y) @ ys) [] xs;
+fun filterOption xs = mapPartial (fn x => x) xs;
 
-fun cartesianProduct xs ys =
+fun findAndRemoveOnce _ _ [] = (false,[])
+  | findAndRemoveOnce f x (a::L) =
+      if f (x, a) then (true,L)
+      else let val (found,L') = findAndRemoveOnce f x L
+           in (found,a::L')
+           end;
+fun isPermutationOf _ [] [] = true
+  | isPermutationOf f (a::A) B = let val (found,B') = findAndRemoveOnce f a B
+                                 in if found then isPermutationOf f A B'
+                                    else false
+                                 end
+  | isPermutationOf _ _ _ = false;
+
+
+fun mapArgs f xs = map (fn x => (x, f x)) xs;
+
+fun flatmap f xs = concat (map f xs);
+
+fun product (xs, ys) =
     let
         fun joinall ans x [] = ans
           | joinall ans x (y::ys) = joinall ((x, y)::ans) x ys
@@ -162,19 +229,20 @@ fun unfold f seed =
     end;
 
 fun replicate n x =
+    if n < 0 then raise Size else
     let fun gen 0 = NONE
           | gen n = SOME (x, n-1)
     in
         unfold gen n
     end;
 
-fun max _ [] = raise List.Empty
+fun max _ [] = raise Empty
   | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
                                                then a
                                                else b)
                                  x xs;
 
-fun min _ [] = raise List.Empty
+fun min _ [] = raise Empty
   | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS
                                                then a
                                                else b)
@@ -190,6 +258,39 @@ fun takeWhile pred list =
                                       else List.rev ans;
     in takeWhile' list []
     end;
+
+fun rotate 0 xs = xs
+  | rotate _ [] = []
+  | rotate n xs = (op@ o flip o split) (xs, Int.mod (n, length xs));
+
+fun weightedSumIndexed w f L =
+    List.foldr (fn (x, s) => ((w x) * (f x)) + s) 0.0 L;
+
+fun weightedSum w L = weightedSumIndexed w (fn x => x) L;
+
+fun sumIndexed f L = weightedSumIndexed (fn _ => 1.0) f L;
+fun sum L = weightedSumIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun weightedAvgIndexed w f L = if null L then raise Empty else (weightedSumIndexed w f L) / (sumIndexed w L)
+
+fun weightedAvg w L = weightedAvgIndexed w (fn x => x) L;
+
+fun avgIndexed f L = weightedAvgIndexed (fn _ => 1.0) f L;
+fun avg L = weightedAvgIndexed (fn _ => 1.0) (fn x => x) L;
+
+fun argmax _ [] = raise Empty
+  | argmax f [x] = (x, f x)
+  | argmax f (x::L) = let val r = argmax f L
+                          val v = f x
+                      in if v > #2 r then (x,v) else r
+                      end;
+
+fun argmin _ [] = raise Empty
+  | argmin f [x] = (x, f x)
+  | argmin f (x::L) = let val r = argmin f L
+                          val v = f x
+                      in if v < #2 r then (x,v) else r
+                      end;
 
 end;
 
@@ -248,4 +349,26 @@ fun lookaheadN (istr, count) =
 
 end;
 
-open RobinLib;
+
+
+
+signature OPTION =
+sig
+
+    include OPTION;
+
+    val oneOf : ('a -> 'b option) list -> 'a -> 'b option;
+
+end;
+
+structure Option : OPTION =
+struct
+
+open Option;
+
+fun oneOf [] _ = NONE
+  | oneOf (f::fs) x = case f x of
+                          SOME y => SOME y
+                        | NONE => oneOf fs x;
+
+end;

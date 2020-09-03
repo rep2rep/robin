@@ -1,14 +1,110 @@
 medical,bayes
-error_allowed,0
-answer_type,real
-instrumental_tokens,"\Pr,="
-instrumental_types,"real,event"
-instrumental_patterns,"$conditional_Pr, $simple_Pr"
-instrumental_laws,"$Bayes'_theorem, $law_of_total_probability, $non_negative_probability, $unit_measure, $sigma_additivity"
-instrumental_tactics,"rewrite"
-relevant_tokens,"0.98, 0.97, 0.01,d:{type:= event},t:{type:= event}"
-relevant_related_tokens,"0,1,\emptyset,\Omega,+,*,-,\div,\cup,\cap,\setminus"
-num_tokens,20
-num_distinct_tokens,14
+mode,"sentential"
+error_allowed, 0
+answer_type, real
+instrumental_tokens,"\Pr : {type := event * event -> real;
+                            occurrences := 3},
+                     \Pr : {type := event -> real;
+                            occurrences := 1},
+                     \cap : {type := event * event -> event;
+                             occurrences := 0},
+                     \bar : {type := event -> event;
+                             occurrences := 2},
+                     \mid : {type := delimiter;
+                             occurrences := 3},
+                     = : {type := real * real -> formula;
+                          occurrences := 3}"
+instrumental_types,"event"
+instrumental_patterns,"$conditional_Pr : {type := formula;
+                                          holes := [event => 2. real => 1];
+                                          occurrences := 3;
+                                          tokens := [\Pr. \mid. =];
+                                          udepth := 3;
+                                          token_registration := 1},
+                       $joint_Pr : {type := formula;
+                                    holes := [event => 2. real => 1];
+                                    occurrences := 0;
+                                    tokens := [\Pr. \cap. =];
+                                    udepth := 3;
+                                    token_registration := 1},
+                       $simple_Pr : {type := formula;
+                                     holes := [event => 1. real => 1];
+                                     occurrences := 1;
+                                     tokens := [\Pr. =];
+                                     udepth := 2;
+                                     token_registration := 1},
+                        $disjoint_events : {type := formula;
+                                            holes := [event => 2];
+                                            occurrences := 0;
+                                            tokens := [\cap. =. \emptyset];
+                                            udepth := 2;
+                                            token_registration := 1},
+                        $equality_chain : {type := proof;
+                                            holes := [real => #t];
+                                            occurrences := 0;
+                                            tokens := [=];
+                                            udepth := 1;
+                                            token_registration := 1}"
+instrumental_laws, "$Bayes'_theorem : {description := foundational theorem of conditional probability},
+                    $law_of_total_probability : {description := the probability of an event is the sum of its joint probabilities of an exhaustive event set},
+                    $unit_measure : {description := probability values over an exhaustive event set add up to 1},
+                    $complement_disjoint : {description := x and \bar x are disjoint}"
+instrumental_tactics,"by_theorem : {laws := 1;
+                                    patterns := 1;
+                                    inference_type := match;
+                                    uses := 1},
+                      rewrite_from_theorem : {laws := 1;
+                                              patterns := 1;
+                                              inference_type := subst;
+                                              uses := 5},
+                      rewrite_from_local_result : {laws := 0;
+                                                   patterns := 2;
+                                                   inference_type := subst;
+                                                   uses := 8},
+                      calc : {patterns := 1;
+                              laws := 0;
+                              inference_type := calc;
+                              uses := 1}"
+relevant_tokens,"0.04 : {type := real;
+                         occurrences := 1},
+                 0.95 : {type := real;
+                         occurrences := 1},
+                 0.9 : {type := real;
+                         occurrences := 1},
+                 T : {type := event;
+                      occurrences := 3},
+                 D : {type := event;
+                      occurrences := 4},
+                 assume : {type := formula -> instruction;
+                           occurrences := 1},
+                 calculate : {type := real -> instruction;
+                              occurrences := 1},
+                 ( : {type := bracket;
+                       occurrences := 4},
+                 ) : {type := bracket;
+                      occurrences := 4},
+                 \Omega : {type := event;
+                           occurrences := 0},
+                 1 : {type := real;
+                      occurrences := 0},
+                 0 : {type := real;
+                      occurrences := 0},
+                 \div : {type := real * real -> real;
+                         occurrences := 0},
+                 * : {type := real * real -> real;
+                      occurrences := 0},
+                 + : {type := real * real -> real;
+                      occurrences := 0},
+                 - : {type := real * real -> real;
+                      occurrences := 0}"
+relevant_patterns,"$infix : {type := syntax;
+                              holes := ['a * 'b -> 'c => 1];
+                              occurrences := 7;
+                              tokens := [];
+                              token_registration := 1},
+                   $bracketing : {type := syntax;
+                                   holes := ['c => 1];
+                                   occurrences := 7;
+                                   tokens := [(. )];
+                                   token_registration := 1}"
 noise_tokens,""
-noise_related_tokens,""
