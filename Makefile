@@ -9,6 +9,7 @@ FLAGS=
 ROBIN_TMP:=$(shell mktemp)
 FINDCORR_TMP:=$(shell mktemp)
 UNIONTABLE_TMP:=$(shell mktemp)
+PSEUDOTABLE_TMP:=$(shell mktemp)
 TEST_TMP:=$(shell mktemp)
 ROBIN_VERSION:=$(shell git describe --all --long | rev | cut -d'-' -f 1 | rev)
 
@@ -16,6 +17,7 @@ all: dist/robin dist/findcorr dist/uniontables
 robin: dist/robin
 findcorr: dist/findcorr
 uniontables: dist/uniontables
+pseudotable: dist/pseudotable
 
 dist/robin: $(ROBIN_TMP)
 	mkdir -p dist
@@ -26,6 +28,10 @@ dist/findcorr: $(FINDCORR_TMP)
 	$(MLC) $(FLAGS) -o $@ $<
 
 dist/uniontables: $(UNIONTABLE_TMP)
+	mkdir -p dist
+	$(MLC) $(FLAGS) -o $@ $<
+
+dist/pseudotable: $(PSEUDOTABLE_TMP)
 	mkdir -p dist
 	$(MLC) $(FLAGS) -o $@ $<
 
@@ -51,6 +57,16 @@ $(FINDCORR_TMP): base.sml src/findcorr.sml
 
 .PHONY:$(UNIONTABLE_TMP)
 $(UNIONTABLE_TMP): base.sml src/uniontables.sml
+	echo "use\""$<"\";" >> $@;
+	for f in $(filter-out base.sml,$^); do \
+		tmp=$$(dirname $$f)/$$(basename $$f .sml); \
+		tmp=$$(sed "s/^src\///" <<< $$tmp); \
+		tmp=$$(sed "s/\//\./g" <<< $$tmp); \
+		echo "import \"$$tmp\";" >> $@ ; \
+	done
+
+.PHONY:$(PSEUDOTABLE_TMP)
+$(PSEUDOTABLE_TMP): base.sml src/pseudotable.sml
 	echo "use\""$<"\";" >> $@;
 	for f in $(filter-out base.sml,$^); do \
 		tmp=$$(dirname $$f)/$$(basename $$f .sml); \
