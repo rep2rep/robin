@@ -2,7 +2,6 @@ import "util.set";
 import "util.dictionary";
 import "util.formula";
 import "util.parser";
-import "util.algorithms";
 
 import "strategies.properties.property";
 import "strategies.properties.importance";

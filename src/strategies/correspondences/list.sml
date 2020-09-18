@@ -1,3 +1,4 @@
+import "util.algorithms";
 import "strategies.correspondences.correspondence";
 
 signature CORRESPONDENCELIST =
