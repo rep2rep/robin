@@ -201,26 +201,3 @@ fun fromString s =
          | Kind.KindError => raise ParseError;
 
 end;
-
-
-
-
-signature CORRESPONDENCELIST =
-sig
-
-    val allMatches :
-        Correspondence.correspondence list
-        -> QPropertySet.t QPropertySet.set
-        -> PropertySet.t PropertySet.set
-        -> Correspondence.correspondence list;
-    val typeCorrespondences :
-        (Correspondence.correspondence * Importance.importance) list
-        -> QPropertySet.t QPropertySet.set
-        -> (Correspondence.correspondence * Importance.importance) list;
-    val mrmc :
-        (Correspondence.correspondence * Importance.importance) list
-        -> QPropertySet.t QPropertySet.set
-        -> PropertySet.t PropertySet.set
-        -> (Correspondence.correspondence * Importance.importance) list;
-
-end;
