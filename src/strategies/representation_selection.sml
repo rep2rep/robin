@@ -1,5 +1,6 @@
 import "util.logging";
 import "util.set";
+import "util.listset";
 import "util.dictionary";
 import "util.csv";
 
@@ -7,8 +8,9 @@ import "strategies.properties.property";
 import "strategies.properties.tables";
 import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
 import "strategies.properties.importance";
-import "strategies.properties.correspondence";
 import "strategies.properties.cognitive";
+
+import "strategies.correspondences.correspondence";
 
 structure RepresentationSelection =
 struct
@@ -33,52 +35,51 @@ val correspondingTable' = ref [];
 val propertyTableQ' = ref (TableDict.empty ());
 
 fun init (repTables, corrTables, qTables) = let
+    fun dedupCorrespondences cs =
+        let fun eq (x, y) =
+                if Correspondence.matchingProperties x y
+                then if Correspondence.equal x y
+                     then true
+                     else (Logging.error
+                               ("ERROR: Conflicting correspondences:\n");
+                           Logging.error ("\t" ^
+                                          (Correspondence.toString x) ^
+                                          "\n");
+                           Logging.error ("\t" ^
+                                          (Correspondence.toString y) ^
+                                          "\n");
+                          raise Fail "Conflicting correspondence values")
+                else false;
+        in ListSet.removeDuplicates eq cs end;
 
-    val _ = Logging.write "\n-- Load the representation tables\n";
-    fun rsTableToDict (rs, props) = TableDict.fromPairList [((rs, rs), props)];
-    val propertyTableRep =
-        TableDict.unionAll
-              (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                             rsTableToDict (PropertyTables.loadRepresentationTable t)))
-                   repTables)
-        handle TableDict.KeyError => (Logging.error "An RS table has been duplicated"; raise TableDict.KeyError);
     val _ = Logging.write "\n-- Load the correspondence tables\n";
-
-    fun dedupCorrespondences [] = []
-      | dedupCorrespondences (x::xs) = let
-          fun removeCorr y [] = []
-            | removeCorr y (z::zs) =
-              if Correspondence.matchingProperties y z
-              then (
-                  if Correspondence.equal y z then
-                      removeCorr y zs
-                  else
-                      (Logging.error ("ERROR: Conflicting correspondences:\n");
-                       Logging.error ("\t" ^
-                                      (Correspondence.toString y) ^
-                                      "\n");
-                       Logging.error ("\t" ^
-                                      (Correspondence.toString z) ^
-                                      "\n");
-                       raise Fail "Conflicting correspondence values")
-              )
-              else z::(removeCorr y zs);
-      in
-          x::(dedupCorrespondences (removeCorr x xs))
-      end;
     val correspondingTable = dedupCorrespondences (
             List.concat
                 (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                                PropertyTables.loadCorrespondenceTable t))
                      corrTables));
 
+    val _ = Logging.write "\n-- Load the representation tables\n";
+    val propertyTableRep =
+        let fun loadTable tName =
+                let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
+                    val (rs, props) = PropertyTables.loadRepresentationTable tName;
+                in ((rs, rs), props) end;
+        in TableDict.fromPairList (map loadTable repTables) end
+        handle TableDict.KeyError => (
+            Logging.error "An RS table has been duplicated";
+            raise TableDict.KeyError);
+
     val _ = Logging.write "\n-- Load the question tables\n";
-    fun qTableToDict pair = TableDict.fromPairList [pair];
     val propertyTableQ =
-        TableDict.unionAll
-            (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
-                           qTableToDict (PropertyTables.loadQuestionTable t)))
-                 qTables);
+        let fun loadTable tName =
+                let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
+                    val (q, props) = PropertyTables.loadQuestionTable tName;
+                in (q, props) end;
+        in TableDict.fromPairList (map loadTable qTables) end
+        handle TableDict.KeyError => (
+            Logging.error "A Q table has been duplicated";
+            raise TableDict.KeyError);
 
 in
     propertyTableRep' := propertyTableRep;
@@ -103,7 +104,7 @@ fun getQTable q = (q, propertiesQ q);
 fun getRSTable rs = (rs, propertiesRS rs);
 
 (*
-propInfluence : (question * representation * float) -> (question * representation * float)
+propInfluence : (question * representation * score) -> (question * representation * score)
 For the given question and representation, adjust the score based on
 their properties.
 *)
@@ -115,28 +116,32 @@ fun propInfluence (q, r, s) =
         val _ = Logging.write ("ARG q = " ^ (#1 q) ^ ":" ^ (#2 q) ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
         val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
-        val qProps' = propertiesQ q;
-        val qProps = QPropertySet.withoutImportances qProps';
+        val qProps = propertiesQ q;
         val rProps = propertiesRS r;
-        val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps') ^ "\n");
+        val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps) ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
 
-        val matches =
+        val baseMatches =
             let fun liftImportance c =
                     (c, List.max (Importance.compare)
-                            (Correspondence.liftImportances qProps' c));
-                val correspondences = allCorrespondenceMatches (!correspondingTable')
-                                                               qProps rProps;
+                            (Correspondence.liftImportances qProps c));
+                val correspondences = CorrespondenceList.allMatches
+                                          (!correspondingTable')
+                                          qProps rProps;
             in map liftImportance correspondences end;
 
-        val typeMatches = typeCorrespondences matches qProps';
+        val typeMatches = CorrespondenceList.typeCorrespondences
+                              baseMatches qProps;
 
-        val modulate = Importance.modulate;
-        val strength = Correspondence.strength;
         (* Sort correspondences from most to least important *)
         val sort = List.mergesort
                        (Comparison.rev (fn ((_, i), (_, i')) =>
                                    Importance.compare (i, i')));
+        val matches = (sort baseMatches) @ typeMatches;
+        val matchGroup = CorrespondenceList.mrmc matches qProps rProps;
+
+        val modulate = Importance.modulate;
+        val strength = Correspondence.strength;
         val mix = fn ((c, i), s) =>
                      let
                          val s' = s + (modulate i (strength c));
@@ -155,7 +160,7 @@ fun propInfluence (q, r, s) =
                      in
                          s'
                      end;
-        val s' = List.foldl mix s ((sort matches) @ typeMatches);
+        val s' = List.foldl mix s matchGroup;
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("

@@ -1,7 +1,7 @@
 import "util.stream";
 import "util.random";
 
-import "strategies.properties.correspondence";
+import "strategies.correspondences.correspondence";
 
 
 signature DISCOVERCORRESPONDENCES = sig

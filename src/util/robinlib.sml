@@ -85,6 +85,7 @@ sig
 
     val remove : ''a -> ''a list -> ''a list;
     val removeDuplicates : ''a list -> ''a list;
+    val inout : 'a list -> ('a * 'a list) list;
 
     val mergesort : ('a * 'a -> order) -> 'a list -> 'a list;
 
@@ -149,6 +150,11 @@ fun split (xs, i) =
     in
         split' [] xs i
     end;
+
+fun inout lst =
+    let fun loop ans _ [] = List.rev ans
+          | loop ans ys (x::xs) = loop ((x, (List.rev ys)@xs)::ans) (x::ys) xs;
+    in loop [] [] lst end;
 
 fun mergesort cmp [] = []
   | mergesort cmp [x] = [x]
@@ -237,23 +243,23 @@ fun replicate n x =
     end;
 
 fun max _ [] = raise Empty
-  | max cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = GREATER
-                                               then a
-                                               else b)
-                                 x xs;
+  | max cmp (x::xs) = foldl (fn (a, b) => if cmp(a, b) = GREATER
+                                          then a
+                                          else b)
+                            x xs;
 
 fun min _ [] = raise Empty
-  | min cmp (x::xs) = List.foldl (fn (a, b) => if cmp(a, b) = LESS
-                                               then a
-                                               else b)
-                                 x xs;
+  | min cmp (x::xs) = foldl (fn (a, b) => if cmp(a, b) = LESS
+                                          then a
+                                          else b)
+                            x xs;
 
 fun dropWhile pred [] = []
   | dropWhile pred (x::xs) = if pred x then (dropWhile pred xs)
                              else x::xs;
 
 fun takeWhile pred list =
-    let fun takeWhile' [] ans = List.rev ans
+    let fun takeWhile' [] ans = rev ans
           | takeWhile' (x::xs) ans = if pred x then takeWhile' xs (x::ans)
                                       else List.rev ans;
     in takeWhile' list []
