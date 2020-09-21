@@ -29,9 +29,9 @@ fun register f = tests := (f::(!tests));
 
 fun assertEqual f a s =
     fn () => (if f () = a then () else raise TestFail s)
-             handle TestFail s => raise TestFail s
-                  | e => raise TestFail ("Exception " ^ (exnMessage e) ^
-                                         " while running test: \"" ^ s ^ "\"");
+             handle TestFail s => raise TestFail (s ^ "\n -> Failed.")
+                  | e => raise TestFail (s ^ "\n -> Failed due to exception " ^
+                                         (exnMessage e) ^ ".");
 
 fun assertTrue f s = assertEqual f true s;
 
@@ -39,10 +39,11 @@ fun assertFalse f s = assertEqual f false s;
 
 fun assertError f e s =
     fn () => let val _ = f () in raise TestFail s end
-             handle TestFail s => raise TestFail s
+             handle TestFail s => raise TestFail (s ^ "\n -> Failed to raise any exception.")
                   | e' => if (exnMessage e) = (exnMessage e')
                           then ()
-                          else raise TestFail s;
+                          else raise TestFail (s ^ "\n -> Failed with unexpected exception " ^
+                                               (exnMessage e') ^ ".");
 
 fun run () =
     let
