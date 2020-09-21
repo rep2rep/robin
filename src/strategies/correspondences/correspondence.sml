@@ -15,28 +15,28 @@ sig
 
     type propertyset = PropertySet.t PropertySet.set;
     type 'a corrformula;
-    type correspondence = Property.property corrformula * Property.property corrformula * real;
+    type t = Property.property corrformula * Property.property corrformula * real;
 
-    val flip : real -> correspondence -> correspondence;
+    val flip : real -> t -> t;
 
-    val equal : correspondence -> correspondence -> bool;
-    val stronger : correspondence -> correspondence -> bool;
-    val sameProperties : correspondence -> correspondence -> bool;
-    val matchingProperties : correspondence -> correspondence -> bool;
-    val match : propertyset -> propertyset -> correspondence -> bool;
-    val matchExists : propertyset -> propertyset -> correspondence list -> bool;
+    val equal : t -> t -> bool;
+    val stronger : t -> t -> bool;
+    val sameProperties : t -> t -> bool;
+    val matchingProperties : t -> t -> bool;
+    val match : propertyset -> propertyset -> t -> bool;
+    val matchExists : propertyset -> propertyset -> t list -> bool;
 
-    val leftMatches : propertyset -> correspondence -> propertyset;
-    val rightMatches : propertyset -> correspondence -> propertyset;
+    val leftMatches : propertyset -> t -> propertyset;
+    val rightMatches : propertyset -> t -> propertyset;
 
-    val identity : Property.property -> correspondence;
+    val identity : Property.property -> t;
 
     val liftImportances : QPropertySet.t QPropertySet.set ->
-                          correspondence -> Importance.importance list;
+                          t -> Importance.t list;
 
-    val strength : correspondence -> real;
-    val toString : correspondence -> string;
-    val fromString : string -> correspondence;
+    val strength : t -> real;
+    val toString : t -> string;
+    val fromString : string -> t;
 
 end;
 
@@ -54,7 +54,7 @@ exception ParseError;
 
 type propertyset = PropertySet.t PropertySet.set;
 type 'a corrformula = 'a F.formula;
-type correspondence = Property.property corrformula * Property.property corrformula * real;
+type t = Property.property corrformula * Property.property corrformula * real;
 
 fun strength (_, _, s) = s;
 fun flip r (a,b,s) = (b,a,s*r);

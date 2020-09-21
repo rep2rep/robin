@@ -15,11 +15,11 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.t;
     type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
     type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
     type representationtable = string * PropertySet.t PropertySet.set;
-    type correspondencetable = Correspondence.correspondence list;
+    type correspondencetable = Correspondence.t list;
 
     val loadCorrespondenceTable : string -> correspondencetable;
     val loadQuestionTable : string -> questiontable;
@@ -79,13 +79,11 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
-type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
 type representationtable = string * PropertySet.t PropertySet.set;
-type correspondencetable = Correspondence.correspondence list;
+type correspondencetable = Correspondence.t list;
 
-type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
+type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.t;
 type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 
 fun readCorrespondence q r s =

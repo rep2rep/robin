@@ -259,11 +259,11 @@ sig
     val compare : property * property -> order;
     val toString : property -> string;
     val fromString : string -> property;
-    val toPair : property -> (Property.property * Importance.importance);
-    val fromPair : (Property.property * Importance.importance) -> property;
+    val toPair : property -> (Property.property * Importance.t);
+    val fromPair : (Property.property * Importance.t) -> property;
     val withoutImportance : property -> Property.property;
     val kindOf : property -> Kind.kind;
-    val importanceOf : property -> Importance.importance;
+    val importanceOf : property -> Importance.t;
 
     val gravity : property -> real;
     val logGravity : property -> real;
@@ -273,7 +273,7 @@ end;
 structure QProperty :> QPROPERTY =
 struct
 
-type property = (Property.property * Importance.importance);
+type property = (Property.property * Importance.t);
 exception ParseError;
 
 val compare = Comparison.join Property.compare Importance.compare;

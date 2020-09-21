@@ -5,19 +5,19 @@ signature CORRESPONDENCELIST =
 sig
 
     val allMatches :
-        Correspondence.correspondence list
+        Correspondence.t list
         -> QPropertySet.t QPropertySet.set
         -> PropertySet.t PropertySet.set
-        -> Correspondence.correspondence list;
+        -> Correspondence.t list;
     val typeCorrespondences :
-        (Correspondence.correspondence * Importance.importance) list
+        (Correspondence.t * Importance.t) list
         -> QPropertySet.t QPropertySet.set
-        -> (Correspondence.correspondence * Importance.importance) list;
+        -> (Correspondence.t * Importance.t) list;
     val mrmc :
-        (Correspondence.correspondence * Importance.importance) list
+        (Correspondence.t * Importance.t) list
         -> QPropertySet.t QPropertySet.set
         -> PropertySet.t PropertySet.set
-        -> (Correspondence.correspondence * Importance.importance) list;
+        -> (Correspondence.t * Importance.t) list;
 
 end;
 
