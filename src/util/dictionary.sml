@@ -343,11 +343,13 @@ fun intersectionWith' _ LEAF _ = LEAF
     end;
 fun intersectionWith f t u = ref (intersectionWith' f (!t) (!u));
 
-fun intersectionAllWith f xs =
+fun intersectionAllWith f [] = empty ()
+  | intersectionAllWith f (x::xs) =
     let
+        val x' = !x;
         val xs' = map (fn x => !x) xs;
     in
-        ref (List.foldr (fn (a, b) => intersectionWith' f a b) LEAF xs')
+        ref (List.foldl (fn (a, b) => intersectionWith' f a b) x' xs')
     end;
 
 (*
