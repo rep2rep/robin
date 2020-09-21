@@ -1,30 +1,30 @@
 signature KIND =
 sig
     exception KindError;
-    eqtype kind;
+    eqtype t;
 
-    val Dummy : kind;
-    val Token : kind;
-    val Type : kind;
-    val Law : kind;
-    val Tactic : kind;
-    val Pattern : kind;
-    val Mode : kind;
-    val Import : kind;
-    val Rigorous : kind;
-    val ErrorAllowed : kind;
-    val DimensionUse : kind;
-    val GrammaticalComplexity : kind;
-    val InferentialComplexity : kind;
-    val NumTokens : kind;
-    val NumDistinctTokens : kind;
+    val Dummy : t;
+    val Token : t;
+    val Type : t;
+    val Law : t;
+    val Tactic : t;
+    val Pattern : t;
+    val Mode : t;
+    val Import : t;
+    val Rigorous : t;
+    val ErrorAllowed : t;
+    val DimensionUse : t;
+    val GrammaticalComplexity : t;
+    val InferentialComplexity : t;
+    val NumTokens : t;
+    val NumDistinctTokens : t;
 
-    val allKinds : kind list;
+    val allKinds : t list;
 
-    val toString : kind -> string;
-    val fromString : string -> kind;
+    val toString : t -> string;
+    val fromString : string -> t;
 
-    val compare : kind * kind -> order;
+    val compare : t * t -> order;
 
 end;
 
@@ -32,7 +32,7 @@ structure Kind :> KIND =
 struct
 
 exception KindError;
-type kind = string;
+type t = string;
 
 val Dummy = "__";
 val Token = "token";

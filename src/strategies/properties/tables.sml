@@ -15,8 +15,8 @@ signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.t;
-    type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
+    type qgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t * Importance.t;
+    type rsgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t;
     type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
     type representationtable = string * PropertySet.t PropertySet.set;
     type correspondencetable = Correspondence.t list;
@@ -53,7 +53,7 @@ struct
 
 exception TableError of string;
 
-structure SK = Set(struct type t = Kind.kind;
+structure SK = Set(struct type t = Kind.t;
                           val compare = Kind.compare;
                           val fmt = Kind.toString;
                    end);
@@ -83,8 +83,8 @@ type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
 type representationtable = string * PropertySet.t PropertySet.set;
 type correspondencetable = Correspondence.t list;
 
-type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.t;
-type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
+type qgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t * Importance.t;
+type rsgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t;
 
 fun readCorrespondence q r s =
     let

@@ -6,8 +6,8 @@ sig
     val fromQToken : QProperty.t -> QProperty.t;
 
     type data = real * real * real;
-    type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-    type clause = (Type.T list * ((int * (int list)) * resources));
+    type resources = ((string list * string list * (Type.t list * Type.t)) * int) list;
+    type clause = (Type.t list * ((int * (int list)) * resources));
 
     exception Unsatisfiable
 
@@ -43,8 +43,8 @@ fun fromToken c =
 fun fromQToken c = QProperty.fromPair (fromToken (QProperty.withoutImportance c), (QProperty.importanceOf c))
 
 type data = real * real * real;
-type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-type clause = (Type.T list * ((int * int list) * resources));
+type resources = ((string list * string list * (Type.t list * Type.t)) * int) list;
+type clause = (Type.t list * ((int * int list) * resources));
 
 fun sameTypeDNF (tF, tF') =
     let (* compares everything except the current depth *)

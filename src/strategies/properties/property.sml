@@ -14,37 +14,37 @@ sig
     datatype value = Label of string
                    | Number of int
                    | Boolean of bool
-                   | Type of Type.T
+                   | Type of Type.t
                    | Raw of string;
     type t;
 
     structure M : MULTISET;
-    val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
-    val toPairList : Type.T M.multiset -> (Type.T * int) list;
-    val HolesFromList : Type.T list -> Type.T M.multiset
-    val countUnique : Type.T M.multiset -> int;
-    val size : Type.T M.multiset -> int;
-    val contains : Type.T M.multiset -> Type.T -> bool;
-    exception NegativeCount of Type.T * int;
+    val toListHandlingNegatives : (int -> int) -> Type.t M.multiset -> Type.t list;
+    val toPairList : Type.t M.multiset -> (Type.t * int) list;
+    val HolesFromList : Type.t list -> Type.t M.multiset
+    val countUnique : Type.t M.multiset -> int;
+    val size : Type.t M.multiset -> int;
+    val contains : Type.t M.multiset -> Type.t -> bool;
+    exception NegativeCount of Type.t * int;
 
     exception Error of string;
     exception NoAttribute of string;
 
-    val kindOf : t -> Kind.kind;
+    val kindOf : t -> Kind.t;
     val valueOf : t -> value;
 
     val LabelOf : t -> string;
     val NumberOf : t -> int;
     val BooleanOf : t -> bool;
-    val TypeOf : t -> Type.T;
+    val TypeOf : t -> Type.t;
 
-    val updateAttribute : Attribute.T -> t -> t;
+    val updateAttribute : Attribute.t -> t -> t;
 
-    val attributesOf : t -> Attribute.T list;
-    val getTypeOfValue : t -> Type.T;
-    val getHoles : t -> Type.T M.multiset;
+    val attributesOf : t -> Attribute.t list;
+    val getTypeOfValue : t -> Type.t;
+    val getHoles : t -> Type.t M.multiset;
     val getTokens : t -> string list;
-    val getContent : t -> Type.T;
+    val getContent : t -> Type.t;
     val getStringFunction : string -> t -> (string * string);
     val getNumFunction : string -> t -> (string * real);
     val getFeatures : t -> string list;
@@ -59,9 +59,9 @@ sig
 
     val toString : t -> string;
     val fromString : string -> t;
-    val fromKindValueAttributes : Kind.kind * value * (Attribute.T list) -> t;
-    val toKindValueAttributes : t -> Kind.kind * value * (Attribute.T list);
-    val findAttributes : string -> (string * Attribute.T list);
+    val fromKindValueAttributes : Kind.t * value * (Attribute.t list) -> t;
+    val toKindValueAttributes : t -> Kind.t * value * (Attribute.t list);
+    val findAttributes : string -> (string * Attribute.t list);
 end;
 
 structure Property :> PROPERTY =
@@ -70,7 +70,7 @@ struct
 datatype value = Label of string
                | Number of int
                | Boolean of bool
-               | Type of Type.T
+               | Type of Type.t
                | Raw of string;
 
 fun stringOfValue (Label s) = s
@@ -79,7 +79,7 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Type t) = Type.toString t
   | stringOfValue (Raw s) = "RAW: " ^ s;
 
-type t = (Kind.kind * value * Attribute.T list);
+type t = (Kind.t * value * Attribute.t list);
 
 structure M = Attribute.M
 
@@ -270,7 +270,7 @@ sig
     val toPair : t -> (Property.t * Importance.t);
     val fromPair : (Property.t * Importance.t) -> t;
     val withoutImportance : t -> Property.t;
-    val kindOf : t -> Kind.kind;
+    val kindOf : t -> Kind.t;
     val importanceOf : t -> Importance.t;
 
     val gravity : t -> real;
