@@ -100,6 +100,7 @@ sig
 
     val mapArgs : ('a -> 'b) -> 'a list -> ('a * 'b) list;
     val flatmap : ('a -> 'b list) -> 'a list -> 'b list;
+    val update : ('a -> bool) -> ('a -> 'a) -> 'a list -> 'a list;
 
     val product : ('a list * 'b list) -> ('a * 'b) list;
 
@@ -210,6 +211,12 @@ fun isPermutationOf _ [] [] = true
 fun mapArgs f xs = map (fn x => (x, f x)) xs;
 
 fun flatmap f xs = concat (map f xs);
+
+fun update p f lst =
+    let fun update' ans [] = List.rev ans
+          | update' ans (x::xs) = if p x then update' ((f x)::ans) xs
+                                  else update' (x::ans) xs;
+    in update' [] lst end;
 
 fun product (xs, ys) =
     let

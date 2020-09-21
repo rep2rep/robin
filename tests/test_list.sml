@@ -272,6 +272,43 @@ TestSuite.register (
         "List: flatmap strings to chars"
 );
 
+(* update *)
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.update (fn _ => true) (fn x => x) [])
+        []
+        "List: update empty is empty"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.update (fn _ => true) (fn x => x) [1, 2, 3, 4, 5])
+        [1, 2, 3, 4, 5]
+        "List: update with identity is identity"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.update (fn _ => false) (fn x => 2 * x) [1, 2, 3, 4, 5])
+        [1, 2, 3, 4, 5]
+        "List: updating nothing is identity"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.update (fn x => x = 3) (fn _ => 42) [1, 2, 3, 4, 5])
+        [1, 2, 42, 4, 5]
+        "List: updating one element works"
+);
+
+TestSuite.register (
+    TestSuite.assertEqual
+        (fn () => List.update (fn x => x < 3) (fn x => x + 50) [5, 4, 3, 2, 1])
+        [5, 4, 3, 52, 51]
+        "List: updating multiple elements works"
+);
+
 (* product *)
 
 TestSuite.register (
