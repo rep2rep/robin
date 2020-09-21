@@ -15,28 +15,28 @@ sig
 
     type propertyset = PropertySet.t PropertySet.set;
     type 'a corrformula;
-    type correspondence = Property.property corrformula * Property.property corrformula * real;
+    type t = Property.t corrformula * Property.t corrformula * real;
 
-    val flip : real -> correspondence -> correspondence;
+    val flip : real -> t -> t;
 
-    val equal : correspondence -> correspondence -> bool;
-    val stronger : correspondence -> correspondence -> bool;
-    val sameProperties : correspondence -> correspondence -> bool;
-    val matchingProperties : correspondence -> correspondence -> bool;
-    val match : propertyset -> propertyset -> correspondence -> bool;
-    val matchExists : propertyset -> propertyset -> correspondence list -> bool;
+    val equal : t -> t -> bool;
+    val stronger : t -> t -> bool;
+    val sameProperties : t -> t -> bool;
+    val matchingProperties : t -> t -> bool;
+    val match : propertyset -> propertyset -> t -> bool;
+    val matchExists : propertyset -> propertyset -> t list -> bool;
 
-    val leftMatches : propertyset -> correspondence -> propertyset;
-    val rightMatches : propertyset -> correspondence -> propertyset;
+    val leftMatches : propertyset -> t -> propertyset;
+    val rightMatches : propertyset -> t -> propertyset;
 
-    val identity : Property.property -> correspondence;
+    val identity : Property.t -> t;
 
     val liftImportances : QPropertySet.t QPropertySet.set ->
-                          correspondence -> Importance.importance list;
+                          t -> Importance.t list;
 
-    val strength : correspondence -> real;
-    val toString : correspondence -> string;
-    val fromString : string -> correspondence;
+    val strength : t -> real;
+    val toString : t -> string;
+    val fromString : string -> t;
 
 end;
 
@@ -54,7 +54,7 @@ exception ParseError;
 
 type propertyset = PropertySet.t PropertySet.set;
 type 'a corrformula = 'a F.formula;
-type correspondence = Property.property corrformula * Property.property corrformula * real;
+type t = Property.t corrformula * Property.t corrformula * real;
 
 fun strength (_, _, s) = s;
 fun flip r (a,b,s) = (b,a,s*r);
@@ -199,40 +199,4 @@ fun fromString s =
     handle F.ParseError => raise ParseError
          | Kind.KindError => raise ParseError;
 
-end;
-
-fun allCorrespondenceMatches corrs qProps rProps =
-    let
-        fun alreadyCorr cs c = List.exists (Correspondence.matchingProperties c) cs;
-        val baseCorrs = List.filter (Correspondence.match qProps rProps) corrs;
-        val identities = PropertySet.map
-                             Correspondence.identity
-                             (PropertySet.collectLeftMatches qProps rProps);
-        val newIdentities = List.filter (fn c => not (alreadyCorr baseCorrs c))
-                                        identities;
-    in
-        newIdentities @ baseCorrs
-    end;
-
-
-local
-  structure F = Correspondence.F;
-  exception skipProp;
-in
-  fun typeCorrespondences corrs qProps =
-      let fun tCorrs q =
-              let val p = QProperty.withoutImportance q
-                  val t = Property.getTypeOfValue p handle Property.NoAttribute _ => raise skipProp
-                  val singletonT = PropertySet.fromList [Property.fromKindValueAttributes (Kind.Type, Property.Type t, [])]
-                  val singletonP = PropertySet.fromList [p]
-                  val g = QProperty.logGravity q handle Property.NoAttribute _ => 0.0
-                  fun mkCorrs [] = []
-                    | mkCorrs (((x,y,s),i)::L) =
-                        if PropertySet.isEmpty (Correspondence.leftMatches singletonT (x,y,s))
-                        then (if PropertySet.isEmpty (Correspondence.leftMatches singletonP (x,y,s)) then mkCorrs L else raise skipProp)
-                        else ((F.Atom p, F.Atom (Property.fromKindValueAttributes (Kind.Dummy, Property.Label ("\"" ^ F.toString Property.toString y ^ "\""), [])),s), i*g) :: mkCorrs L
-              in mkCorrs corrs
-              end handle skipProp => [] (* This is the hackiest thing ever, but it should take care of cases when there is already a correspondence for the property, so we don't need to add it from its type *)
-      in List.concat (QPropertySet.map tCorrs qProps)
-      end;
 end;

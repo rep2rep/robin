@@ -6,7 +6,7 @@ sig
 
   type qtable = QPropertySet.t QPropertySet.set;
   type rstable = PropertySet.t PropertySet.set;
-  type corrtable = Correspondence.correspondence list;
+  type corrtable = Correspondence.t list;
   type userprofile;
 
   val modifyImportances : real -> qtable -> qtable;
@@ -52,7 +52,7 @@ structure TableDict = Dictionary(struct
 
 type qtable = QPropertySet.t QPropertySet.set;
 type rstable = PropertySet.t PropertySet.set;
-type corrtable = Correspondence.correspondence list;
+type corrtable = Correspondence.t list;
 type userprofile = (string * real) list;
 
 (* here u is assumed to be a real between 0 and 1, where 0 flattens everything
