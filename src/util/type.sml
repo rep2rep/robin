@@ -5,23 +5,23 @@ import "util.parser";
 signature TYPE =
 sig
     exception ParseError;
-    datatype T = Ground of string
+    datatype t = Ground of string
                | Var of string
-               | Pair of T * T
-               | Function of T * T
-               | Constructor of string * T;
-    val getInOutTypes : T -> (T list * T);
-    val outputArity : T -> int;
-    val inputArity : T -> int;
-    val order : T -> int;
+               | Pair of t * t
+               | Function of t * t
+               | Constructor of string * t;
+    val getInOutTypes : t -> (t list * t);
+    val outputArity : t -> int;
+    val inputArity : t -> int;
+    val order : t -> int;
     exception TUNIFY;
-    val unify : (T * T) list -> (T * T) list;
-    val generalise : T -> T * (string * string) list;
-    val match : T * T -> bool;
-    val compare : T * T -> order;
-    val toString : T -> string;
-    val toDebugString : T -> string;
-    val fromString : string -> T;
+    val unify : (t * t) list -> (t * t) list;
+    val generalise : t -> t * (string * string) list;
+    val match : t * t -> bool;
+    val compare : t * t -> order;
+    val toString : t -> string;
+    val toDebugString : t -> string;
+    val fromString : string -> t;
 end;
 
 structure Type : TYPE =
@@ -59,11 +59,11 @@ is
 
 exception ParseError;
 
-datatype T = Ground of string
+datatype t = Ground of string
            | Var of string
-           | Pair of T * T
-           | Function of T * T
-           | Constructor of string * T;
+           | Pair of t * t
+           | Function of t * t
+           | Constructor of string * t;
 
 exception Extend;
 

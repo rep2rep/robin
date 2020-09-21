@@ -24,7 +24,7 @@ struct
 
 exception ReadError of string * string;
 
-type reader = string -> (Property.value * Attribute.T list) list;
+type reader = string -> (Property.value * Attribute.t list) list;
 
 fun booleanR str =
     if (String.implode (map Char.toLower (String.explode str))) = "true"

@@ -2,12 +2,12 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
-    val fromToken : Property.property -> Property.property
-    val fromQToken : QProperty.property -> QProperty.property
+    val fromToken : Property.t -> Property.t;
+    val fromQToken : QProperty.t -> QProperty.t;
 
     type data = real * real * real;
-    type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-    type clause = (Type.T list * ((int * (int list)) * resources));
+    type resources = ((string list * string list * (Type.t list * Type.t)) * int) list;
+    type clause = (Type.t list * ((int * (int list)) * resources));
 
     exception Unsatisfiable
 
@@ -15,11 +15,11 @@ sig
 
     val satisfyTypeDNF : clause list -> clause list * data;
 
-    val satisfyPattern : Property.property -> Property.property list -> Property.property list
+    val satisfyPattern : Property.t -> Property.t list -> Property.t list
                           -> (clause list * data);
 
-    val arity : Property.property -> int;
-    val distinctArity : Property.property -> real;
+    val arity : Property.t -> int;
+    val distinctArity : Property.t -> real;
 end;
 
 structure Pattern : PATTERN =
@@ -43,8 +43,8 @@ fun fromToken c =
 fun fromQToken c = QProperty.fromPair (fromToken (QProperty.withoutImportance c), (QProperty.importanceOf c))
 
 type data = real * real * real;
-type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
-type clause = (Type.T list * ((int * int list) * resources));
+type resources = ((string list * string list * (Type.t list * Type.t)) * int) list;
+type clause = (Type.t list * ((int * int list) * resources));
 
 fun sameTypeDNF (tF, tF') =
     let (* compares everything except the current depth *)
