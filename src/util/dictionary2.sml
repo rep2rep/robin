@@ -343,7 +343,8 @@ fun intersectionWith f t u =
                                                        | t => TREE t;
     in ref (intersectionWith'' f (!t) (!u)) end;
 
-fun intersectionAllWith f xs = List.foldr (fn (a, b) => intersectionWith f a b) (empty ()) xs;
+fun intersectionAllWith f [] = empty ()
+  | intersectionAllWith f (x::xs) = List.foldl (fn (a, b) => intersectionWith f a b) x xs;
 
 fun keys d = map' (fn (k, v) => k) d;
 fun values d = map' (fn (k, v) => v) d;
