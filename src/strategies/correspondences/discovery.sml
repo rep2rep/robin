@@ -11,12 +11,12 @@ signature DISCOVERCORRESPONDENCES = sig
                  PropertySet.t PropertySet.set list *
                  PropertySet.t PropertySet.set;
 
-    datatype reason = IDENTITY of Property.property
+    datatype reason = IDENTITY of Property.t
                     | REVERSAL of Correspondence.t
                     | COMPOSITION of Correspondence.t * Correspondence.t
-                    (* | KIND of Property.property * Property.property *)
-                    | ATTRIBUTE of Property.property * Property.property
-                    | VALUE of Property.property * Property.property;
+                    (* | KIND of Property.t * Property.t *)
+                    | ATTRIBUTE of Property.t * Property.t
+                    | VALUE of Property.t * Property.t;
 
     val reasonString : reason -> string;
     val discover : state -> (Correspondence.t * reason) Stream.stream;
@@ -30,12 +30,12 @@ type state = Correspondence.t list *
              PropertySet.t PropertySet.set list *
              PropertySet.t PropertySet.set;
 
-datatype reason = IDENTITY of Property.property
+datatype reason = IDENTITY of Property.t
                 | REVERSAL of Correspondence.t
                 | COMPOSITION of Correspondence.t * Correspondence.t
-                (* | KIND of Property.property * Property.property *)
-                | ATTRIBUTE of Property.property * Property.property
-                | VALUE of Property.property * Property.property;
+                (* | KIND of Property.t * Property.t *)
+                | ATTRIBUTE of Property.t * Property.t
+                | VALUE of Property.t * Property.t;
 
 fun reasonString (IDENTITY p) =
     "The property " ^ (Property.toString p) ^ " corresponds to itself"

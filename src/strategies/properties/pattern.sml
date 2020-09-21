@@ -2,8 +2,8 @@ import "strategies.properties.property";
 
 signature PATTERN =
 sig
-    val fromToken : Property.property -> Property.property
-    val fromQToken : QProperty.property -> QProperty.property
+    val fromToken : Property.t -> Property.t;
+    val fromQToken : QProperty.t -> QProperty.t;
 
     type data = real * real * real;
     type resources = ((string list * string list * (Type.T list * Type.T)) * int) list;
@@ -15,11 +15,11 @@ sig
 
     val satisfyTypeDNF : clause list -> clause list * data;
 
-    val satisfyPattern : Property.property -> Property.property list -> Property.property list
+    val satisfyPattern : Property.t -> Property.t list -> Property.t list
                           -> (clause list * data);
 
-    val arity : Property.property -> int;
-    val distinctArity : Property.property -> real;
+    val arity : Property.t -> int;
+    val distinctArity : Property.t -> real;
 end;
 
 structure Pattern : PATTERN =

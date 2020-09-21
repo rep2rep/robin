@@ -15,7 +15,7 @@ sig
 
     type propertyset = PropertySet.t PropertySet.set;
     type 'a corrformula;
-    type t = Property.property corrformula * Property.property corrformula * real;
+    type t = Property.t corrformula * Property.t corrformula * real;
 
     val flip : real -> t -> t;
 
@@ -29,7 +29,7 @@ sig
     val leftMatches : propertyset -> t -> propertyset;
     val rightMatches : propertyset -> t -> propertyset;
 
-    val identity : Property.property -> t;
+    val identity : Property.t -> t;
 
     val liftImportances : QPropertySet.t QPropertySet.set ->
                           t -> Importance.t list;
@@ -54,7 +54,7 @@ exception ParseError;
 
 type propertyset = PropertySet.t PropertySet.set;
 type 'a corrformula = 'a F.formula;
-type t = Property.property corrformula * Property.property corrformula * real;
+type t = Property.t corrformula * Property.t corrformula * real;
 
 fun strength (_, _, s) = s;
 fun flip r (a,b,s) = (b,a,s*r);

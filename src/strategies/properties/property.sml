@@ -11,8 +11,12 @@ signature PROPERTY =
 sig
     exception ParseError;
 
-    datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
-    type property;
+    datatype value = Label of string
+                   | Number of int
+                   | Boolean of bool
+                   | Type of Type.T
+                   | Raw of string;
+    type t;
 
     structure M : MULTISET;
     val toListHandlingNegatives : (int -> int) -> Type.T M.multiset -> Type.T list;
@@ -26,44 +30,48 @@ sig
     exception Error of string;
     exception NoAttribute of string;
 
-    val kindOf : property -> Kind.kind;
-    val valueOf : property -> value;
+    val kindOf : t -> Kind.kind;
+    val valueOf : t -> value;
 
-    val LabelOf : property -> string;
-    val NumberOf : property -> int;
-    val BooleanOf : property -> bool;
-    val TypeOf : property -> Type.T;
+    val LabelOf : t -> string;
+    val NumberOf : t -> int;
+    val BooleanOf : t -> bool;
+    val TypeOf : t -> Type.T;
 
-    val updateAttribute : Attribute.T -> property -> property
+    val updateAttribute : Attribute.T -> t -> t;
 
-    val attributesOf : property -> Attribute.T list;
-    val getTypeOfValue : property -> Type.T;
-    val getHoles : property -> Type.T M.multiset;
-    val getTokens : property -> string list;
-    val getContent : property -> Type.T;
-    val getStringFunction : string -> property -> (string * string);
-    val getNumFunction : string -> property -> (string * real);
-    val getFeatures : property -> string list;
+    val attributesOf : t -> Attribute.T list;
+    val getTypeOfValue : t -> Type.T;
+    val getHoles : t -> Type.T M.multiset;
+    val getTokens : t -> string list;
+    val getContent : t -> Type.T;
+    val getStringFunction : string -> t -> (string * string);
+    val getNumFunction : string -> t -> (string * real);
+    val getFeatures : t -> string list;
 
-    val sameHoles : (property * property) -> bool;
-    val sameTokens : (property * property) -> bool;
+    val sameHoles : (t * t) -> bool;
+    val sameTokens : (t * t) -> bool;
 
-    val updateNumFunction : string -> (real -> real) -> property -> property;
+    val updateNumFunction : string -> (real -> real) -> t -> t;
 
-    val compare : property * property -> order;
-    val match : property * property -> bool;
+    val compare : t * t -> order;
+    val match : t * t -> bool;
 
-    val toString : property -> string;
-    val fromKindValueAttributes : Kind.kind * value * (Attribute.T list) -> property;
-    val toKindValueAttributes : property -> Kind.kind * value * (Attribute.T list);
-    val fromString : string -> property;
+    val toString : t -> string;
+    val fromString : string -> t;
+    val fromKindValueAttributes : Kind.kind * value * (Attribute.T list) -> t;
+    val toKindValueAttributes : t -> Kind.kind * value * (Attribute.T list);
     val findAttributes : string -> (string * Attribute.T list);
 end;
 
 structure Property :> PROPERTY =
 struct
 
-datatype value = Label of string | Number of int | Boolean of bool | Type of Type.T | Raw of string;
+datatype value = Label of string
+               | Number of int
+               | Boolean of bool
+               | Type of Type.T
+               | Raw of string;
 
 fun stringOfValue (Label s) = s
   | stringOfValue (Number n) = Int.toString n
@@ -71,7 +79,7 @@ fun stringOfValue (Label s) = s
   | stringOfValue (Type t) = Type.toString t
   | stringOfValue (Raw s) = "RAW: " ^ s;
 
-type property = (Kind.kind * value * Attribute.T list);
+type t = (Kind.kind * value * Attribute.T list);
 
 structure M = Attribute.M
 
@@ -252,28 +260,28 @@ end;
 
 signature QPROPERTY =
 sig
-    type property;
+    type t;
 
     exception ParseError;
 
-    val compare : property * property -> order;
-    val toString : property -> string;
-    val fromString : string -> property;
-    val toPair : property -> (Property.property * Importance.t);
-    val fromPair : (Property.property * Importance.t) -> property;
-    val withoutImportance : property -> Property.property;
-    val kindOf : property -> Kind.kind;
-    val importanceOf : property -> Importance.t;
+    val compare : t * t -> order;
+    val toString : t -> string;
+    val fromString : string -> t;
+    val toPair : t -> (Property.t * Importance.t);
+    val fromPair : (Property.t * Importance.t) -> t;
+    val withoutImportance : t -> Property.t;
+    val kindOf : t -> Kind.kind;
+    val importanceOf : t -> Importance.t;
 
-    val gravity : property -> real;
-    val logGravity : property -> real;
+    val gravity : t -> real;
+    val logGravity : t -> real;
 end;
 
 
 structure QProperty :> QPROPERTY =
 struct
 
-type property = (Property.property * Importance.t);
+type t = (Property.t * Importance.t);
 exception ParseError;
 
 val compare = Comparison.join Property.compare Importance.compare;
@@ -301,7 +309,7 @@ end;
 structure PropertySet =
 struct
 structure S = Set(struct
-                type t = Property.property;
+                type t = Property.t;
                 val compare = Property.compare;
                 val fmt = Property.toString;
                 end);
@@ -329,14 +337,14 @@ end;
 
 
 structure PropertyDictionary = Dictionary(struct
-                                           type k = Property.property;
+                                           type k = Property.t;
                                            val compare = Property.compare;
                                            val fmt = Property.toString;
                                            end);
 structure QPropertySet =
 struct
 structure QS = Set(struct
-                    type t = QProperty.property;
+                    type t = QProperty.t;
                     val compare = QProperty.compare;
                     val fmt = QProperty.toString;
                     end);

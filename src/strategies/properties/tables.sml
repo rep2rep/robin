@@ -25,7 +25,7 @@ sig
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val transformQProperty : QProperty.property ->
+    val transformQProperty : QProperty.t ->
                              PropertySet.t PropertySet.set ->
                              correspondencetable ->
                              QPropertySet.t QPropertySet.set;

@@ -62,7 +62,7 @@ fun typeCorrespondences corrs qProps =
     end;
 
 local
-    structure PMS = Multiset(struct type t = Property.property;
+    structure PMS = Multiset(struct type t = Property.t;
                                     val compare = Property.compare;
                                     val fmt = Property.toString;
                              end);
