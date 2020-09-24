@@ -13,7 +13,7 @@ PSEUDOTABLE_TMP:=$(shell mktemp)
 TEST_TMP:=$(shell mktemp)
 ROBIN_VERSION:=$(shell git describe --all --long | rev | cut -d'-' -f 1 | rev)
 
-all: dist/robin dist/findcorr dist/uniontables
+all: robin findcorr uniontables pseudotable
 robin: dist/robin
 findcorr: dist/findcorr
 uniontables: dist/uniontables

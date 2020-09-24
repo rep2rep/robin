@@ -5,7 +5,7 @@ import "strategies.properties.property";
 import "strategies.properties.tables";
 import "strategies.properties.readers"; (* Must come after strategies.property_tables *)
 import "strategies.properties.importance";
-import "strategies.properties.correspondence";
+import "strategies.correspondences.correspondence";
 
 (* To see a full trace of the algorithm, we enable logging.
    If this seems too 'noisy', you can use `Logging.disable ()`.
