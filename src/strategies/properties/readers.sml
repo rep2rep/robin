@@ -145,21 +145,18 @@ local
 
     val stringProduct = map (op ^) o List.product
 
-    val generate_property_names = fn _ =>
-        let val its = ["tokens", "types", "patterns"]
-            val its' = ["laws", "tactics"]
-            val imps = ["instrumental_", "relevant_"]
-            val imps' = ["noise_"]
-        in (stringProduct (imps, (its @ its'))) @ (stringProduct (imps', its))
-        end;
+    fun generatePropertyNames () =
+        let val kinds = ["types", "tokens", "patterns", "laws", "tactics"];
+            val importances = ["essential_", "instrumental_", "relevant_",
+                               "circumstantial_", "noise_"];
+        in stringProduct (importances, kinds) end;
 
     (* now the available Q properties are generated systematically.
       No "related tactics" or "related laws", because it's nonsense.
       Also no "noise tactics" or "noise laws". *)
-    val QProperties = map (fn s => (s, qTagToTriple s)) (["mode",
-                                                          "error_allowed",
-                                                          "answer_type"]
-                                                        @ generate_property_names ());
+    val QProperties = map (fn s => (s, qTagToTriple s))
+                          (["mode", "error_allowed", "answer_type"]
+                           @ generatePropertyNames ());
 
     val QandRSProperties = [
     ];
