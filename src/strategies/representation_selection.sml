@@ -18,7 +18,8 @@ struct
 structure TableDict = Dictionary(struct
                                   type k = string * string;
                                   val compare =
-                                      Comparison.join String.compare String.compare;
+                                      Comparison.join String.compare
+                                                      String.compare;
                                   val fmt =
                                       (fn (s, t) => "(" ^ s ^ ", " ^ t ^ ")");
                                   end);
@@ -30,9 +31,9 @@ val _ = registerPropertyReaders
             PropertyTables.setQGenerators
             PropertyTables.setRSGenerators;
 
-val propertyTableRep' = ref (TableDict.empty ());
-val correspondingTable' = ref [];
-val propertyTableQ' = ref (TableDict.empty ());
+val propertyTableRep = ref (TableDict.empty ());
+val correspondenceTable = ref [];
+val propertyTableQ = ref (TableDict.empty ());
 
 fun init (repTables, corrTables, qTables) = let
     fun dedupCorrespondences cs =
@@ -53,14 +54,14 @@ fun init (repTables, corrTables, qTables) = let
         in ListSet.removeDuplicates eq cs end;
 
     val _ = Logging.write "\n-- Load the correspondence tables\n";
-    val correspondingTable = dedupCorrespondences (
+    val correspondingTable' = dedupCorrespondences (
             List.concat
                 (map (fn t => (Logging.write ("LOAD " ^ t ^ "\n");
                                PropertyTables.loadCorrespondenceTable t))
                      corrTables));
 
     val _ = Logging.write "\n-- Load the representation tables\n";
-    val propertyTableRep =
+    val propertyTableRep' =
         let fun loadTable tName =
                 let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
                     val (rs, props) = PropertyTables.loadRepresentationTable tName;
@@ -71,7 +72,7 @@ fun init (repTables, corrTables, qTables) = let
             raise TableDict.KeyError);
 
     val _ = Logging.write "\n-- Load the question tables\n";
-    val propertyTableQ =
+    val propertyTableQ' =
         let fun loadTable tName =
                 let val _ = Logging.write ("LOAD " ^ tName ^ "\n");
                     val (q, props) = PropertyTables.loadQuestionTable tName;
@@ -82,42 +83,44 @@ fun init (repTables, corrTables, qTables) = let
             raise TableDict.KeyError);
 
 in
-    propertyTableRep' := propertyTableRep;
-    correspondingTable' := correspondingTable;
-    propertyTableQ' := propertyTableQ
+    propertyTableRep := propertyTableRep';
+    correspondenceTable := correspondingTable';
+    propertyTableQ := propertyTableQ'
 end;
 
-fun propertiesRS rep =
-    TableDict.get (!propertyTableRep') (rep, rep)
+fun getRSDescriptionFor rep =
+    TableDict.get (!propertyTableRep) (rep, rep)
     handle TableDict.KeyError =>
            (Logging.error ("ERROR: representation '" ^ rep ^ "' not found!\n");
            raise TableDict.KeyError);
 
-fun propertiesQ q =
-    TableDict.get (!propertyTableQ') q
+fun getQDescriptionFor q =
+    TableDict.get (!propertyTableQ) q
     handle TableDict.KeyError =>
            (Logging.error ("ERROR: question named '" ^ (#1 q) ^ "' not found!\n");
            raise TableDict.KeyError);
 
-fun getQTable q = (q, propertiesQ q);
+fun getAllRSs () =
+    map (fn (r, _) => r) (TableDict.keys (!propertyTableRep))
 
-fun getRSTable rs = (rs, propertiesRS rs);
+fun getCorrespondences () =
+    !correspondenceTable;
+
 
 (*
-propInfluence : (question * representation * score) -> (question * representation * score)
+informationalSuitability : (question * representation * score) -> (question * representation * score)
 For the given question and representation, adjust the score based on
 their properties.
 *)
-fun propInfluence (q, r, s) =
+fun informationalSuitability (q, r) =
     let
         val _ = Logging.write ("\n");
-        val _ = Logging.write ("BEGIN propInfluence\n");
+        val _ = Logging.write ("BEGIN informationalSuitability\n");
         val _ = Logging.indent ();
         val _ = Logging.write ("ARG q = " ^ (#1 q) ^ ":" ^ (#2 q) ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
-        val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
-        val qProps = propertiesQ q;
-        val rProps = propertiesRS r;
+        val qProps = getQDescriptionFor q;
+        val rProps = getRSDescriptionFor r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps) ^ "\n");
         val _ = Logging.write ("VAL rProps = " ^ (PropertySet.toString rProps) ^ "\n\n");
 
@@ -126,7 +129,7 @@ fun propInfluence (q, r, s) =
                     (c, List.max (Importance.compare)
                             (Correspondence.liftImportances qProps c));
                 val correspondences = CorrespondenceList.allMatches
-                                          (!correspondingTable')
+                                          (getCorrespondences ())
                                           qProps rProps;
             in map liftImportance correspondences end;
 
@@ -142,13 +145,13 @@ fun propInfluence (q, r, s) =
 
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
-        val mix = fn ((c, i), s) =>
+        val mix = fn (c, i) =>
                      let
-                         val s' = s + (modulate i (strength c));
+                         val s = (modulate i (strength c));
                          (* Logging information *)
                          val cs = Correspondence.toString c;
                          val is = Importance.toString i;
-                         val ss = Real.toString s';
+                         val ss = Real.toString s;
                          val _ = Logging.write ("CORRESPONDENCE "
                                                 ^ cs
                                                 ^ ", IMPORTANCE "
@@ -158,23 +161,19 @@ fun propInfluence (q, r, s) =
                                                 ^ ss
                                                 ^ "\n");
                      in
-                         s'
+                         s
                      end;
-        val s' = List.foldl mix s matchGroup;
+        val s = List.sumIndexed mix matchGroup;
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("
                        ^ (#1 q) ^ ":" ^ (#2 q)
                        ^ ", " ^ r ^ ", "
-                       ^ (Real.toString s') ^ ")\n");
+                       ^ (Real.toString s) ^ ")\n");
         Logging.dedent ();
-        Logging.write ("END propInfluence\n\n");
-        (q, r, s')
+        Logging.write ("END informationalSuitability\n\n");
+        (q, r, s)
     end;
-
-fun userInfluence (q, r, s) = (q, r, s);
-
-fun taskInfluence (q, r, s) = (q, r, s);
 
 (*
 topKRepresentations : question -> int -> (representation * real) list
@@ -196,15 +195,14 @@ fun topKRepresentations question k =
         val _ = Logging.write ("ARG k = " ^ (Int.toString k) ^ "\n\n");
         val _ = Logging.write ("VAL questionName = " ^ questionName ^ "\n");
         val _ = Logging.write ("VAL questionRep = " ^ questionRep ^ "\n");
-        val relevanceScore = (taskInfluence o userInfluence o propInfluence);
-        val _ = Logging.write ("VAL relevanceScore = fn : (q, r, s) -> (q, r, s)\n");
-        val representations = map (fn (r, _) => r) (TableDict.keys (!propertyTableRep'));
+
+        val representations = getAllRSs ();
         val _ = Logging.write ("VAL representations = " ^
                      (List.toString (fn s => s) representations) ^
                      "\n");
         val influencedRepresentations =
             List.map
-                (fn rep => relevanceScore (question, rep, 0.0))
+                (fn rep => informationalSuitability (question, rep))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
                        (List.toString
