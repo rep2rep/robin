@@ -70,8 +70,11 @@ fun printCSV propertyset =
                     in
                         s
                     end;
+                val joiner = ",\n" ^ (String.implode (List.replicate
+                                                          (2 + String.size kstring)
+                                                          #" "));
             in
-                [kstring, String.concatWith ", " (map stringify vs)]
+                [kstring, String.concatWith joiner (map stringify vs)]
             end;
         val output = TextIO.stdOut;
         val grouped = groupByFirst (PropertySet.map
@@ -89,9 +92,18 @@ fun main () =
     let
         val filenames = parseArgs NONE;
         val qtables = loadTables filenames;
+        fun dropOccurrences p =
+            let val (k, v, a) = Property.toKindValueAttributes p;
+                val a' = List.filter
+                             (fn attr => "occurrences" <>
+                                         #1 (Attribute.getNumFunction attr)
+                             handle Match => true)
+                             a;
+            in Property.fromKindValueAttributes (k, v, a') end;
         val unionedTable = PropertySet.unionAll
                                (map
                                     (PropertySet.fromList o
+                                     (map dropOccurrences) o
                                      (QPropertySet.map
                                           QProperty.withoutImportance))
                                     (TableDict.values qtables));
