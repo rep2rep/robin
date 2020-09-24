@@ -112,14 +112,13 @@ informationalSuitability : (question * representation * score) -> (question * re
 For the given question and representation, adjust the score based on
 their properties.
 *)
-fun informationalSuitability (q, r, s) =
+fun informationalSuitability (q, r) =
     let
         val _ = Logging.write ("\n");
         val _ = Logging.write ("BEGIN informationalSuitability\n");
         val _ = Logging.indent ();
         val _ = Logging.write ("ARG q = " ^ (#1 q) ^ ":" ^ (#2 q) ^ " \n");
         val _ = Logging.write ("ARG r = " ^ r ^ " \n");
-        val _ = Logging.write ("ARG s = " ^ (Real.toString s) ^ " \n\n");
         val qProps = getQDescriptionFor q;
         val rProps = getRSDescriptionFor r;
         val _ = Logging.write ("VAL qProps = " ^ (QPropertySet.toString qProps) ^ "\n");
@@ -146,13 +145,13 @@ fun informationalSuitability (q, r, s) =
 
         val modulate = Importance.modulate;
         val strength = Correspondence.strength;
-        val mix = fn ((c, i), s) =>
+        val mix = fn (c, i) =>
                      let
-                         val s' = s + (modulate i (strength c));
+                         val s = (modulate i (strength c));
                          (* Logging information *)
                          val cs = Correspondence.toString c;
                          val is = Importance.toString i;
-                         val ss = Real.toString s';
+                         val ss = Real.toString s;
                          val _ = Logging.write ("CORRESPONDENCE "
                                                 ^ cs
                                                 ^ ", IMPORTANCE "
@@ -162,18 +161,18 @@ fun informationalSuitability (q, r, s) =
                                                 ^ ss
                                                 ^ "\n");
                      in
-                         s'
+                         s
                      end;
-        val s' = List.foldl mix s matchGroup;
+        val s = List.sumIndexed mix matchGroup;
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("
                        ^ (#1 q) ^ ":" ^ (#2 q)
                        ^ ", " ^ r ^ ", "
-                       ^ (Real.toString s') ^ ")\n");
+                       ^ (Real.toString s) ^ ")\n");
         Logging.dedent ();
         Logging.write ("END informationalSuitability\n\n");
-        (q, r, s')
+        (q, r, s)
     end;
 
 (*
@@ -203,7 +202,7 @@ fun topKRepresentations question k =
                      "\n");
         val influencedRepresentations =
             List.map
-                (fn rep => informationalSuitability (question, rep, 0.0))
+                (fn rep => informationalSuitability (question, rep))
                 representations;
         val _ = Logging.write ("VAL influencedRepresentations = " ^
                        (List.toString
