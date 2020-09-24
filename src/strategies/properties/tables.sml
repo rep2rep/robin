@@ -6,24 +6,26 @@ import "util.csv";
 import "strategies.properties.property";
 import "strategies.properties.kind";
 import "strategies.properties.importance";
-import "strategies.properties.correspondence";
 import "strategies.properties.readers";
+
+import "strategies.correspondences.correspondence";
+import "strategies.correspondences.list";
 
 signature PROPERTYTABLES =
 sig
     exception TableError of string;
 
-    type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
-    type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
+    type qgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t * Importance.t;
+    type rsgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t;
     type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
     type representationtable = string * PropertySet.t PropertySet.set;
-    type correspondencetable = Correspondence.correspondence list;
+    type correspondencetable = Correspondence.t list;
 
     val loadCorrespondenceTable : string -> correspondencetable;
     val loadQuestionTable : string -> questiontable;
     val loadRepresentationTable : string -> representationtable;
 
-    val transformQProperty : QProperty.property ->
+    val transformQProperty : QProperty.t ->
                              PropertySet.t PropertySet.set ->
                              correspondencetable ->
                              QPropertySet.t QPropertySet.set;
@@ -51,7 +53,7 @@ struct
 
 exception TableError of string;
 
-structure SK = Set(struct type t = Kind.kind;
+structure SK = Set(struct type t = Kind.t;
                           val compare = Kind.compare;
                           val fmt = Kind.toString;
                    end);
@@ -77,14 +79,12 @@ structure CSVLiberal = CSVIO(struct val delimiters = [#","];
                                     val newlines = ["\r", "\n", "\r\n"];
                              end);
 
-type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
-type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
 type questiontable = (string * string) * QPropertySet.t QPropertySet.set;
 type representationtable = string * PropertySet.t PropertySet.set;
-type correspondencetable = Correspondence.correspondence list;
+type correspondencetable = Correspondence.t list;
 
-type qgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind * Importance.importance;
-type rsgenerator = (string -> (Property.value * Attribute.T list) list) * Kind.kind;
+type qgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t * Importance.t;
+type rsgenerator = (string -> (Property.value * Attribute.t list) list) * Kind.t;
 
 fun readCorrespondence q r s =
     let
@@ -245,7 +245,7 @@ in
     loadQorRSPropertiesFromFile sets parsers genProps filename
 end;
 
-fun transformQPropertySet qProperties targetProperties corrTable =
+fun transformQPropertySet sourceProperties targetProperties corrTable =
     let
         fun translateProperty (correspondence, importance) =
             let
@@ -256,8 +256,9 @@ fun transformQPropertySet qProperties targetProperties corrTable =
                                       Kind.NumDistinctTokens];
                 val propertyKinds = SK.difference allKinds badKinds;
                 val strength = Correspondence.strength correspondence;
-                val properties = S.filter (fn p => SK.contains propertyKinds
-                                                               (Property.kindOf p))
+                val properties = S.filter (fn p =>
+                                              SK.contains propertyKinds
+                                                          (Property.kindOf p))
                                           (Correspondence.rightMatches
                                                targetProperties correspondence);
                 val makeQProperty = fn p => QProperty.fromPair (p, importance);
@@ -266,19 +267,18 @@ fun transformQPropertySet qProperties targetProperties corrTable =
                 then qset' (S.map makeQProperty properties)
                 else SQ.empty ()
             end;
-        val sourceProps = SQ.withoutImportances qProperties;
         val matches =
             let fun liftImportance c =
                     map (fn i => (c, i))
-                        (Correspondence.liftImportances qProperties c);
-                val correspondences = allCorrespondenceMatches corrTable
-                                                               sourceProps
-                                                               targetProperties;
+                        (Correspondence.liftImportances sourceProperties c);
+                val correspondences = CorrespondenceList.allMatches
+                                          corrTable
+                                          sourceProperties targetProperties;
             in List.flatmap liftImportance correspondences end;
         val newProperties = SQ.unionAll (List.map translateProperty matches);
-        val errorAllowed = SQ.find
-                               (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
-                               qProperties;
+        val errorAllowed =
+            SQ.find (fn qp => (QProperty.kindOf qp) = Kind.ErrorAllowed)
+                    sourceProperties;
         val _ = case errorAllowed of
                     SOME ea => SQ.insert newProperties ea
                   | NONE => ();

@@ -1,31 +1,31 @@
 signature IMPORTANCE =
 sig
 
-    type importance = real;
+    type t = real;
 
-    val High : importance;
-    val Medium : importance;
-    val Low : importance;
-    val Zero : importance;
-    val Noise : importance;
+    val High : t;
+    val Medium : t;
+    val Low : t;
+    val Zero : t;
+    val Noise : t;
 
 
-    val equal : (importance * importance) -> bool;
-    val compare : (importance * importance) -> order;
-    val weight : importance -> real;
-    val modulate : importance -> real -> real;
-    val fromString : string -> importance;
-    val toString : importance -> string;
+    val equal : (t * t) -> bool;
+    val compare : (t * t) -> order;
+    val weight : t -> real;
+    val modulate : t -> real -> real;
+    val fromString : string -> t;
+    val toString : t -> string;
 
-    val max : (importance * importance) -> importance;
-    val min : (importance * importance) -> importance;
+    val max : (t * t) -> t;
+    val min : (t * t) -> t;
 
 end;
 
 structure Importance : IMPORTANCE =
 struct
 
-type importance = real;
+type t = real;
 
 val Noise = ~1.0;
 val Zero = 0.0;

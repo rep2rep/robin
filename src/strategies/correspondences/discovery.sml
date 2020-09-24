@@ -1,41 +1,41 @@
 import "util.stream";
 import "util.random";
 
-import "strategies.properties.correspondence";
+import "strategies.correspondences.correspondence";
 
 
 signature DISCOVERCORRESPONDENCES = sig
 
     (* Correspondences, Old RSs, New RS *)
-    type state = Correspondence.correspondence list *
+    type state = Correspondence.t list *
                  PropertySet.t PropertySet.set list *
                  PropertySet.t PropertySet.set;
 
-    datatype reason = IDENTITY of Property.property
-                    | REVERSAL of Correspondence.correspondence
-                    | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
-                    (* | KIND of Property.property * Property.property *)
-                    | ATTRIBUTE of Property.property * Property.property
-                    | VALUE of Property.property * Property.property;
+    datatype reason = IDENTITY of Property.t
+                    | REVERSAL of Correspondence.t
+                    | COMPOSITION of Correspondence.t * Correspondence.t
+                    (* | KIND of Property.t * Property.t *)
+                    | ATTRIBUTE of Property.t * Property.t
+                    | VALUE of Property.t * Property.t;
 
     val reasonString : reason -> string;
-    val discover : state -> (Correspondence.correspondence * reason) Stream.stream;
+    val discover : state -> (Correspondence.t * reason) Stream.stream;
 
 end;
 
 
 structure DiscoverCorrespondences : DISCOVERCORRESPONDENCES = struct
 
-type state = Correspondence.correspondence list *
+type state = Correspondence.t list *
              PropertySet.t PropertySet.set list *
              PropertySet.t PropertySet.set;
 
-datatype reason = IDENTITY of Property.property
-                | REVERSAL of Correspondence.correspondence
-                | COMPOSITION of Correspondence.correspondence * Correspondence.correspondence
-                (* | KIND of Property.property * Property.property *)
-                | ATTRIBUTE of Property.property * Property.property
-                | VALUE of Property.property * Property.property;
+datatype reason = IDENTITY of Property.t
+                | REVERSAL of Correspondence.t
+                | COMPOSITION of Correspondence.t * Correspondence.t
+                (* | KIND of Property.t * Property.t *)
+                | ATTRIBUTE of Property.t * Property.t
+                | VALUE of Property.t * Property.t;
 
 fun reasonString (IDENTITY p) =
     "The property " ^ (Property.toString p) ^ " corresponds to itself"

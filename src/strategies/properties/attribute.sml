@@ -5,31 +5,31 @@ import "util.type";
 signature ATTRIBUTE =
 sig
   structure M : MULTISET;
-  type T;
+  type t;
 
-  val sameSort : T * T -> bool
-  val equal : T * T -> bool;
+  val sameSort : t * t -> bool
+  val equal : t * t -> bool;
 
-  val fromType : Type.T -> T;
-  val fromHoles : Type.T M.multiset -> T;
-  val fromContent : Type.T -> T;
-  val fromTokens : string list -> T;
-  val fromNumFunction : string * real -> T;
-  val fromStringFunction : string * string -> T;
-  val fromFeature : string -> T;
+  val fromType : Type.t -> t;
+  val fromHoles : Type.t M.multiset -> t;
+  val fromContent : Type.t -> t;
+  val fromTokens : string list -> t;
+  val fromNumFunction : string * real -> t;
+  val fromStringFunction : string * string -> t;
+  val fromFeature : string -> t;
 
-  val getType : T -> Type.T;
-  val getHoles : T -> Type.T M.multiset;
-  val getTokens : T -> string list;
-  val getContent : T -> Type.T;
-  val getNumFunction : T -> string * real;
-  val getStringFunction : T -> string * string;
-  val getFeature : T -> string;
+  val getType : t -> Type.t;
+  val getHoles : t -> Type.t M.multiset;
+  val getTokens : t -> string list;
+  val getContent : t -> Type.t;
+  val getNumFunction : t -> string * real;
+  val getStringFunction : t -> string * string;
+  val getFeature : t -> string;
 
-  val updateNumFunction : string -> (real -> real) -> T -> T;
+  val updateNumFunction : string -> (real -> real) -> t -> t;
 
-  val fromString : string -> T;
-  val toString : T -> string;
+  val fromString : string -> t;
+  val toString : t -> string;
 end
 
 
@@ -37,15 +37,15 @@ structure Attribute : ATTRIBUTE =
 struct
 
   structure M = Multiset(struct
-                         type t = Type.T;
+                         type t = Type.t;
                          val compare = Type.compare;
                          val fmt = Type.toString;
                          end);
 
-  datatype T = IsOfType of Type.T
-             | Holes of Type.T M.multiset
+  datatype t = IsOfType of Type.t
+             | Holes of Type.t M.multiset
              | Tokens of string list
-             | Content of Type.T
+             | Content of Type.t
              | NumFunction of string * real (* e.g., frequency := 4 *)
              | StringFunction of string * string (* e.g., registration := icon *)
              | Feature of string;
