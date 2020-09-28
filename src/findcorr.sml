@@ -24,6 +24,42 @@ structure FindCorrs = DiscoverCorrespondences;
 
 exception Return of int;
 
+fun parseArgs args =
+    let fun splitFlags ans [] = List.rev(ans)
+          | splitFlags ((f, a)::ans) (x::xs) =
+            if String.isPrefix "-" x
+            then splitFlags ((x, [])::(f, List.rev(a))::ans) xs
+            else splitFlags ((f, x::a)::ans) xs
+          | splitFlags [] _ = raise Match;
+        fun getFlags f [] = raise Empty
+          | getFlags f ((g, vs)::args) =
+            if f = g then vs
+            else getFlags f args;
+        fun helper args =
+            let val groups = splitFlags [("", [])] args;
+                val rss = getFlags "-r" groups
+                          handle Empty => getFlags "--rs" groups
+                                          handle Empty => [];
+                val corrs = getFlags "-c" groups
+                            handle Empty => getFlags "--corr" groups
+                                            handle Empty => [];
+                val settings =
+                    case (getFlags "" groups) of
+                        [] => (NONE, NONE)
+                      | [rs] => (SOME rs, NONE)
+                      | [rs, count] => (SOME rs, Int.fromString count)
+                      | (rs::count::_) =>
+                        (Logging.error ("Ignoring extra arguments...");
+                         (SOME rs, Int.fromString count));
+
+            in (settings, rss, corrs) end;
+    in
+        case args of
+            NONE => helper (CommandLine.arguments ())
+          | SOME a => helper a
+    end;
+
+
 fun filesMatchingPrefix dir prefix =
     let
         fun getWholeDir direc out = case OS.FileSys.readDir (direc) of
@@ -37,18 +73,6 @@ fun filesMatchingPrefix dir prefix =
         map (OS.FileSys.fullPath o attachDir) filteredFiles
     end;
 
-fun parseArgs NONE =
-    let
-        val args = CommandLine.arguments ();
-        val configuration =
-            case args of
-                [] => (NONE, NONE)
-              | [rs] => (SOME rs, NONE)
-              | [rs, count] => (SOME rs, Int.fromString count)
-              | (rs::count::_) => (Logging.error ("Ignoring extra arguments...");
-                                   (SOME rs, Int.fromString count));
-    in configuration end
-  | parseArgs (SOME args) = args;
 
 fun repl state =
     let
@@ -92,7 +116,7 @@ fun requestInput prompt =
     in case read of SOME v => v
                   | NONE => "" end;
 
-fun loadTables () =
+fun loadTables (rss, corrs) =
     let
         fun loadRS name =
             let val _ = Logging.write ("Loading RS table " ^ name ^ "... \n");
@@ -100,15 +124,12 @@ fun loadTables () =
             in
                 toDict (PropertyTables.loadRepresentationTable name)
             end;
-        val rss = [];
-        val corrs = [];
         val rsFiles = if List.null rss
                       then filesMatchingPrefix "tables/" "RS_table_"
-                      else map (fn rs => "tables/RS_table_" ^ rs ^ ".csv") rss;
+                      else rss;
         val corrFiles = if List.null corrs
                         then filesMatchingPrefix "tables/" "correspondences_"
-                        else map (fn c => "tables/correspondences_" ^ c ^ ".csv")
-                                 corrs;
+                        else corrs;
         val correspondences = List.concat
                                   (map PropertyTables.loadCorrespondenceTable
                                        corrFiles);
@@ -142,8 +163,12 @@ fun focusRS allRSs rsname =
 
 fun main () =
     let
-        val (allRSs, correspondences) = loadTables ();
-        val (rsname, rscount) = parseArgs NONE;
+        val (settings, rsfiles, corrfiles) =
+            parseArgs NONE
+            handle Empty => (Logging.error "Missing arguments: source_rs count\n";
+                            raise Return 1);
+        val (allRSs, correspondences) = loadTables (rsfiles, corrfiles);
+        val (rsname, rscount) = settings;
         val (newRS, oldRSs) = focusRS allRSs rsname;
 
         val state = (correspondences, oldRSs, newRS);
