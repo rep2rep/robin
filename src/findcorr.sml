@@ -27,7 +27,7 @@ exception Return of int;
 fun parseArgs args =
     let fun splitFlags ans [] = List.rev(ans)
           | splitFlags ((f, a)::ans) (x::xs) =
-            if String.isPrefix "-" x
+            if String.isPrefix "--" x
             then splitFlags ((x, [])::(f, List.rev(a))::ans) xs
             else splitFlags ((f, x::a)::ans) xs
           | splitFlags [] _ = raise Match;
@@ -37,12 +37,10 @@ fun parseArgs args =
             else getFlags f args;
         fun helper args =
             let val groups = splitFlags [("", [])] args;
-                val rss = getFlags "-r" groups
-                          handle Empty => getFlags "--rs" groups
-                                          handle Empty => [];
-                val corrs = getFlags "-c" groups
-                            handle Empty => getFlags "--corr" groups
-                                            handle Empty => [];
+                val rss = getFlags "--rs" groups
+                          handle Empty => [];
+                val corrs = getFlags "--corr" groups
+                            handle Empty => [];
                 val settings =
                     case (getFlags "" groups) of
                         [] => (NONE, NONE)
