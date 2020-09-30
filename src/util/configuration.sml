@@ -13,7 +13,7 @@ sig
     exception ArgumentError of string;
 
     type argspec = (string * string list * int);
-    type configuration = ((string * string) * int * string list * string list);
+    type configuration = ((string * string) * int * string option);
 
     (* Group given arguments according to specifications *)
     val readCommandLineArguments : argspec list -> string list -> (string * string) list;
@@ -33,7 +33,7 @@ struct
 exception ArgumentError of string;
 
 type argspec = (string * string list * int)
-type configuration = ((string * string) * int * string list * string list);
+type configuration = ((string * string) * int * string option);
 
 (*
 argspec : label, switches, argcount
@@ -138,18 +138,14 @@ fun configFromCommandLine rawArgs =
     let
         val argspec = [("question:rs", [], 1),
                        ("suggestion limit", [], 1),
-                       ("potential RSs", ["--rs"], 2),
-                       ("correspondence files",
-                        ["--correspondence-files", "-c"], 2)];
+                       ("table directory", ["--tables"], 2)];
         val args = readCommandLineArguments argspec rawArgs;
         val (q, rs) = readQuestion (getArgument args "question:rs");
         val limit = readLimit (getArgument args "suggestion limit");
-        val rss = List.flatmap (Parser.splitStrip ",")
-                               (getArguments args "potential RSs");
-        val corrFiles = List.flatmap (Parser.splitStrip ",")
-                                     (getArguments args "correspondence files");
+        val tableDir = SOME (getArgument args "table directory")
+                       handle ArgumentError _ => NONE;
     in
-        ((q, rs), limit, rss, corrFiles)
+        ((q, rs), limit, tableDir)
     end;
 
 fun configFromFile filename = raise ArgumentError "File reading unavailable";

@@ -39,19 +39,17 @@ fun main () =
     let
         val today = Date.fmt "%Y-%m-%d" (Date.fromTimeLocal (Time.now()));
         val version = "robin-" ^ ROBIN_VERSION;
-        val ((qName, qRep), numAlternatives, rss, corrs) = parseArgs ();
-        val rsFiles = if List.null rss
-                      then filesMatchingPrefix "tables/" "RS_table_"
-                      else map (fn rs => "tables/RS_table_" ^ rs ^ ".csv") rss;
-        val corrFiles = if List.null corrs
-                        then filesMatchingPrefix "tables/" "correspondences_"
-                        else map (fn c => "tables/correspondences_" ^ c ^ ".csv") corrs;
+        val ((qName, qRep), numAlternatives, tableDir') = parseArgs ();
+        val tableDir = case tableDir' of SOME d => d
+                                       | NONE => "tables/";
+        val rsFiles = filesMatchingPrefix tableDir "RS_table_";
+        val corrFiles = filesMatchingPrefix tableDir "correspondences_";
         val _ = Logging.write ("BEGIN algorithm-trace-"
                                ^ today
                                ^ " with "
                                ^ version ^ "\n");
         val _ = RepSelect.init(rsFiles, corrFiles,
-                               ["tables/Q_table_"
+                               [tableDir ^ "Q_table_"
                                 ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
         val bestRepresentations = RepSelect.topKRepresentations (qName, qRep) numAlternatives;
     in
