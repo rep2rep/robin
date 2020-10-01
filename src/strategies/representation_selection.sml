@@ -135,12 +135,7 @@ fun informationalSuitability (q, r) =
 
         val typeMatches = CorrespondenceList.typeCorrespondences
                               baseMatches qProps;
-
-        (* Sort correspondences from most to least important *)
-        val sort = List.mergesort
-                       (Comparison.rev (fn ((_, i), (_, i')) =>
-                                   Importance.compare (i, i')));
-        val matches = (sort baseMatches) @ typeMatches;
+        val matches = baseMatches @ typeMatches;
         val matchGroup = CorrespondenceList.mrmc matches qProps rProps;
 
         val modulate = Importance.modulate;
@@ -163,7 +158,11 @@ fun informationalSuitability (q, r) =
                      in
                          s
                      end;
-        val s = List.sumIndexed mix matchGroup;
+        (* Sort correspondences from most to least important *)
+        val sort = List.mergesort
+                       (Comparison.rev (fn ((_, i), (_, i')) =>
+                                   Importance.compare (i, i')));
+        val s = List.sumIndexed mix (sort matchGroup);
     in
         Logging.write ("\n");
         Logging.write ("RETURN ("

@@ -21,7 +21,9 @@ fun filesMatchingPrefix dir prefix =
         val filteredFiles = List.filter (String.isPrefix prefix) filenames;
         fun attachDir p = dir ^ p;
     in
-        map (OS.FileSys.fullPath o attachDir) filteredFiles
+        map (OS.FileSys.realPath o attachDir) filteredFiles
+        handle OS.SysErr (a, b) => (Logging.error ("Error: " ^ a ^ "\n");
+                                    raise OS.SysErr (a, b))
     end;
 
 fun parseArgs () =
