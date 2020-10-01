@@ -22,9 +22,9 @@ fun filesMatchingPrefix dir prefix =
         fun attachDir p = dir ^ p;
     in
         map (OS.FileSys.realPath o attachDir) filteredFiles
-        handle OS.SysErr (a, b) => (Logging.error ("Error: " ^ a ^ "\n");
-                                    raise OS.SysErr (a, b))
-    end;
+    end
+    handle OS.SysErr (a, b) => (Logging.error ("Error: " ^ a ^ "\n");
+                                raise OS.SysErr (a, b));
 
 fun parseArgs () =
     let
@@ -41,15 +41,15 @@ fun main () =
     let
         val today = Date.fmt "%Y-%m-%d" (Date.fromTimeLocal (Time.now()));
         val version = "robin-" ^ ROBIN_VERSION;
+        val _ = Logging.write ("BEGIN algorithm-trace-"
+                               ^ today
+                               ^ " with "
+                               ^ version ^ "\n");
         val ((qName, qRep), numAlternatives, tableDir') = parseArgs ();
         val tableDir = case tableDir' of SOME d => d
                                        | NONE => "tables/";
         val rsFiles = filesMatchingPrefix tableDir "RS_table_";
         val corrFiles = filesMatchingPrefix tableDir "correspondences_";
-        val _ = Logging.write ("BEGIN algorithm-trace-"
-                               ^ today
-                               ^ " with "
-                               ^ version ^ "\n");
         val _ = RepSelect.init(rsFiles, corrFiles,
                                [tableDir ^ "Q_table_"
                                 ^ (qName) ^ "_" ^ (qRep) ^ ".csv"]);
