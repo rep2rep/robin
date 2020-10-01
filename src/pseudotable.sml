@@ -51,10 +51,25 @@ fun dedupCorrespondences [] = []
       end;
 
 fun parseArgs () =
-    let
-        val args = case CommandLine.arguments () of
-                       [a, b, c, d] => (a, b, c, d)
-                     | l => (print ("Expected four arguments, got "
+    let fun splitFlags ans [] = List.rev(ans)
+          | splitFlags ((f, a)::ans) (x::xs) =
+            if String.isPrefix "--" x
+            then splitFlags ((x, [])::(f, List.rev(a))::ans) xs
+            else splitFlags ((f, x::a)::ans) xs
+          | splitFlags [] _ = raise Match;
+        fun getFlags f [] = raise Empty
+          | getFlags f ((g, vs)::args) =
+            if f = g then vs
+            else getFlags f args;
+
+        val rawArgs = splitFlags [("", [])] (CommandLine.arguments ());
+        val positional = getFlags "" rawArgs;
+        val tables = SOME (getFlags "--tables" rawArgs)
+                     handle Empty => NONE;
+        val args = case positional of
+                       [ab, c, d] => let val (a, _, b) = Parser.breakOn ":" ab
+                                     in (a, b, c, d, tables) end
+                     | l => (print ("Expected three arguments, got "
                                     ^ (Int.toString (List.length l)) ^ "\n");
                              raise Match);
     in args end;
@@ -65,10 +80,12 @@ fun main () =
                     PropertyTables.setQGenerators
                     PropertyTables.setRSGenerators;
 
-        val (qName, qRep, altRep, outfile) = parseArgs ();
-        val qFile = "tables/Q_table_" ^ qName ^ "_" ^ qRep ^ ".csv";
-        val rsFile = "tables/RS_table_" ^ altRep ^ ".csv";
-        val corrFiles = filesMatchingPrefix "tables/" "correspondences_";
+        val (qName, qRep, altRep, outfile, tabdir) = parseArgs ();
+        val tableDir = case tabdir of SOME d => List.hd d
+                                    | NONE => "tables/";
+        val qFile =  tableDir ^ "Q_table_" ^ qName ^ "_" ^ qRep ^ ".csv";
+        val rsFile = tableDir ^ "RS_table_" ^ altRep ^ ".csv";
+        val corrFiles = filesMatchingPrefix tableDir  "correspondences_";
 
         val q = PropertyTables.loadQuestionTable qFile;
         val _ = Logging.write ("LOAD " ^ qFile ^ "\n");
