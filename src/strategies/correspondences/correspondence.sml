@@ -1,7 +1,6 @@
 import "util.set";
 import "util.dictionary";
 import "util.formula";
-import "util.parser";
 
 import "strategies.properties.property";
 import "strategies.properties.importance";
@@ -182,7 +181,7 @@ fun toString (q, r, s) =
 
 fun fromString s =
     let
-        val parts = Parser.splitStrip "," (Parser.removeParens s);
+        val parts = String.splitStrip "," (String.removeParens s);
         val (leftString, rightString, valString) =
             case parts of
                 [l, r, v] => (l, r, v)

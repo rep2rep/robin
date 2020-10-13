@@ -1,4 +1,3 @@
-import "util.parser";
 import "strategies.properties.importance";
 import "strategies.properties.property";
 import "strategies.properties.kind";
@@ -49,16 +48,16 @@ fun labelR str =
     end;
 
 fun listOf reader str = if str = "NONE" orelse str = "" then []
-                        else List.flatmap reader (Parser.splitStrip "," str);
+                        else List.flatmap reader (String.splitStrip "," str);
 
 fun collection str = listOf (fn s => [s]) str;
 fun dimension str =
     let
         fun parseDimProps s = if s = "{}" then []
-                              else Parser.splitStrip ";" (Parser.removeBraces s);
+                              else String.splitStrip ";" (String.removeBraces s);
         fun createPairs dimval =
             let
-                val parts = Parser.splitStrip ":" dimval;
+                val parts = String.splitStrip ":" dimval;
             in
                 case parts of
                     [x, y] => (x, parseDimProps y)
@@ -122,7 +121,7 @@ local
         else Importance.Zero;
 
     fun qTagToTriple t =
-        let val (p,_,k) = Parser.breakOn "_" t
+        let val (p,_,k) = String.breakOn "_" t
             val importance = if t = "error_allowed" then Importance.High else if t = "mode" then Importance.Zero else importanceOfPrefix p
             fun keywordToReaderKind s =
                 if String.isPrefix "type" s then (listOf typeR, Kind.Type) else
@@ -130,7 +129,7 @@ local
                 if String.isPrefix "pattern" s then (listOf labelR, Kind.Pattern) else
                 if String.isPrefix "law" s then (listOf labelR, Kind.Law) else
                 if String.isPrefix "tactic" s then (listOf labelR, Kind.Tactic) else
-                if String.isPrefix "related" s then keywordToReaderKind (#3 (Parser.breakOn "_" k)) else
+                if String.isPrefix "related" s then keywordToReaderKind (#3 (String.breakOn "_" k)) else
                 (* treating related equal to present *)
                   raise Match;
 

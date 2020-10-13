@@ -227,17 +227,17 @@ fun breakUntilCharacter _ [] = ([],[])
            end;
 
 fun readAttributes s =
-    let val s' = (Parser.removeBraces o Parser.stripSpaces) s
-        val Astrs = Parser.splitStrip ";" s'
+    let val s' = (String.removeBraces o String.stripSpaces) s
+        val Astrs = String.splitStrip ";" s'
         val A = map Attribute.fromString Astrs
     in  A
     end
 
 fun findAttributes s =
     let
-      val (v,_,As) = Parser.breakOn ":" s;
+      val (v,_,As) = String.breakOn ":" s;
       val A = readAttributes As (* takes {sdf; fsdfd:=sdf ; fdsdf:=[type1 =>2. type2 => 1] ;fte} and returns a list of attributes*)
-    in (Parser.stripSpaces v, A)
+    in (String.stripSpaces v, A)
     end
 
 fun fromKindValueAttributes (k,v,A) = (k,v,A)
@@ -247,7 +247,7 @@ fun toKindValueAttributes (k,v,A) = (k,v,A)
    which shouldn't care about attributes other than type. Thus, the
    only attribute carried on is the type *)
 fun fromString s =
-    let val (ks,_,vs) = Parser.breakOn "-" s
+    let val (ks,_,vs) = String.breakOn "-" s
         val (v,A) = findAttributes vs
         val k = Kind.fromString ks
     in
@@ -287,7 +287,7 @@ exception ParseError;
 val compare = Comparison.join Property.compare Importance.compare;
 fun toString (p, i) = "(" ^ (Property.toString p) ^ ", " ^ (Importance.toString i) ^ ")";
 fun fromString s =
-    case Parser.splitStrip "," (Parser.removeParens s) of
+    case String.splitStrip "," (String.removeParens s) of
         [a, b] => (case Importance.fromString b of b' => (Property.fromString a, b'))
       | _ => raise ParseError;
 fun toPair (s, i) = (s, i);

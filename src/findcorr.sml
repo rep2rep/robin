@@ -147,7 +147,7 @@ fun focusRS allRSs rsname =
                             SOME name => (Logging.write
                                               ("Taking " ^ name
                                                ^ " as the new RS.\n"); name)
-                          | NONE => Parser.stripSpaces
+                          | NONE => String.stripSpaces
                                         (requestInput "Which is the new RS? ");
         val newRS = TableDict.get allRSs newRSName
                     handle TableDict.KeyError =>

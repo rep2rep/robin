@@ -102,8 +102,8 @@ struct
     | getFeature _ = raise Match;
 
   fun decomposeAttribute a =
-      let val (x,_,y) = (Parser.breakOn ":=" a);
-      in (Parser.stripSpaces x,  Parser.stripSpaces y)
+      let val (x,_,y) = (String.breakOn ":=" a);
+      in (String.stripSpaces x, String.stripSpaces y)
       end;
 
 
@@ -123,8 +123,8 @@ struct
 
   fun makeHoleList [] = []
     | makeHoleList (a::L) =
-        let val (sx,_,sy) = Parser.breakOn "=>" a;
-            val y = Parser.stripSpaces sy;
+        let val (sx,_,sy) = String.breakOn "=>" a;
+            val y = String.stripSpaces sy;
             val x' = Type.fromString sx;
             val y' = intFromString y;
         in (x',y') :: makeHoleList L
@@ -135,11 +135,11 @@ struct
 (* holeMultisetFromString takes a string with square brackets with
     type/multiplicities pairs separated by dots [int => 1. real => 4. set => 1]*)
   fun holeMultisetFromString s =
-      let val L = Parser.splitStrip "." (Parser.removeSquareBrackets s)
+      let val L = String.splitStrip "." (String.removeSquareBrackets s)
       in holeMultisetFromList L
       end
 
-  fun tokenListFromString s = Parser.splitStrip "." (Parser.removeSquareBrackets s);
+  fun tokenListFromString s = String.splitStrip "." (String.removeSquareBrackets s);
 
   fun attributeFromPair (x,y) =
       if y = "" then Feature x

@@ -66,7 +66,7 @@ fun printCSV propertyset =
                     let
                         val property = Property.fromKindValueAttributes (k, v, a)
                         val fullstring = Property.toString property;
-                        val (_, _, s) = Parser.breakOn "-" fullstring;
+                        val (_, _, s) = String.breakOn "-" fullstring;
                     in
                         s
                     end;

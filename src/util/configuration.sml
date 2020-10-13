@@ -5,8 +5,6 @@ Manage configuration for robin. This includes both via the command line,
 and through configuration files.
 *)
 
-import "util.parser";
-
 signature CONFIGURATION =
 sig
 
@@ -125,8 +123,8 @@ fun getArgBool args x =
 
 fun readQuestion qrs =
     let val separator = ":"
-    in case (Parser.splitOn separator qrs) of
-           [q, rs] => (q, rs)
+    in case (String.breakOn separator qrs) of
+           (q, ":", rs) => (q, rs)
          | _ => raise ArgumentError qrs
     end;
 

@@ -225,7 +225,7 @@ fun fromString builder s =
             let
                 fun revJoinAll xs = List.map (String.implode o List.rev) xs;
                 fun dropEmpty xs = List.filter (fn s => s <> "") xs;
-                fun stripAllSpaces xs = List.map (Parser.stripSpaces) xs;
+                fun stripAllSpaces xs = List.map (String.stripSpaces) xs;
                 fun cluster [] xs = cluster [[]] xs
                   | cluster cs [] = List.rev cs
                   | cluster (c::cs) (x::xs) =
@@ -238,7 +238,7 @@ fun fromString builder s =
                 fun fixSpaces ans [] = List.rev ans
                   | fixSpaces ans [t] = fixSpaces (t::ans) []
                   | fixSpaces ans (t::t'::ts) =
-                    if (Parser.stripSpaces t) = "("
+                    if (String.stripSpaces t) = "("
                        orelse t = Format.neg
                     then
                         fixSpaces (t::ans) (t'::ts)

@@ -67,7 +67,7 @@ fun parseArgs () =
         val tables = SOME (getFlags "--tables" rawArgs)
                      handle Empty => NONE;
         val args = case positional of
-                       [ab, c, d] => let val (a, _, b) = Parser.breakOn ":" ab
+                       [ab, c, d] => let val (a, _, b) = String.breakOn ":" ab
                                      in (a, b, c, d, tables) end
                      | l => (print ("Expected three arguments, got "
                                     ^ (Int.toString (List.length l)) ^ "\n");
